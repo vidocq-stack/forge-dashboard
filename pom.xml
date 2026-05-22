@@ -38,11 +38,30 @@
         <subproject>forge-dashboard-app</subproject>
     </subprojects>
 
-    <!--
-        Pas de <repositories> remote : les artefacts Vidocq SNAPSHOT sont consommes
-        depuis le M2 local (mvn install upstream prealable). repo.vidocq.dev n'est pas
-        encore en ligne (404). Reintroduire ce bloc quand le repo distant sera up.
-    -->
+    <!-- Reposilite Vidocq : SNAPSHOTs et releases. Auth via settings.xml
+         (server id 'vidocq-snapshots' et 'vidocq-releases'). -->
+    <repositories>
+        <repository>
+            <id>vidocq-snapshots</id>
+            <url>https://repo.vidocq.dev/snapshots</url>
+            <releases><enabled>false</enabled></releases>
+            <snapshots><enabled>true</enabled></snapshots>
+        </repository>
+        <repository>
+            <id>vidocq-releases</id>
+            <url>https://repo.vidocq.dev/releases</url>
+            <releases><enabled>true</enabled></releases>
+            <snapshots><enabled>false</enabled></snapshots>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>vidocq-snapshots</id>
+            <url>https://repo.vidocq.dev/snapshots</url>
+            <releases><enabled>false</enabled></releases>
+            <snapshots><enabled>true</enabled></snapshots>
+        </pluginRepository>
+    </pluginRepositories>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

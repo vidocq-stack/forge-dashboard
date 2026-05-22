@@ -85,10 +85,33 @@ docker push forge.vidocq.dev/vidocq-tools/forge-dashboard:0.1.0-SNAPSHOT
 # puis création stack sur Portainer via API ou UI
 ```
 
+## CI/CD (Forgejo Actions)
+
+`.forgejo/workflows/build-deploy.yml` : push sur `main` → `mvn install` (avec
+`maven-settings.xml` qui pointe sur `repo.vidocq.dev`) → build & push image
+`forge.vidocq.dev/vidocq-tools/forge-dashboard:0.1.0-SNAPSHOT` + tag `main-<sha7>` →
+POST sur le webhook Portainer (force pull + restart container).
+
+Secrets requis dans `Repo Settings → Actions → Secrets` :
+
+| Secret | Usage |
+|---|---|
+| `VIDOCQ_MAVEN_USER` | user read Reposilite pour les SNAPSHOTs Vidocq upstream |
+| `VIDOCQ_MAVEN_PASSWORD` | mot de passe associé |
+| `REGISTRY_USER` | user du registry Docker (`forge.vidocq.dev`) |
+| `REGISTRY_PASSWORD` | token bot |
+| `PORTAINER_WEBHOOK_URL` | webhook container Portainer (id=1, type=container) |
+
+**Prérequis upstream** : `cassini`, `chappe`, `vauban`, `champollion`, `ravel`,
+`vidocq-runtime-core`, `vidocq-runtime-cassini-rest-extension` doivent être publiés
+en SNAPSHOT sur `repo.vidocq.dev/snapshots`. Sinon `mvn install` échoue.
+
 ## Roadmap M0 (premier déploiement utile)
 
-1. Client Forgejo : `listRepos(org)`, `listRunners()`, `getLatestCommit(repo)`, `listOpenPRs(repo)`
-2. Page `/` + fragment `/tiles/repos` (sans build status — juste topics + dernier commit + nb PR)
-3. Page `/tiles/runners`
-4. Dockerfile fonctionnel + `docker-compose.yml` pour Portainer
+1. Client Forgejo : `listRepos(org)`, `listRunners()`, `getLatestCommit(repo)`, `listOpenPRs(repo)` ✅
+2. Page `/` + fragment `/tiles/repos` (sans build status — juste topics + dernier commit + nb PR) ✅
+3. Page `/tiles/runners` ✅ (placeholder, API publique absente)
+4. Dockerfile fonctionnel + `docker-compose.yml` pour Portainer ✅
 5. Auth — pour M0, dashboard accessible derrière un reverse-proxy authentifié (Traefik + forward-auth) ; pas d'auth applicative interne
+6. Build status main + dernière PR ✅
+7. CI/CD Forgejo Actions ✅ (à valider quand les SNAPSHOTs upstream seront publiés)
