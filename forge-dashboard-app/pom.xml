@@ -88,6 +88,23 @@
 
     <build>
         <plugins>
+            <!-- Copie toutes les deps runtime dans target/dependency/ pour le Dockerfile. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.6.1</version>
+                <executions>
+                    <execution>
+                        <id>copy-deps</id>
+                        <phase>package</phase>
+                        <goals><goal>copy-dependencies</goal></goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/dependency</outputDirectory>
+                            <includeScope>runtime</includeScope>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <!-- Genere les _ClientProxy.class CDI + META-INF/vauban-beans.list a la compilation.
                  Sans ce goal, Vauban ne decouvre aucun bean au runtime. -->
             <plugin>

@@ -1,38 +1,34 @@
 # syntax=docker/dockerfile:1.7
-# ---- build stage ----
-FROM bellsoft/liberica-openjdk-debian:25 AS build
+#
+# Image runtime forge-dashboard.
+# Build prealable requis cote host : `mvn -ntp -B install -DskipTests` (les SNAPSHOTs
+# Vidocq ne sont qu'en M2 local pour l'instant). Le Dockerfile copie simplement le
+# JAR + les deps dans l'image.
+#
+FROM bellsoft/liberica-openjre-debian:25 AS runtime
 
-ARG MAVEN_VERSION=4.0.0-rc-5
-RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates \
-    && curl -fsSL -o /tmp/maven.tgz "https://dlcdn.apache.org/maven/maven-4/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz" \
-    && tar -xzf /tmp/maven.tgz -C /opt && rm /tmp/maven.tgz \
-    && ln -s "/opt/apache-maven-${MAVEN_VERSION}/bin/mvn" /usr/local/bin/mvn
-
-WORKDIR /src
-COPY pom.xml ./
-COPY forge-dashboard-app/pom.xml forge-dashboard-app/
-RUN --mount=type=cache,target=/root/.m2 \
-    mvn -ntp -B dependency:go-offline -DskipTests || true
-
-COPY forge-dashboard-app/src forge-dashboard-app/src
-RUN --mount=type=cache,target=/root/.m2 \
-    mvn -ntp -B -DskipTests package
-
-# ---- runtime stage ----
-FROM bellsoft/liberica-openjre-debian:25
 LABEL org.opencontainers.image.source="https://forge.vidocq.dev/vidocq-tools/forge-dashboard"
 LABEL org.opencontainers.image.title="forge-dashboard"
 LABEL org.opencontainers.image.licenses="Apache-2.0"
 
+# wget pour le healthcheck (l'image debian-slim a busybox-less, on installe la version pure).
+RUN apt-get update && apt-get install -y --no-install-recommends wget ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
-COPY --from=build /src/forge-dashboard-app/target/forge-dashboard-app-*.jar app.jar
-COPY --from=build /root/.m2/repository /m2/repository
 
-ENV DASHBOARD_PORT=8080
+# Toutes les deps runtime, puis le jar applicatif.
+COPY forge-dashboard-app/target/dependency/ /app/lib/
+COPY forge-dashboard-app/target/forge-dashboard-app-*.jar /app/lib/
+
+# Vidocq + Vauban + Cassini + Chappe sont des modules JPMS — on lance via module-path.
+# Le main-class est resolu via App.java -> Vidocq.main(args).
+ENTRYPOINT ["java", \
+    "--module-path", "/app/lib", \
+    "--add-modules", "ALL-MODULE-PATH", \
+    "-m", "io.vidocq.tools.dashboard.app/io.vidocq.tools.dashboard.App"]
+
 EXPOSE 8080
-
-# Le module-path complet est resolu via la conf Vidocq.
-ENTRYPOINT ["java", "-jar", "app.jar"]
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
   CMD wget -qO- http://localhost:8080/api/healthz || exit 1

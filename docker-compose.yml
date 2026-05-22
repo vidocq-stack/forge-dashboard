@@ -6,12 +6,20 @@ services:
     environment:
       FORGEJO_URL: ${FORGEJO_URL}
       FORGEJO_TOKEN: ${FORGEJO_TOKEN}
-      DASHBOARD_PORT: 8080
+      FORGEJO_ORGS: ${FORGEJO_ORGS:-vidocq,vidocq-tools}
       DASHBOARD_CACHE_TTL_SECONDS: ${DASHBOARD_CACHE_TTL_SECONDS:-30}
-    ports:
-      - "8080:8080"
+    expose:
+      - "8080"
+    networks:
+      - proxy
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8080/api/healthz || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
+
+networks:
+  # Reseau partage du reverse-proxy (NPM). NPM forward vers forge-dashboard:8080.
+  proxy:
+    external: true
+    name: reverseproxy_default
