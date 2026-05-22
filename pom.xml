@@ -34,33 +34,15 @@
         <developerConnection>scm:git:git@forge.vidocq.dev:vidocq-tools/forge-dashboard.git</developerConnection>
     </scm>
 
-    <modules>
-        <module>forge-dashboard-app</module>
-    </modules>
+    <subprojects>
+        <subproject>forge-dashboard-app</subproject>
+    </subprojects>
 
-    <repositories>
-        <repository>
-            <id>vidocq-snapshots</id>
-            <url>https://repo.vidocq.dev/snapshots</url>
-            <releases><enabled>false</enabled></releases>
-            <snapshots><enabled>true</enabled></snapshots>
-        </repository>
-        <repository>
-            <id>vidocq-releases</id>
-            <url>https://repo.vidocq.dev/releases</url>
-            <releases><enabled>true</enabled></releases>
-            <snapshots><enabled>false</enabled></snapshots>
-        </repository>
-    </repositories>
-
-    <pluginRepositories>
-        <pluginRepository>
-            <id>vidocq-releases</id>
-            <url>https://repo.vidocq.dev/releases</url>
-            <releases><enabled>true</enabled></releases>
-            <snapshots><enabled>false</enabled></snapshots>
-        </pluginRepository>
-    </pluginRepositories>
+    <!--
+        Pas de <repositories> remote : les artefacts Vidocq SNAPSHOT sont consommes
+        depuis le M2 local (mvn install upstream prealable). repo.vidocq.dev n'est pas
+        encore en ligne (404). Reintroduire ce bloc quand le repo distant sera up.
+    -->
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -71,6 +53,7 @@
         <cassini.version>0.1.0-SNAPSHOT</cassini.version>
         <champollion.version>0.1.0-SNAPSHOT</champollion.version>
         <vauban.version>0.1.0-SNAPSHOT</vauban.version>
+        <chappe.version>0.1.0-SNAPSHOT</chappe.version>
 
         <!-- Jakarta / MicroProfile (API uniquement, runtime fourni par Vidocq) -->
         <jakarta.ws.rs.version>4.0.0</jakarta.ws.rs.version>
@@ -103,6 +86,18 @@
                 <groupId>io.vidocq.champollion</groupId>
                 <artifactId>champollion-jsonb</artifactId>
                 <version>${champollion.version}</version>
+            </dependency>
+
+            <!-- Chappe (serveur HTTP utilise par Cassini) -->
+            <dependency>
+                <groupId>io.vidocq.chappe</groupId>
+                <artifactId>chappe-api</artifactId>
+                <version>${chappe.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.vidocq.chappe</groupId>
+                <artifactId>chappe-core</artifactId>
+                <version>${chappe.version}</version>
             </dependency>
 
             <!-- Jakarta specs (compile-time) -->
@@ -168,6 +163,26 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
                     <version>3.4.2</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>3.3.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-install-plugin</artifactId>
+                    <version>3.1.3</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>3.1.3</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-clean-plugin</artifactId>
+                    <version>3.4.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>

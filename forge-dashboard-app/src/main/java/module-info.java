@@ -5,20 +5,20 @@
 module io.vidocq.tools.dashboard.app {
     requires java.net.http;
 
-    requires jakarta.ws.rs;
     requires jakarta.cdi;
     requires jakarta.inject;
     requires jakarta.annotation;
+    requires jakarta.ws.rs;
     requires jakarta.json.bind;
 
     requires io.vidocq.runtime.core;
-    requires io.vidocq.runtime.cassini.rest.extension;
-    requires io.vidocq.champollion.jsonb;
+    requires io.vidocq.runtime.spi;
+    requires io.vidocq.runtime.ext.rest.cassini;
+    requires io.vidocq.chappe.api;
+    requires io.vidocq.vauban.core;
 
-    exports io.vidocq.tools.dashboard;
-    exports io.vidocq.tools.dashboard.web;
-    exports io.vidocq.tools.dashboard.model;
-    exports io.vidocq.tools.dashboard.forgejo;
-
-    opens io.vidocq.tools.dashboard.model to jakarta.json.bind;
+    // JAX-RS et JSON-B utilisent la reflection sur les ressources et les records.
+    opens io.vidocq.tools.dashboard.web;
+    opens io.vidocq.tools.dashboard.forgejo;
+    opens io.vidocq.tools.dashboard.model;
 }

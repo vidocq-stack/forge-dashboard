@@ -1,6 +1,6 @@
 package io.vidocq.tools.dashboard;
 
-import io.vidocq.runtime.Vidocq;
+import io.vidocq.runtime.core.Vidocq;
 
 public final class App {
 
