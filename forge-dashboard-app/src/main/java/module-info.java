@@ -4,11 +4,13 @@
  */
 module io.vidocq.tools.dashboard.app {
     requires java.net.http;
+    requires java.logging;
 
     requires jakarta.cdi;
     requires jakarta.inject;
     requires jakarta.annotation;
     requires jakarta.ws.rs;
+    requires jakarta.json;
     requires jakarta.json.bind;
 
     requires io.vidocq.runtime.core;
@@ -17,8 +19,9 @@ module io.vidocq.tools.dashboard.app {
     requires io.vidocq.chappe.api;
     requires io.vidocq.vauban.core;
 
-    // JAX-RS et JSON-B utilisent la reflection sur les ressources et les records.
+    // JAX-RS et CDI font de la reflection sur les ressources, services et records.
     opens io.vidocq.tools.dashboard.web;
     opens io.vidocq.tools.dashboard.forgejo;
+    opens io.vidocq.tools.dashboard.service;
     opens io.vidocq.tools.dashboard.model;
 }

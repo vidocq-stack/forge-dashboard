@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>forge-dashboard — Vidocq</title>
+    <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #1e293b;
+            --panel-2: #283447;
+            --text: #e2e8f0;
+            --muted: #94a3b8;
+            --accent: #38bdf8;
+            --ok: #34d399;
+            --ko: #f87171;
+            --warn: #fbbf24;
+            --border: #334155;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: ui-sans-serif, system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 14px;
+        }
+        header {
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        header h1 { margin: 0; font-size: 1.25rem; }
+        header .meta { color: var(--muted); font-size: 0.85rem; }
+        main {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            padding: 1rem 2rem;
+        }
+        @media (min-width: 1400px) {
+            main { grid-template-columns: 3fr 1fr; }
+        }
+        section {
+            background: var(--panel);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        section h2 {
+            margin: 0 0 0.75rem;
+            font-size: 0.95rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .placeholder { color: var(--muted); font-style: italic; }
+        .muted { color: var(--muted); }
+        .error { color: var(--ko); }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        code { font-family: ui-monospace, monospace; background: var(--panel-2); padding: 0 4px; border-radius: 3px; font-size: 0.85em; }
+
+        table.repos { width: 100%; border-collapse: collapse; }
+        table.repos th, table.repos td {
+            text-align: left;
+            padding: 0.6rem 0.5rem;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+        table.repos th {
+            color: var(--muted);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+        }
+        table.repos tr.archived { opacity: 0.5; }
+        table.repos td.col-name { font-weight: 600; min-width: 220px; }
+        table.repos td.col-name .desc {
+            font-weight: normal;
+            color: var(--muted);
+            font-size: 0.85em;
+            margin-top: 0.25rem;
+        }
+        table.repos td.col-specs { min-width: 200px; }
+        table.repos td.col-commit { min-width: 280px; font-size: 0.9em; }
+        table.repos td.col-commit .meta { color: var(--muted); font-size: 0.8em; margin-top: 0.15rem; }
+        table.repos td.col-pr { width: 60px; text-align: center; }
+
+        .badge {
+            display: inline-block;
+            padding: 1px 6px;
+            border-radius: 3px;
+            font-size: 0.75em;
+            background: var(--panel-2);
+            color: var(--text);
+            margin-right: 2px;
+        }
+        .badge-spec { background: #1e3a5f; color: #93c5fd; }
+        .badge-archived { background: #7f1d1d; color: #fecaca; }
+        .badge-private { background: #3f3f46; color: #d4d4d8; }
+        .badge-pr { background: #422006; color: #fde047; min-width: 22px; text-align: center; }
+
+        p.meta { color: var(--muted); font-size: 0.8em; margin: 0.75rem 0 0; }
+    </style>
+</head>
+<body>
+<header>
+    <h1>forge-dashboard</h1>
+    <span class="meta">refresh auto / 30s</span>
+</header>
+<main>
+    <section>
+        <h2>Projets</h2>
+        <div hx-get="/api/tiles/repos"
+             hx-trigger="load, every 30s"
+             hx-swap="innerHTML">
+            <p class="placeholder">chargement…</p>
+        </div>
+    </section>
+    <section>
+        <h2>Runners Actions</h2>
+        <div hx-get="/api/tiles/runners"
+             hx-trigger="load, every 15s"
+             hx-swap="innerHTML">
+            <p class="placeholder">chargement…</p>
+        </div>
+    </section>
+</main>
+</body>
+</html>

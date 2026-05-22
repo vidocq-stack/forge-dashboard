@@ -33,6 +33,12 @@
             <artifactId>chappe-core</artifactId>
         </dependency>
 
+        <!-- Vauban indexer : scanne notre classpath pour exposer les beans CDI. -->
+        <dependency>
+            <groupId>io.vidocq.vauban</groupId>
+            <artifactId>vauban-indexer</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>jakarta.ws.rs</groupId>
             <artifactId>jakarta.ws.rs-api</artifactId>
@@ -48,6 +54,10 @@
         <dependency>
             <groupId>jakarta.annotation</groupId>
             <artifactId>jakarta.annotation-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.json</groupId>
+            <artifactId>jakarta.json-api</artifactId>
         </dependency>
         <dependency>
             <groupId>jakarta.json.bind</groupId>
@@ -78,6 +88,26 @@
 
     <build>
         <plugins>
+            <!-- Genere les _ClientProxy.class CDI + META-INF/vauban-beans.list a la compilation.
+                 Sans ce goal, Vauban ne decouvre aucun bean au runtime. -->
+            <plugin>
+                <groupId>io.vidocq.runtime</groupId>
+                <artifactId>vidocq-runtime-maven-plugin</artifactId>
+                <version>${vidocq.runtime.version}</version>
+                <executions>
+                    <execution>
+                        <id>generate</id>
+                        <goals><goal>generate</goal></goals>
+                        <configuration>
+                            <!-- Wildcard pour que le plugin scanne nos classes
+                                 ET les deps Vidocq non pre-processed (Class-File API). -->
+                            <scanDependencies>
+                                <scanDependency>io.vidocq.*</scanDependency>
+                            </scanDependencies>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>

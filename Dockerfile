@@ -33,3 +33,6 @@ EXPOSE 8080
 
 # Le module-path complet est resolu via la conf Vidocq.
 ENTRYPOINT ["java", "-jar", "app.jar"]
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+  CMD wget -qO- http://localhost:8080/api/healthz || exit 1
