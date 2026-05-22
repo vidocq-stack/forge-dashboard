@@ -104,6 +104,28 @@
         .badge-private { background: #3f3f46; color: #d4d4d8; }
         .badge-pr { background: #422006; color: #fde047; min-width: 22px; text-align: center; }
 
+        /* Build status badges (main / PR) — icone Unicode dans pastille couleur */
+        table.repos th.col-build,
+        table.repos td.col-build { width: 70px; text-align: center; white-space: nowrap; }
+        .build {
+            display: inline-block;
+            min-width: 22px;
+            height: 22px;
+            line-height: 22px;
+            padding: 0 6px;
+            border-radius: 11px;
+            font-weight: 700;
+            font-size: 0.95em;
+            text-align: center;
+            text-decoration: none !important;
+        }
+        .build-ok      { background: #064e3b; color: var(--ok); }
+        .build-ko      { background: #7f1d1d; color: var(--ko); }
+        .build-pending { background: #1e3a8a; color: #93c5fd; }
+        .build-warn    { background: #78350f; color: var(--warn); }
+        .build-none    { background: var(--panel-2); color: var(--muted); }
+        .pr-num { font-size: 0.85em; color: var(--accent); }
+
         p.meta { color: var(--muted); font-size: 0.8em; margin: 0.75rem 0 0; }
     </style>
 </head>

@@ -1,7 +1,9 @@
 package io.vidocq.tools.dashboard.web;
 
 import io.vidocq.tools.dashboard.forgejo.ForgejoClient;
+import io.vidocq.tools.dashboard.model.BuildStatus;
 import io.vidocq.tools.dashboard.model.CommitInfo;
+import io.vidocq.tools.dashboard.model.PullRequestInfo;
 import io.vidocq.tools.dashboard.model.RepoInfo;
 import io.vidocq.tools.dashboard.service.DashboardService;
 import jakarta.inject.Inject;
@@ -14,7 +16,6 @@ import jakarta.ws.rs.core.Response;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 import java.util.Locale;
 
 @Path("/")
@@ -42,7 +43,7 @@ public class DashboardResource {
     @Produces(MediaType.TEXT_HTML)
     public Response reposTile() {
         var snap = service.getSnapshot();
-        var sb = new StringBuilder(8192);
+        var sb = new StringBuilder(16384);
         if (snap.error() != null) {
             sb.append("<p class=\"error\">Erreur partielle : ").append(esc(snap.error())).append("</p>\n");
         }
@@ -51,7 +52,13 @@ public class DashboardResource {
               .append(esc(String.join(", ", service.orgs()))).append(")</p>");
         } else {
             sb.append("<table class=\"repos\">\n");
-            sb.append("<thead><tr><th>Projet</th><th>Specs</th><th>Dernier commit</th><th>PR</th></tr></thead>\n");
+            sb.append("<thead><tr>")
+              .append("<th>Projet</th>")
+              .append("<th>Specs</th>")
+              .append("<th>Dernier commit</th>")
+              .append("<th class=\"col-build\" title=\"Status du dernier build sur main\">Main</th>")
+              .append("<th class=\"col-build\" title=\"Derniere PR ouverte + status\">PR</th>")
+              .append("</tr></thead>\n");
             sb.append("<tbody>\n");
             for (var r : snap.repos()) renderRow(sb, r);
             sb.append("</tbody></table>\n");
@@ -65,8 +72,6 @@ public class DashboardResource {
     @Path("tiles/runners")
     @Produces(MediaType.TEXT_HTML)
     public Response runnersTile() {
-        // L'API publique Forgejo n'expose pas la liste des runners Actions.
-        // M0 : lien direct vers l'UI admin pour la consultation.
         var runnersUrl = forgejo.baseUrl() + "/-/admin/actions/runners";
         var html = """
                 <p class="placeholder">
@@ -105,16 +110,9 @@ public class DashboardResource {
 
         sb.append("<td class=\"col-commit\">").append(renderCommit(r.lastCommit())).append("</td>");
 
-        sb.append("<td class=\"col-pr\">");
-        int pr = r.openPullRequests();
-        if (pr > 0) {
-            sb.append("<a href=\"").append(esc(r.htmlUrl()))
-              .append("/pulls\" target=\"_blank\" rel=\"noopener\">")
-              .append("<span class=\"badge badge-pr\">").append(pr).append("</span></a>");
-        } else {
-            sb.append("<span class=\"muted\">0</span>");
-        }
-        sb.append("</td>");
+        sb.append("<td class=\"col-build\">").append(renderBuild(r.mainBuild(), r.defaultBranch())).append("</td>");
+
+        sb.append("<td class=\"col-build\">").append(renderPr(r.latestPr(), r.openPullRequests())).append("</td>");
 
         sb.append("</tr>\n");
     }
@@ -133,6 +131,49 @@ public class DashboardResource {
         sb.append("<div class=\"meta\">")
           .append(esc(c.author())).append(" — ").append(esc(relative(c.timestamp())))
           .append("</div>");
+        return sb.toString();
+    }
+
+    private String renderBuild(BuildStatus b, String branch) {
+        if (b == null || b.state() == BuildStatus.State.NONE) return "<span class=\"muted\">—</span>";
+        var sb = new StringBuilder();
+        var label = "build-" + b.state().cssClass();
+        var icon = b.state().icon();
+        var title = (b.summary() != null && !b.summary().isBlank())
+                ? b.summary()
+                : (branch == null ? "" : branch);
+        if (b.htmlUrl() != null && !b.htmlUrl().isBlank()) {
+            sb.append("<a class=\"build ").append(label).append("\" href=\"")
+              .append(esc(b.htmlUrl())).append("\" target=\"_blank\" rel=\"noopener\" title=\"")
+              .append(esc(title)).append("\">").append(icon).append("</a>");
+        } else {
+            sb.append("<span class=\"build ").append(label).append("\" title=\"")
+              .append(esc(title)).append("\">").append(icon).append("</span>");
+        }
+        if (b.count() > 1) sb.append(" <span class=\"muted\">×").append(b.count()).append("</span>");
+        return sb.toString();
+    }
+
+    private String renderPr(PullRequestInfo pr, int totalOpen) {
+        if (pr == null) {
+            if (totalOpen > 0) {
+                return "<span class=\"muted\">" + totalOpen + " ouverte(s)</span>";
+            }
+            return "<span class=\"muted\">—</span>";
+        }
+        var sb = new StringBuilder();
+        // Icone build + lien vers PR
+        var icon = pr.build() == null ? "—" : pr.build().state().icon();
+        var css = pr.build() == null ? "none" : pr.build().state().cssClass();
+        sb.append("<a class=\"build build-").append(css).append("\" href=\"")
+          .append(esc(pr.htmlUrl())).append("\" target=\"_blank\" rel=\"noopener\" title=\"#")
+          .append(pr.number()).append(" ").append(esc(truncate(pr.title(), 60))).append("\">")
+          .append(icon).append("</a>");
+        sb.append(" <a class=\"pr-num\" href=\"").append(esc(pr.htmlUrl()))
+          .append("\" target=\"_blank\" rel=\"noopener\">#").append(pr.number()).append("</a>");
+        if (totalOpen > 1) {
+            sb.append(" <span class=\"muted\">/").append(totalOpen).append("</span>");
+        }
         return sb.toString();
     }
 

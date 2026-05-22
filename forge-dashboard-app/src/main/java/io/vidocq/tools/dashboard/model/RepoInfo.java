@@ -18,10 +18,12 @@ public record RepoInfo(
         boolean archived,
         boolean priv,
         String htmlUrl,
+        String defaultBranch,
         List<String> topics,
         List<String> specs,
         Instant updatedAt,
         CommitInfo lastCommit,
         int openPullRequests,
-        BuildStatus latestBuild) {
+        BuildStatus mainBuild,
+        PullRequestInfo latestPr) {
 }

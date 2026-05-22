@@ -1,6 +1,8 @@
 package io.vidocq.tools.dashboard.forgejo;
 
+import io.vidocq.tools.dashboard.model.BuildStatus;
 import io.vidocq.tools.dashboard.model.CommitInfo;
+import io.vidocq.tools.dashboard.model.PullRequestInfo;
 import io.vidocq.tools.dashboard.model.RepoInfo;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -97,7 +99,7 @@ public class ForgejoClient {
         }
     }
 
-    /** GET /api/v1/orgs/{org}/repos (paginated). Topics et dernier commit sont enrichis par appels separes. */
+    /** GET /api/v1/orgs/{org}/repos (paginated). */
     public List<RepoInfo> listRepos(String org) {
         var out = new ArrayList<RepoInfo>();
         int page = 1;
@@ -122,36 +124,90 @@ public class ForgejoClient {
                 .toList();
     }
 
-    /** GET /api/v1/repos/{owner}/{repo}/commits?limit=1. */
-    public Optional<CommitInfo> getLatestCommit(String owner, String repo) {
+    /** GET /api/v1/repos/{owner}/{repo}/commits?limit=1&sha={branch}. */
+    public Optional<CommitInfo> getLatestCommit(String owner, String repo, String branch) {
         var path = "/api/v1/repos/" + url(owner) + "/" + url(repo)
-                + "/commits?limit=1&stat=false&verification=false&files=false";
+                + "/commits?limit=1&stat=false&verification=false&files=false"
+                + (branch == null || branch.isBlank() ? "" : "&sha=" + url(branch));
         try {
             var arr = getArray(path);
             if (arr.isEmpty()) return Optional.empty();
             return Optional.of(toCommitInfo(arr.getJsonObject(0)));
         } catch (ForgejoException e) {
-            // repo vide -> 409 ; on absorbe
             if (e.status() == 409 || e.status() == 404) return Optional.empty();
             throw e;
         }
     }
 
-    /** Enrichit un RepoInfo light avec topics + dernier commit. */
+    /** GET /api/v1/repos/{owner}/{repo}/commits/{ref}/status. */
+    public BuildStatus getCommitStatus(String owner, String repo, String ref) {
+        var path = "/api/v1/repos/" + url(owner) + "/" + url(repo)
+                + "/commits/" + url(ref) + "/status";
+        try {
+            var obj = getObject(path);
+            return toBuildStatus(obj);
+        } catch (ForgejoException e) {
+            if (e.status() == 404 || e.status() == 409 || e.status() == 422) return BuildStatus.NONE;
+            throw e;
+        }
+    }
+
+    /**
+     * Derniere PR ouverte du repo. Retourne {@link Optional#empty()} si aucune.
+     * Le build status du head.sha est resolu en meme temps.
+     */
+    public Optional<PullRequestInfo> getLatestOpenPr(String owner, String repo) {
+        var path = "/api/v1/repos/" + url(owner) + "/" + url(repo)
+                + "/pulls?state=open&sort=newest&limit=1";
+        try {
+            var arr = getArray(path);
+            if (arr.isEmpty()) return Optional.empty();
+            var pr = arr.getJsonObject(0);
+            var head = pr.getJsonObject("head");
+            var headSha = head == null ? "" : head.getString("sha", "");
+            var build = headSha.isEmpty()
+                    ? BuildStatus.NONE
+                    : safeStatus(owner, repo, headSha);
+            return Optional.of(new PullRequestInfo(
+                    pr.getInt("number", 0),
+                    pr.getString("title", ""),
+                    headSha,
+                    pr.getString("html_url", ""),
+                    build));
+        } catch (ForgejoException e) {
+            if (e.status() == 404) return Optional.empty();
+            throw e;
+        }
+    }
+
+    /** Enrichit un RepoInfo light avec topics, dernier commit, main build status et derniere PR. */
     public RepoInfo enrich(RepoInfo light) {
         var topics = safeTopics(light.owner(), light.name());
-        var lastCommit = getLatestCommit(light.owner(), light.name()).orElse(null);
+        var defaultBranch = light.defaultBranch();
+        var lastCommit = getLatestCommit(light.owner(), light.name(), defaultBranch).orElse(null);
+        var mainBuild = safeStatus(light.owner(), light.name(), defaultBranch);
+        var latestPr = safeLatestPr(light.owner(), light.name());
         var specs = SpecsMapper.humanize(topics);
         return new RepoInfo(
                 light.owner(), light.name(), light.fullName(), light.description(),
-                light.archived(), light.priv(), light.htmlUrl(),
+                light.archived(), light.priv(), light.htmlUrl(), defaultBranch,
                 topics, specs, light.updatedAt(), lastCommit,
-                light.openPullRequests(), light.latestBuild());
+                light.openPullRequests(), mainBuild, latestPr.orElse(null));
     }
 
     private List<String> safeTopics(String owner, String repo) {
         try { return getTopics(owner, repo); }
         catch (ForgejoException e) { return List.of(); }
+    }
+
+    private BuildStatus safeStatus(String owner, String repo, String ref) {
+        try { return getCommitStatus(owner, repo, ref); }
+        catch (ForgejoException e) { return BuildStatus.NONE; }
+    }
+
+    private Optional<PullRequestInfo> safeLatestPr(String owner, String repo) {
+        try { return getLatestOpenPr(owner, repo); }
+        catch (ForgejoException e) { return Optional.empty(); }
     }
 
     private static RepoInfo toRepoInfoLight(JsonObject r) {
@@ -165,11 +221,13 @@ public class ForgejoClient {
                 r.getBoolean("archived", false),
                 r.getBoolean("private", false),
                 r.getString("html_url", ""),
+                r.getString("default_branch", "main"),
                 List.of(),
                 List.of(),
                 parseInstant(r.getString("updated_at", null)),
                 null,
                 r.getInt("open_pr_counter", 0),
+                BuildStatus.NONE,
                 null);
     }
 
@@ -187,6 +245,32 @@ public class ForgejoClient {
                 author == null ? "" : author.getString("name", ""),
                 author == null ? null : parseInstant(author.getString("date", null)),
                 html);
+    }
+
+    /** Mappe la reponse combined status Forgejo vers notre {@link BuildStatus}. */
+    private BuildStatus toBuildStatus(JsonObject obj) {
+        var state = BuildStatus.State.of(obj.getString("state", null));
+        if (state == BuildStatus.State.NONE) return BuildStatus.NONE;
+        var count = obj.getInt("total_count", 0);
+        String summary = null;
+        String href = null;
+        var arr = obj.containsKey("statuses") && !obj.isNull("statuses")
+                ? obj.getJsonArray("statuses") : null;
+        if (arr != null && !arr.isEmpty()) {
+            JsonObject pick = arr.getJsonObject(0);
+            // Privilegier un status non-success si l'etat global n'est pas success
+            for (JsonValue v : arr) {
+                var o = v.asJsonObject();
+                var s = BuildStatus.State.of(o.getString("status", null));
+                if (s == state) { pick = o; break; }
+            }
+            summary = pick.getString("description", pick.getString("context", null));
+            href = pick.getString("target_url", null);
+            if (href != null && href.startsWith("/")) {
+                href = baseUri + href;
+            }
+        }
+        return new BuildStatus(state, count, summary, href);
     }
 
     private static Instant parseInstant(String s) {
