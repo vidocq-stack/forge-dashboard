@@ -1,0 +1,8 @@
+.git
+.idea
+.vscode
+**/target
+**/*.iml
+.DS_Store
+.sdkmanrc
+CLAUDE.md

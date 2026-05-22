@@ -1,0 +1,17 @@
+services:
+  forge-dashboard:
+    image: forge.vidocq.dev/vidocq-tools/forge-dashboard:0.1.0-SNAPSHOT
+    container_name: forge-dashboard
+    restart: unless-stopped
+    environment:
+      FORGEJO_URL: ${FORGEJO_URL}
+      FORGEJO_TOKEN: ${FORGEJO_TOKEN}
+      DASHBOARD_PORT: 8080
+      DASHBOARD_CACHE_TTL_SECONDS: ${DASHBOARD_CACHE_TTL_SECONDS:-30}
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/healthz || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
