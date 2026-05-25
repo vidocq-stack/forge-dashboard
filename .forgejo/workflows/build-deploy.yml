@@ -8,15 +8,43 @@ on:
 env:
   JAVA_VERSION: '25'
   MAVEN_VERSION: '4.0.0-rc-5'
-  # Registry parametre via secrets (les contexts `secrets` ne sont pas utilisables
-  # dans un bloc `env:` de niveau workflow, donc IMAGE est calcule dans l'etape "Compute tags").
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: docker
+    # Le label `docker` du runner Forgejo mappe par defaut sur `docker:dind`
+    # (alpine, sans Node). On surcharge avec catthehacker/ubuntu:act-22.04
+    # (Node 20 + Docker CLI + bash). DOCKER_HOST est detecte dynamiquement par
+    # l'etape "Detect Docker daemon" : le job tourne DANS le sidecar dind, donc
+    # le demon Docker lui est joignable via le gateway de son bridge (≈172.17.0.1).
+    container:
+      image: catthehacker/ubuntu:act-22.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Detect Docker daemon (DinD gateway)
+        # iproute2 (`ip`) absent de l'image act -> on parse /proc/net/route.
+        # Route default : Destination=00000000, Gateway en hex little-endian
+        # (ex. 010011AC = 0xAC 0x11 0x00 0x01 = 172.17.0.1).
+        run: |
+          set -e
+          GW_HEX=$(awk '$2 == "00000000" { print $3; exit }' /proc/net/route 2>/dev/null || true)
+          if [ -n "$GW_HEX" ] && [ "${#GW_HEX}" -ge 8 ]; then
+            GW=$(printf "%d.%d.%d.%d\n" \
+              "0x${GW_HEX:6:2}" \
+              "0x${GW_HEX:4:2}" \
+              "0x${GW_HEX:2:2}" \
+              "0x${GW_HEX:0:2}")
+          else
+            GW=172.17.0.1   # fallback Docker bridge default
+          fi
+          echo "DinD gateway: $GW"
+          if ! timeout 5 bash -c "</dev/tcp/$GW/2375"; then
+            echo "::error::Docker daemon at tcp://$GW:2375 unreachable"
+            exit 1
+          fi
+          echo "DOCKER_HOST=tcp://$GW:2375" >> "$GITHUB_ENV"
 
       - name: Setup Java ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v4
@@ -43,25 +71,19 @@ jobs:
         run: |
           set -eu
           mvn --version
-          # SNAPSHOTs Vidocq upstream consommes en anonyme depuis le Central Portal
-          # Snapshots (repo declare dans le pom) — pas de settings.xml/credentials.
+          # SNAPSHOTs Vidocq upstream consommes en anonyme depuis le Central Portal Snapshots
+          # (repo declare dans le pom) — pas de settings.xml/credentials.
           mvn -ntp -B install -DskipTests
 
-      # node:20-bookworm n'embarque pas le client docker ; le demon vient du DinD
-      # (DOCKER_HOST injecte par le runner). Build classique, pas de buildx.
-      - name: Install Docker CLI
+      - name: Login to container registry
+        env:
+          DOCKER_REG_URL: ${{ secrets.DOCKER_REG_URL }}
+          DOCKER_REG_USER: ${{ secrets.DOCKER_REG_USER }}
+          DOCKER_REG_PASSWORD: ${{ secrets.DOCKER_REG_PASSWORD }}
         run: |
           set -eu
-          apt-get update
-          apt-get install -y --no-install-recommends docker.io
-          docker --version
-
-      - name: Login to container registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ secrets.DOCKER_REG_URL }}
-          username: ${{ secrets.DOCKER_REG_USER }}
-          password: ${{ secrets.DOCKER_REG_PASSWORD }}
+          REG=$(printf '%s' "$DOCKER_REG_URL" | tr -d '[:space:]'); REG="${REG#*://}"; REG=$(printf '%s' "$REG" | sed 's#/*$##')
+          echo "$DOCKER_REG_PASSWORD" | docker login "$REG" -u "$DOCKER_REG_USER" --password-stdin
 
       - name: Build & push Docker image
         env:
@@ -70,21 +92,12 @@ jobs:
           CREATED: ${{ github.event.head_commit.timestamp }}
         run: |
           set -eu
-          if [ -z "${DOCKER_REG_URL:-}" ]; then
-            echo "::error::Le secret DOCKER_REG_URL est vide ou absent (Repo Settings -> Actions -> Secrets)."
-            exit 1
-          fi
-          # Une reference docker n'accepte ni schema, ni espace/saut de ligne, ni slash
-          # final. Le secret peut etre colle avec un '\n' final -> on nettoie a fond
-          # (docker login, lui, tolere le schema).
-          REG=$(printf '%s' "$DOCKER_REG_URL" | tr -d '[:space:]')   # retire \n et espaces
-          REG="${REG#*://}"                                          # retire https:// / http://
-          REG=$(printf '%s' "$REG" | sed 's#/*$##')                  # retire les slashs finaux
+          # DOCKER_REG_URL peut etre colle avec un schema, des espaces/saut de ligne ou
+          # un slash final : on normalise avant de construire la reference docker.
+          REG=$(printf '%s' "$DOCKER_REG_URL" | tr -d '[:space:]'); REG="${REG#*://}"; REG=$(printf '%s' "$REG" | sed 's#/*$##')
           IMAGE="${REG}/vidocq-tools/forge-dashboard"
           SHORT_SHA=$(echo "${REVISION}" | cut -c1-7)
           echo "Image cible : ${IMAGE} (sha ${SHORT_SHA})"
-          # Build classique contre le demon DinD (BuildKit integre, DOCKER_HOST injecte
-          # par le runner) — pas de driver docker-container ni de buildx requis.
           docker build \
             --label "org.opencontainers.image.source=https://codeberg.org/VidocqTools/forge-dashboard" \
             --label "org.opencontainers.image.revision=${REVISION}" \
