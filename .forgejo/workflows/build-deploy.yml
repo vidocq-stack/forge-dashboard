@@ -109,9 +109,16 @@ jobs:
           docker push "${IMAGE}:main-${SHORT_SHA}"
 
       - name: Trigger Portainer redeploy
+        env:
+          PORTAINER_WEBHOOK_URL: ${{ secrets.PORTAINER_WEBHOOK_URL }}
         run: |
           set -eu
-          code=$(curl -sS -o /tmp/r.txt -w '%{http_code}' -X POST "${{ secrets.PORTAINER_WEBHOOK_URL }}")
+          URL=$(printf '%s' "$PORTAINER_WEBHOOK_URL" | tr -d '[:space:]')   # retire \n / espaces
+          if [ -z "$URL" ]; then
+            echo "::error::Le secret PORTAINER_WEBHOOK_URL est vide ou absent (Repo Settings -> Actions -> Secrets)."
+            exit 1
+          fi
+          code=$(curl -sS -o /tmp/r.txt -w '%{http_code}' --retry 3 -X POST "$URL")
           echo "Portainer webhook -> HTTP $code"
           cat /tmp/r.txt || true
           # Portainer renvoie 204 No Content sur succes du webhook container.
