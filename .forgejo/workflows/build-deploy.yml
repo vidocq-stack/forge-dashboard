@@ -74,10 +74,12 @@ jobs:
             echo "::error::Le secret DOCKER_REG_URL est vide ou absent (Repo Settings -> Actions -> Secrets)."
             exit 1
           fi
-          # Une reference docker n'accepte ni schema (https://) ni slash final :
-          # on normalise l'hote (docker login, lui, tolere le schema).
-          REG="${DOCKER_REG_URL#*://}"   # retire 'https://' / 'http://' si present
-          REG="${REG%/}"                 # retire un slash final eventuel
+          # Une reference docker n'accepte ni schema, ni espace/saut de ligne, ni slash
+          # final. Le secret peut etre colle avec un '\n' final -> on nettoie a fond
+          # (docker login, lui, tolere le schema).
+          REG=$(printf '%s' "$DOCKER_REG_URL" | tr -d '[:space:]')   # retire \n et espaces
+          REG="${REG#*://}"                                          # retire https:// / http://
+          REG=$(printf '%s' "$REG" | sed 's#/*$##')                  # retire les slashs finaux
           IMAGE="${REG}/vidocq-tools/forge-dashboard"
           SHORT_SHA=$(echo "${REVISION}" | cut -c1-7)
           echo "Image cible : ${IMAGE} (sha ${SHORT_SHA})"
