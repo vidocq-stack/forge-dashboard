@@ -13,7 +13,7 @@ env:
 
 jobs:
   build:
-    runs-on: docker
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -46,6 +46,15 @@ jobs:
           # SNAPSHOTs Vidocq upstream consommes en anonyme depuis le Central Portal
           # Snapshots (repo declare dans le pom) — pas de settings.xml/credentials.
           mvn -ntp -B install -DskipTests
+
+      # node:20-bookworm n'embarque pas le client docker ; le demon vient du DinD
+      # (DOCKER_HOST injecte par le runner). buildx est fourni par setup-buildx-action.
+      - name: Install Docker CLI
+        run: |
+          set -eu
+          apt-get update
+          apt-get install -y --no-install-recommends docker.io
+          docker --version
 
       - name: Setup Docker buildx
         uses: docker/setup-buildx-action@v3
