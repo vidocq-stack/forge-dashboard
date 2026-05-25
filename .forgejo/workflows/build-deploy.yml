@@ -74,7 +74,11 @@ jobs:
             echo "::error::Le secret DOCKER_REG_URL est vide ou absent (Repo Settings -> Actions -> Secrets)."
             exit 1
           fi
-          IMAGE="${DOCKER_REG_URL}/vidocq-tools/forge-dashboard"
+          # Une reference docker n'accepte ni schema (https://) ni slash final :
+          # on normalise l'hote (docker login, lui, tolere le schema).
+          REG="${DOCKER_REG_URL#*://}"   # retire 'https://' / 'http://' si present
+          REG="${REG%/}"                 # retire un slash final eventuel
+          IMAGE="${REG}/vidocq-tools/forge-dashboard"
           SHORT_SHA=$(echo "${REVISION}" | cut -c1-7)
           echo "Image cible : ${IMAGE} (sha ${SHORT_SHA})"
           # Build classique contre le demon DinD (BuildKit integre, DOCKER_HOST injecte
