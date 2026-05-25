@@ -63,27 +63,20 @@ jobs:
           username: ${{ secrets.DOCKER_REG_USER }}
           password: ${{ secrets.DOCKER_REG_PASSWORD }}
 
-      - name: Compute tags
-        id: tags
-        env:
-          DOCKER_REG_URL: ${{ secrets.DOCKER_REG_URL }}
-        run: |
-          set -eu
-          IMAGE="${DOCKER_REG_URL}/vidocq-tools/forge-dashboard"
-          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
-          {
-            echo "image=${IMAGE}"
-            echo "short_sha=${SHORT_SHA}"
-          } >> $GITHUB_OUTPUT
-
       - name: Build & push Docker image
         env:
-          IMAGE: ${{ steps.tags.outputs.image }}
-          SHORT_SHA: ${{ steps.tags.outputs.short_sha }}
+          DOCKER_REG_URL: ${{ secrets.DOCKER_REG_URL }}
           REVISION: ${{ github.sha }}
           CREATED: ${{ github.event.head_commit.timestamp }}
         run: |
           set -eu
+          if [ -z "${DOCKER_REG_URL:-}" ]; then
+            echo "::error::Le secret DOCKER_REG_URL est vide ou absent (Repo Settings -> Actions -> Secrets)."
+            exit 1
+          fi
+          IMAGE="${DOCKER_REG_URL}/vidocq-tools/forge-dashboard"
+          SHORT_SHA=$(echo "${REVISION}" | cut -c1-7)
+          echo "Image cible : ${IMAGE} (sha ${SHORT_SHA})"
           # Build classique contre le demon DinD (BuildKit integre, DOCKER_HOST injecte
           # par le runner) — pas de driver docker-container ni de buildx requis.
           docker build \
