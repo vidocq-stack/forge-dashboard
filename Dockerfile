@@ -7,7 +7,7 @@
 #
 FROM bellsoft/liberica-openjre-debian:25 AS runtime
 
-LABEL org.opencontainers.image.source="https://forge.vidocq.dev/vidocq-tools/forge-dashboard"
+LABEL org.opencontainers.image.source="https://codeberg.org/VidocqTools/forge-dashboard"
 LABEL org.opencontainers.image.title="forge-dashboard"
 LABEL org.opencontainers.image.licenses="Apache-2.0"
 

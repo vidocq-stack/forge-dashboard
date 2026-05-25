@@ -6,10 +6,10 @@ on:
   workflow_dispatch:
 
 env:
-  REGISTRY: forge.vidocq.dev
-  IMAGE: forge.vidocq.dev/vidocq-tools/forge-dashboard
   JAVA_VERSION: '25'
   MAVEN_VERSION: '4.0.0-rc-5'
+  # Registry parametre via secrets (les contexts `secrets` ne sont pas utilisables
+  # dans un bloc `env:` de niveau workflow, donc IMAGE est calcule dans l'etape "Compute tags").
 
 jobs:
   build:
@@ -40,29 +40,33 @@ jobs:
           echo "$HOME/maven/bin" >> $GITHUB_PATH
 
       - name: Build (mvn install)
-        env:
-          VIDOCQ_MAVEN_USER: ${{ secrets.VIDOCQ_MAVEN_USER }}
-          VIDOCQ_MAVEN_PASSWORD: ${{ secrets.VIDOCQ_MAVEN_PASSWORD }}
         run: |
           set -eu
           mvn --version
-          mvn -ntp -B -s .forgejo/workflows/maven-settings.xml install -DskipTests
+          # SNAPSHOTs Vidocq upstream consommes en anonyme depuis le Central Portal
+          # Snapshots (repo declare dans le pom) — pas de settings.xml/credentials.
+          mvn -ntp -B install -DskipTests
 
       - name: Setup Docker buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Login to forge.vidocq.dev
+      - name: Login to container registry
         uses: docker/login-action@v3
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.REGISTRY_USER }}
-          password: ${{ secrets.REGISTRY_PASSWORD }}
+          registry: ${{ secrets.DOCKER_REG_URL }}
+          username: ${{ secrets.DOCKER_REG_USER }}
+          password: ${{ secrets.DOCKER_REG_PASSWORD }}
 
       - name: Compute tags
         id: tags
+        env:
+          DOCKER_REG_URL: ${{ secrets.DOCKER_REG_URL }}
         run: |
+          set -eu
+          IMAGE="${DOCKER_REG_URL}/vidocq-tools/forge-dashboard"
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
           {
+            echo "image=${IMAGE}"
             echo "tags=${IMAGE}:0.1.0-SNAPSHOT,${IMAGE}:main-${SHORT_SHA}"
             echo "short_sha=${SHORT_SHA}"
           } >> $GITHUB_OUTPUT
@@ -75,7 +79,7 @@ jobs:
           push: true
           tags: ${{ steps.tags.outputs.tags }}
           labels: |
-            org.opencontainers.image.source=https://forge.vidocq.dev/vidocq-tools/forge-dashboard
+            org.opencontainers.image.source=https://codeberg.org/VidocqTools/forge-dashboard
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
 

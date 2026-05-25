@@ -1,12 +1,12 @@
 services:
   forge-dashboard:
-    image: forge.vidocq.dev/vidocq-tools/forge-dashboard:0.1.0-SNAPSHOT
+    image: ${DOCKER_REG_URL}/vidocq-tools/forge-dashboard:0.1.0-SNAPSHOT
     container_name: forge-dashboard
     restart: unless-stopped
     environment:
-      FORGEJO_URL: ${FORGEJO_URL}
-      FORGEJO_TOKEN: ${FORGEJO_TOKEN}
-      FORGEJO_ORGS: ${FORGEJO_ORGS:-vidocq,vidocq-tools}
+      FORGEJO_URL: ${CODEBERG_URL}
+      FORGEJO_TOKEN: ${CODEBERG_TOKEN}
+      FORGEJO_ORGS: ${CODEBERG_ORGS:-vidocq,VidocqTools}
       DASHBOARD_CACHE_TTL_SECONDS: ${DASHBOARD_CACHE_TTL_SECONDS:-30}
     expose:
       - "8080"

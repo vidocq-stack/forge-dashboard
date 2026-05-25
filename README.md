@@ -27,7 +27,7 @@ mvn -ntp install -DskipTests
 Le client Forgejo lit les variables d'environnement :
 
 ```sh
-export FORGEJO_URL=https://forge.vidocq.dev
+export FORGEJO_URL=https://codeberg.org
 export FORGEJO_TOKEN=...        # token API (scope read:repository, read:user, read:org)
 mvn -pl forge-dashboard-app exec:java
 ```

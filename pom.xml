@@ -12,7 +12,7 @@
 
     <name>forge-dashboard</name>
     <description>Dashboard des projets et runners de la forge Vidocq — runtime Vidocq + JAX-RS + HTMX</description>
-    <url>https://forge.vidocq.dev/vidocq-tools/forge-dashboard</url>
+    <url>https://codeberg.org/VidocqTools/forge-dashboard</url>
 
     <licenses>
         <license>
@@ -29,35 +29,32 @@
     </developers>
 
     <scm>
-        <url>https://forge.vidocq.dev/vidocq-tools/forge-dashboard</url>
-        <connection>scm:git:https://forge.vidocq.dev/vidocq-tools/forge-dashboard.git</connection>
-        <developerConnection>scm:git:git@forge.vidocq.dev:vidocq-tools/forge-dashboard.git</developerConnection>
+        <url>https://codeberg.org/VidocqTools/forge-dashboard</url>
+        <connection>scm:git:https://codeberg.org/VidocqTools/forge-dashboard.git</connection>
+        <developerConnection>scm:git:ssh://git@codeberg.org/VidocqTools/forge-dashboard.git</developerConnection>
     </scm>
 
     <subprojects>
         <subproject>forge-dashboard-app</subproject>
     </subprojects>
 
-    <!-- Reposilite Vidocq : SNAPSHOTs et releases. Auth via settings.xml
-         (server id 'vidocq-snapshots' et 'vidocq-releases'). -->
+    <!-- SNAPSHOTs Vidocq upstream publies sur le Central Portal Snapshots de Sonatype.
+         Auth via settings.xml (server id 'central-snapshots'). Les releases viennent de
+         Maven Central (repo par defaut, pas besoin de le declarer). -->
     <repositories>
         <repository>
-            <id>vidocq-snapshots</id>
-            <url>https://repo.vidocq.dev/snapshots</url>
+            <id>central-snapshots</id>
+            <name>Central Portal Snapshots</name>
+            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
             <releases><enabled>false</enabled></releases>
             <snapshots><enabled>true</enabled></snapshots>
-        </repository>
-        <repository>
-            <id>vidocq-releases</id>
-            <url>https://repo.vidocq.dev/releases</url>
-            <releases><enabled>true</enabled></releases>
-            <snapshots><enabled>false</enabled></snapshots>
         </repository>
     </repositories>
     <pluginRepositories>
         <pluginRepository>
-            <id>vidocq-snapshots</id>
-            <url>https://repo.vidocq.dev/snapshots</url>
+            <id>central-snapshots</id>
+            <name>Central Portal Snapshots</name>
+            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
             <releases><enabled>false</enabled></releases>
             <snapshots><enabled>true</enabled></snapshots>
         </pluginRepository>
