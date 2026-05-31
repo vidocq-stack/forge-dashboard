@@ -1,6 +1,10 @@
 services:
   forge-dashboard:
-    image: ${DOCKER_REG_URL}/vidocq-tools/forge-dashboard:0.1.0-SNAPSHOT
+    # Registry fige en dur : le templating par ${DOCKER_REG_URL} cassait le deploiement
+    # Portainer (var non definie dans la stack -> "invalid reference format"). Le CI, lui,
+    # pousse bien sur registry.vidocq.dev (secret DOCKER_REG_URL).
+    image: registry.vidocq.dev/vidocq-tools/forge-dashboard:0.1.0-SNAPSHOT
+    pull_policy: always
     container_name: forge-dashboard
     restart: unless-stopped
     environment:
