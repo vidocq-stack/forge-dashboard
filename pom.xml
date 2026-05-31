@@ -69,7 +69,7 @@
         <cassini.version>0.1.0-SNAPSHOT</cassini.version>
         <champollion.version>0.1.0-SNAPSHOT</champollion.version>
         <vauban.version>0.1.0-SNAPSHOT</vauban.version>
-        <chappe.version>0.1.0-SNAPSHOT</chappe.version>
+        <chappe.version>0.2.0-SNAPSHOT</chappe.version>
 
         <!-- Jakarta / MicroProfile (API uniquement, runtime fourni par Vidocq) -->
         <jakarta.ws.rs.version>4.0.0</jakarta.ws.rs.version>
