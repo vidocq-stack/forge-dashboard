@@ -68,7 +68,7 @@
         <vidocq.runtime.version>0.1.0-SNAPSHOT</vidocq.runtime.version>
         <cassini.version>0.1.0-SNAPSHOT</cassini.version>
         <champollion.version>0.1.0-SNAPSHOT</champollion.version>
-        <vauban.version>0.1.0-SNAPSHOT</vauban.version>
+        <vauban.version>0.2.0-SNAPSHOT</vauban.version>
         <chappe.version>0.2.0-SNAPSHOT</chappe.version>
 
         <!-- Jakarta / MicroProfile (API uniquement, runtime fourni par Vidocq) -->
