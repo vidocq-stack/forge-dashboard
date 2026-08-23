@@ -62,7 +62,9 @@ jobs:
       - name: Setup Maven ${{ env.MAVEN_VERSION }}
         run: |
           set -eu
-          curl -fsSL -o /tmp/maven.tgz "https://dlcdn.apache.org/maven/maven-4/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz"
+          # dlcdn only keeps current releases; superseded RCs live on archive.apache.org.
+          curl -fsSL -o /tmp/maven.tgz "https://dlcdn.apache.org/maven/maven-4/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz" \
+            || curl -fsSL -o /tmp/maven.tgz "https://archive.apache.org/dist/maven/maven-4/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz"
           mkdir -p $HOME/maven
           tar -xzf /tmp/maven.tgz -C $HOME/maven --strip-components=1
           echo "$HOME/maven/bin" >> $GITHUB_PATH
