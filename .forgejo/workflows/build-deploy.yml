@@ -99,7 +99,7 @@ jobs:
           SHORT_SHA=$(echo "${REVISION}" | cut -c1-7)
           echo "Image cible : ${IMAGE} (sha ${SHORT_SHA})"
           docker build \
-            --label "org.opencontainers.image.source=https://codeberg.org/VidocqTools/forge-dashboard" \
+            --label "org.opencontainers.image.source=https://codefloe.com/VidocqTools/forge-dashboard" \
             --label "org.opencontainers.image.revision=${REVISION}" \
             --label "org.opencontainers.image.created=${CREATED}" \
             -t "${IMAGE}:0.1.0-SNAPSHOT" \
