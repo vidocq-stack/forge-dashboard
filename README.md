@@ -54,11 +54,12 @@ set -a; source ~/.config/vidocq/tokens.env; set +a
 FORGEJO_URL=https://codefloe.com FORGEJO_TOKEN=$CODEFLOE_BOT_TOKEN SONAR_TOKEN=$SONAR_USER_TOKEN \
 OIDC_CLIENT_ID=$DASHBOARD_OIDC_CLIENT_ID OIDC_CLIENT_SECRET=$DASHBOARD_OIDC_CLIENT_SECRET \
 DASHBOARD_PUBLIC_URL=http://localhost:8080 \
-  ./mvnw -ntp -pl forge-dashboard-app clean vidocq:dev \
-    -Dvidocq.dev.hotReload=false -Dvidocq.dev.continuousTesting=false
+  ./mvnw -ntp -pl forge-dashboard-app clean vidocq:dev -Dvidocq.dev.hotReload=false
 ```
 
-Sans `VIDOCQ_POOL_URL`, `vidocq:dev` démarre un conteneur PostgreSQL. Ouvrir <http://localhost:8080/> :
+Sans `VIDOCQ_POOL_URL`, `vidocq:dev` démarre un conteneur PostgreSQL. Les tests tournent en continu, à chaque
+modification de `src/test`, sur leur propre conteneur PostgreSQL : ils ne touchent pas à la base de
+l'application qui tourne. Ouvrir <http://localhost:8080/> :
 la page renvoie vers CodeFloe pour la connexion (l'application OAuth2 doit accepter
 `http://localhost:8080/oauth2/callback` comme URI de redirection).
 
@@ -139,9 +140,6 @@ Chacun tombe quand le correctif est publié ; le code renvoie au ticket là où 
   (`OidcFilter`) fait le flux code + PKCE. Cervantes vérifie l'`id_token`.
 - **Mode dev sans rechargement** : `-Dvidocq.dev.hotReload=false`. Un IDE qui réécrit `target/classes`
   (jdtls) déclenche une recharge sans les services générés (Cyrano, Mansart).
-- **Mode dev sans tests en continu** : `-Dvidocq.dev.continuousTesting=false`. Sous `vidocq:dev`, les tests
-  partagent pour l'instant la base de dev et la vident. Correctif Vidocq en cours : les tests auront leurs
-  propres dev services. En attendant, lancer `./mvnw verify` dans un autre terminal.
 
 ## Licence
 
