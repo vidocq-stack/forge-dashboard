@@ -57,6 +57,11 @@ Sans `VIDOCQ_POOL_URL`, `vidocq:dev` démarre un conteneur PostgreSQL. Ouvrir <h
 la page renvoie vers CodeFloe pour la connexion (l'application OAuth2 doit accepter
 `http://localhost:8080/oauth2/callback` comme URI de redirection).
 
+Les sessions sont en mémoire. Une page ouverte dont la session est perdue, après un redémarrage par exemple,
+se recharge d'elle-même et repasse par CodeFloe. En local, les cookies de `localhost` ne dépendent pas du
+port : une autre application ouverte sur `localhost` qui pose son propre `JSESSIONID` remplace celui du
+dashboard, avec le même effet.
+
 ## Variables
 
 | Variable | Obligatoire | Défaut | Rôle |

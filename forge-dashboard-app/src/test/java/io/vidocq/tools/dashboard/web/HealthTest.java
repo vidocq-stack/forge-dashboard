@@ -37,9 +37,14 @@ class HealthTest {
         assertTrue(cookie.contains("SameSite=Lax"), cookie);
     }
 
+    /**
+     * A Vaadin bootstrap or an XHR without login is refused. (A message, heartbeat or push poll goes on to Vaadin,
+     * which answers that the session expired: see {@code OidcFilterTest}. Under {@code @VidocqTest} the Vaadin servlet
+     * does not start, two instantiators being found, so Vaadin's answer is checked on the image.)
+     */
     @Test
-    void vaadinRequestWithoutSessionIsUnauthorized(VidocqApplication app) {
-        assertEquals(401, app.get("/?v-r=uidl").status(), app.log());
+    void vaadinBootstrapOrXhrWithoutSessionIsUnauthorized(VidocqApplication app) {
+        assertEquals(401, app.get("/?v-r=init&location=").status(), app.log());
         assertEquals(401, app.get("/", Map.of("X-Requested-With", "XMLHttpRequest")).status());
     }
 

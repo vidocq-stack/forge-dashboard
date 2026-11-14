@@ -13,7 +13,8 @@ import java.io.IOException;
 
 /**
  * Nothing but {@code /oauth2/*} and {@code /healthz} without a CodeFloe login. A page asked without one starts the
- * login; a Vaadin or XHR request gets a 401 instead, which Vaadin shows as an expired session.
+ * login; an XHR or a Vaadin bootstrap gets a 401. A Vaadin message, heartbeat or push poll goes on to Vaadin, which
+ * answers "session expired" and makes the page reload, so that the reload starts the login (see {@link #sessionExpiry}).
  * <p>
  * Shaped as a Jakarta Security {@code HttpAuthenticationMechanism} ({@link #validateRequest}), to be replaced by
  * {@code @OpenIdAuthenticationMechanismDefinition} once Vidocq has Jakarta Security (vidocq#63).
@@ -23,7 +24,7 @@ import java.io.IOException;
 public class OidcFilter extends HttpFilter {
 
     /** Mirror of {@code jakarta.security.enterprise.AuthenticationStatus}. */
-    enum AuthenticationStatus { SUCCESS, SEND_CONTINUE, SEND_FAILURE }
+    enum AuthenticationStatus { SUCCESS, NOT_DONE, SEND_CONTINUE, SEND_FAILURE }
 
     @Inject
     OidcSettings settings;
@@ -31,7 +32,8 @@ public class OidcFilter extends HttpFilter {
     @Override
     protected void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-        if (validateRequest(request, response) == AuthenticationStatus.SUCCESS) {
+        AuthenticationStatus status = validateRequest(request, response);
+        if (status == AuthenticationStatus.SUCCESS || status == AuthenticationStatus.NOT_DONE) {
             chain.doFilter(request, response);
         }
     }
@@ -45,6 +47,9 @@ public class OidcFilter extends HttpFilter {
         if (session != null && session.getAttribute(DashboardUser.ATTR) instanceof DashboardUser) {
             return AuthenticationStatus.SUCCESS;
         }
+        if (sessionExpiry(request, path)) {
+            return AuthenticationStatus.NOT_DONE;
+        }
         if (isBackgroundRequest(request)) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
             return AuthenticationStatus.SEND_FAILURE;
@@ -57,6 +62,18 @@ public class OidcFilter extends HttpFilter {
         request.getSession(true).setAttribute(LoginState.ATTR, new LoginState(state, nonce, verifier, returnTo));
         response.sendRedirect(AuthorizationRequest.build(settings, state, nonce, Pkce.challengeS256(verifier)).toString());
         return AuthenticationStatus.SEND_CONTINUE;
+    }
+
+    /**
+     * A message ({@code v-r=uidl}), heartbeat or push poll of a page whose session is gone (a restart, a session cookie
+     * another app on the same host replaced). None of them can open a Vaadin session (only a page load, {@code init}
+     * and {@code webcomponent-resync} can), and a session without login holds none: Vaadin can only answer that the
+     * session expired, and the page then reloads. A 401 left the page on "Connection lost", reconnecting for ever.
+     */
+    private static boolean sessionExpiry(HttpServletRequest request, String path) {
+        String type = request.getParameter("v-r");
+        return "/".equals(path) ? "uidl".equals(type) || "heartbeat".equals(type)
+                : "/VAADIN/push".equals(path) && "push".equals(type);
     }
 
     /** A Vaadin request ({@code v-r=uidl}, heartbeat, push) or an XHR: a redirect to CodeFloe would break it. */
