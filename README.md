@@ -128,7 +128,9 @@ Secrets du repo : `DOCKER_REG_URL`, `DOCKER_REG_USER`, `DOCKER_REG_PASSWORD`, `P
 Chacun tombe quand le correctif est publié ; le code renvoie au ticket là où il contourne.
 
 - **Push en long polling** (vidocq#65) : Foy n'a pas encore Jakarta WebSocket ; la montée en WebSocket
-  reçoit un 501 d'Atmosphere. `DashboardAppShell` force `Transport.LONG_POLLING`.
+  reçoit un 501 d'Atmosphere. `DashboardAppShell` force `Transport.LONG_POLLING`. Vérifié le 2026-11-14 :
+  10 min d'inactivité sans reconnexion, un poll toutes les 3 s environ, et la page reçoit toujours les mises
+  à jour. Tout filtre placé devant `/VAADIN/push` doit être `asyncSupported`.
 - **Port et base par variables du runtime** (vidocq#562) : la configuration cœur lue au démarrage ne
   développait pas `${VAR:défaut}`. D'où `VIDOCQ_HTTP_PORT` au lieu d'un `DASHBOARD_PORT`, et
   `VIDOCQ_POOL_*` au lieu de `vidocq.pool.url=${DB_URL}`. Le correctif est fusionné et arrive avec le
