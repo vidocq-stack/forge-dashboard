@@ -1,0 +1,116 @@
+[
+  {
+    "id": 1219,
+    "uuid": "87c30ab4-ebf0-4d81-bd76-1126048f2d0e",
+    "owner_id": 1826,
+    "repo_id": 0,
+    "name": "CodefloeRunnerMontreuil01",
+    "status": "active",
+    "version": "v13.0.0",
+    "labels": [
+      "ubuntu-latest",
+      "vidocq-runner",
+      "docker"
+    ],
+    "description": "",
+    "ephemeral": false
+  },
+  {
+    "id": 1224,
+    "uuid": "9d388c1b-cf84-4cd5-877d-9aa5937a58f0",
+    "owner_id": 1826,
+    "repo_id": 0,
+    "name": "Villejuif-runner2",
+    "status": "active",
+    "version": "v13.0.0",
+    "labels": [
+      "ubuntu-latest",
+      "vidocq-runner",
+      "ubuntu-22.04",
+      "docker"
+    ],
+    "description": "",
+    "ephemeral": false
+  },
+  {
+    "id": 1220,
+    "uuid": "6c935f1a-a6fd-4578-8500-c31c946fbb31",
+    "owner_id": 1826,
+    "repo_id": 0,
+    "name": "CodefloeRunnerMontreuil02",
+    "status": "active",
+    "version": "v13.0.0",
+    "labels": [
+      "ubuntu-latest",
+      "vidocq-runner",
+      "docker"
+    ],
+    "description": "",
+    "ephemeral": false
+  },
+  {
+    "id": 1223,
+    "uuid": "ababeffb-393b-4834-867f-3eb34f674899",
+    "owner_id": 1826,
+    "repo_id": 0,
+    "name": "Villejuif-runner1",
+    "status": "idle",
+    "version": "v13.0.0",
+    "labels": [
+      "ubuntu-latest",
+      "vidocq-runner",
+      "ubuntu-22.04",
+      "docker"
+    ],
+    "description": "",
+    "ephemeral": false
+  },
+  {
+    "id": 1217,
+    "uuid": "0908d017-dcaf-4e9f-9c78-89f7a501e317",
+    "owner_id": 1826,
+    "repo_id": 0,
+    "name": "CodefloeRunnerFoix",
+    "status": "idle",
+    "version": "v13.0.0",
+    "labels": [
+      "ubuntu-latest",
+      "vidocq-runner",
+      "docker",
+      "vidocq-foix"
+    ],
+    "description": "",
+    "ephemeral": false
+  },
+  {
+    "id": 1438,
+    "uuid": "f924a289-a095-41cb-aebb-326899bb485b",
+    "owner_id": 1826,
+    "repo_id": 0,
+    "name": "CodefloeRunnerMac",
+    "status": "idle",
+    "version": "v13.2.0",
+    "labels": [
+      "ubuntu-latest",
+      "vidocq-runner",
+      "docker",
+      "vidocq-mac"
+    ],
+    "description": "",
+    "ephemeral": false
+  },
+  {
+    "id": 1651,
+    "uuid": "6cc27aad-aa62-4f11-8cd4-5482ee78122f",
+    "owner_id": 1826,
+    "repo_id": 0,
+    "name": "CodefloeCracRunnerKikanux",
+    "status": "idle",
+    "version": "v13.0.0",
+    "labels": [
+      "crac"
+    ],
+    "description": "",
+    "ephemeral": false
+  }
+]

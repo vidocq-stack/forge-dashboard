@@ -1,0 +1,1250 @@
+[
+  {
+    "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/commits/e0b675d31e8d10ef037cd3f2ee00203ad82367cc",
+    "sha": "e0b675d31e8d10ef037cd3f2ee00203ad82367cc",
+    "created": "2026-11-14T11:58:30Z",
+    "html_url": "https://codefloe.com/Vidocq/vauban/commit/e0b675d31e8d10ef037cd3f2ee00203ad82367cc",
+    "commit": {
+      "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/commits/e0b675d31e8d10ef037cd3f2ee00203ad82367cc",
+      "author": {
+        "name": "Yann Blazart",
+        "email": "yblazart@example.invalid",
+        "date": "2026-11-14T12:13:53+01:00"
+      },
+      "committer": {
+        "name": "Vidocq CI Bot",
+        "email": "yblazart@example.invalid",
+        "date": "2026-11-14T11:58:30Z"
+      },
+      "message": "feat(core): a refused record of frozen extensions names the classes that differ\n\nThe record of the extensions frozen at build now keeps what its fingerprint\nwas computed from: the discovery settings and each bean class with its\nchecksum. A start whose fingerprint differs compares its own deployment\nwith the build's and its note names the bean classes added, removed or\nchanged since (ten by name, the others counted), instead of two opaque\nfingerprints. A record written before it kept its classes is still used,\nand its refusal note keeps the old text.\n\nThe container keeps logging the note at debug level: the embedding runtime\nknows whether a refused record is expected and says it at its own level.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01DQoEaLnfwGpxVYSXFoFQA8\nSigned-off-by: Yann Blazart <redacted@example.invalid>\n",
+      "tree": {
+        "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/trees/e0b675d31e8d10ef037cd3f2ee00203ad82367cc",
+        "sha": "e0b675d31e8d10ef037cd3f2ee00203ad82367cc",
+        "created": "2026-11-14T11:58:30Z"
+      },
+      "verification": {
+        "verified": true,
+        "reason": "vidocq-ci-bot / D21D1F9DD7214787",
+        "signature": "-----BEGIN PGP SIGNATURE-----\n\niQIzBAABCgAdFiEEmXeRKLQeN39LT/6a0h0fndchR4cFAmr4TOYACgkQ0h0fndch\nR4dygA//QaP48vpULeQ6Rq01TaX4MNjAcccUYV+z6FM8KCiPZ9NoCzbloJDHyRx1\nM6+4RyWt2Y9Y8azftGORhfBIul0UALoAbI/YYh6aoH4H4Nt35NwdBTiNFCHhJtFq\nbsiny8rvmUB8jeOWY3hw3Mldedv9PsReVxP2XBTSgma/aJNUtm+Mkrj5YGEC6G8l\nM0Lrm0zwA6bzTIiWiPwJMNIflYmSuUSV+H1QKaEXJfC3D3hgbJG+YN5eq5N7aQPc\nVyi36SmPGEiMCCFD6U0uFvFqH46d1t+1r1Et4eoStP+Y/EMlyAxOtac9NmG4wr3t\nu5rZ7i7/s4nB+Mm7J88iZnHZmQfDzNgwPTglnNx0OaCyMSMGSVuSnn661AemFXs6\nTMWS4m5JoPv1F5GwjAKgHw6oshyLQ9XOCvahRX4iSbmGftPBAH5Boq1VBcnFv1hV\nCRDziEoGEhCWhyfI3h/KrF1RmMDU9OWk3qUyZvP3eK/IQCbNRhjTTo5NCQk436NI\nwmchujcrI9f+JYaArRjsw/4QMAsDTADkJcI+jCmHZPTR7y5UA6YPp+bIFYKnZSLv\no5PIRv0/5aj+4ITQASqeKwn80VhFVhSGpXhjIz6LSoDvnNwh7Ohm++9iuH7m6q99\nZ6dcr5He0n+XNZRRg91Fx/+/32juNbOF0wrlydBbbEE9ohOPm7g=\n=T7Xe\n-----END PGP SIGNATURE-----\n",
+        "signer": {
+          "name": "vidocq-ci-bot",
+          "email": "yblazart@example.invalid",
+          "username": ""
+        },
+        "payload": "tree 7bfdffd5e2838dc25ac314bda4ee0472de4ea8cf\nparent 66917a38f583d860e61c7f23b46a57af5f810689\nauthor Yann Blazart <redacted@example.invalid> 1794654833 +0100\ncommitter Vidocq CI Bot <redacted@example.invalid> 1794657510 +0000\n\nfeat(core): a refused record of frozen extensions names the classes that differ\n\nThe record of the extensions frozen at build now keeps what its fingerprint\nwas computed from: the discovery settings and each bean class with its\nchecksum. A start whose fingerprint differs compares its own deployment\nwith the build's and its note names the bean classes added, removed or\nchanged since (ten by name, the others counted), instead of two opaque\nfingerprints. A record written before it kept its classes is still used,\nand its refusal note keeps the old text.\n\nThe container keeps logging the note at debug level: the embedding runtime\nknows whether a refused record is expected and says it at its own level.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01DQoEaLnfwGpxVYSXFoFQA8\nSigned-off-by: Yann Blazart <redacted@example.invalid>\n"
+      }
+    },
+    "author": {
+      "id": 1825,
+      "login": "yblazart",
+      "login_name": "",
+      "source_id": 0,
+      "full_name": "",
+      "email": "yblazart@example.invalid",
+      "avatar_url": "https://secure.gravatar.com/avatar/38fc8d0af8747ab95d1bb475e709b71a?d=https%3A%2F%2Fcodefloe.com%2Favatar-placeholder%2F38fc8d0af8747ab95d1bb475e709b71a.png",
+      "html_url": "https://codefloe.com/yblazart",
+      "language": "",
+      "is_admin": false,
+      "last_login": "0001-01-01T00:00:00Z",
+      "created": "2026-05-27T15:49:26Z",
+      "restricted": false,
+      "active": false,
+      "prohibit_login": false,
+      "location": "",
+      "pronouns": "",
+      "website": "",
+      "description": "",
+      "visibility": "public",
+      "followers_count": 0,
+      "following_count": 0,
+      "starred_repos_count": 1,
+      "username": "yblazart"
+    },
+    "committer": {
+      "id": 3142,
+      "login": "vidocq-ci-bot",
+      "login_name": "",
+      "source_id": 0,
+      "full_name": "",
+      "email": "vidocq-ci-bot@example.invalid",
+      "avatar_url": "https://secure.gravatar.com/avatar/f965581a4ba2b7371efdcd5be44b30fa?d=https%3A%2F%2Fcodefloe.com%2Favatar-placeholder%2Ff965581a4ba2b7371efdcd5be44b30fa.png",
+      "html_url": "https://codefloe.com/vidocq-ci-bot",
+      "language": "",
+      "is_admin": false,
+      "last_login": "0001-01-01T00:00:00Z",
+      "created": "2026-08-28T16:08:00Z",
+      "restricted": false,
+      "active": false,
+      "prohibit_login": false,
+      "location": "",
+      "pronouns": "",
+      "website": "",
+      "description": "",
+      "visibility": "public",
+      "followers_count": 0,
+      "following_count": 0,
+      "starred_repos_count": 0,
+      "username": "vidocq-ci-bot"
+    },
+    "parents": [
+      {
+        "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/commits/66917a38f583d860e61c7f23b46a57af5f810689",
+        "sha": "66917a38f583d860e61c7f23b46a57af5f810689",
+        "created": "0001-01-01T00:00:00Z"
+      }
+    ],
+    "files": [
+      {
+        "filename": "docs/en/modules/ROOT/pages/concepts.adoc",
+        "status": "modified"
+      },
+      {
+        "filename": "docs/en/modules/ROOT/pages/whats-new.adoc",
+        "status": "modified"
+      },
+      {
+        "filename": "vauban-core/src/main/java/io/vidocq/vauban/core/container/DeploymentFingerprint.java",
+        "status": "modified"
+      },
+      {
+        "filename": "vauban-core/src/main/java/io/vidocq/vauban/core/container/VaubanContainerBuilder.java",
+        "status": "modified"
+      },
+      {
+        "filename": "vauban-core/src/main/java/io/vidocq/vauban/core/extensions/FrozenExtensions.java",
+        "status": "modified"
+      },
+      {
+        "filename": "vauban-core/src/test/java/io/vidocq/vauban/core/container/FrozenExtensionsTest.java",
+        "status": "modified"
+      },
+      {
+        "filename": "vauban-core/src/test/java/io/vidocq/vauban/core/extensions/FrozenExtensionsRecordTest.java",
+        "status": "modified"
+      }
+    ],
+    "stats": {
+      "total": 211,
+      "additions": 189,
+      "deletions": 22
+    }
+  },
+  {
+    "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/commits/66917a38f583d860e61c7f23b46a57af5f810689",
+    "sha": "66917a38f583d860e61c7f23b46a57af5f810689",
+    "created": "2026-11-14T11:07:42Z",
+    "html_url": "https://codefloe.com/Vidocq/vauban/commit/66917a38f583d860e61c7f23b46a57af5f810689",
+    "commit": {
+      "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/commits/66917a38f583d860e61c7f23b46a57af5f810689",
+      "author": {
+        "name": "Yann Blazart",
+        "email": "yblazart@example.invalid",
+        "date": "2026-11-14T11:36:04+01:00"
+      },
+      "committer": {
+        "name": "Vidocq CI Bot",
+        "email": "yblazart@example.invalid",
+        "date": "2026-11-14T11:07:42Z"
+      },
+      "message": "docs(agents): list the interfaces of normal-scoped synthetic beans in @ClientProxies\n\nVauban generates a client proxy at build from the classes it compiles, and\na synthetic bean has none: the freeze records its descriptor, not a proxy,\nand a deployment that runs its extensions at start has no build step. The\ncontainer then built a java.lang.reflect.Proxy at every start, every call\nthrough reflection, a slower boot, nothing ahead of time, and every\napplication printed the RUNTIME CODE GENERATION FALLBACK warning\n(BUG-20261113-19: Noether's EntityManager and EntityManagerFactory).\n\nThe build compatible extension rules gain the one that avoids it: list\nthose interfaces in @io.vidocq.vauban.api.ClientProxies, on the\n*-cdi-vauban extension or, for a container-neutral brick, on its Vidocq\nruntime extension.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01DQoEaJaTRT5QCChBF3qYFK\nSigned-off-by: Yann Blazart <redacted@example.invalid>\n",
+      "tree": {
+        "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/trees/66917a38f583d860e61c7f23b46a57af5f810689",
+        "sha": "66917a38f583d860e61c7f23b46a57af5f810689",
+        "created": "2026-11-14T11:07:42Z"
+      },
+      "verification": {
+        "verified": true,
+        "reason": "vidocq-ci-bot / D21D1F9DD7214787",
+        "signature": "-----BEGIN PGP SIGNATURE-----\n\niQIzBAABCgAdFiEEmXeRKLQeN39LT/6a0h0fndchR4cFAmr4QP4ACgkQ0h0fndch\nR4eQSBAAs7a5pDOyYBg/0ZNtJSsLx0d0zqvtFERUJ+/3vm3o2WsdhhbCFtdxqq11\nRpT42nAjCVa1uItxDOlPynlI7iudB3pMMYvcSGiZcVCeJPsVBQFm7Bd7gV4CKdCe\nv7zT99jDea7xroKH4edx6u1d2M+OQJsr5T8AEYvdytMBuX3DtoR8za61qnG4ixpY\nJijktgCgHYLbBggRc/jS7m7Gi1+b0w9tR4hM6K7Dxb7mQ/ZWKbNCYtxuQAqpu3/Q\nVprzvnwwIqIUMT5FJQE5ShM3h8ZmN2Evft9T95Es/ghZP0Yd1VFCPzk9R0dnpqe8\nPXlYKH48EuOyE9LS5tG8+JGILtxEo7sx7n/0MUKV0OhGpuvFrk+G8tCF66GsRuuC\npTPQdosdBo5yKv9cm60DO//Bttzd2AzSarz2grM5O3PCVOVq97ixrOYxEo53tShH\ncB92uEKj8J5n3427lpUWVpiOOb62FrCjNLmvrE0b39EjhyCJIJS/gI3uNL1pRpmt\nXOHkXPrDW4tQ/tYr7HXNBBIXYOFLf+K9A9dz4psVdOXlbmZBejhrwzIGTHOCwEWm\nTT4ecVSfNh5N9yppu/u0M8Q3TWXXb5s5QWmgZSqM8MhiiyR9tF+jeDdgoQwFQBkq\nNcqFsPcIHTXXXxxdqferbMiA/SJ5l4nK/KaZbJyQiKQfh/xWrnI=\n=AvhR\n-----END PGP SIGNATURE-----\n",
+        "signer": {
+          "name": "vidocq-ci-bot",
+          "email": "yblazart@example.invalid",
+          "username": ""
+        },
+        "payload": "tree 3a278e6acbc8e53ae232e32e6d14b83c061ecff4\nparent bf234478e68b744c6b2b1780981ac1caf48a9cb4\nauthor Yann Blazart <redacted@example.invalid> 1794652564 +0100\ncommitter Vidocq CI Bot <redacted@example.invalid> 1794654462 +0000\n\ndocs(agents): list the interfaces of normal-scoped synthetic beans in @ClientProxies\n\nVauban generates a client proxy at build from the classes it compiles, and\na synthetic bean has none: the freeze records its descriptor, not a proxy,\nand a deployment that runs its extensions at start has no build step. The\ncontainer then built a java.lang.reflect.Proxy at every start, every call\nthrough reflection, a slower boot, nothing ahead of time, and every\napplication printed the RUNTIME CODE GENERATION FALLBACK warning\n(BUG-20261113-19: Noether's EntityManager and EntityManagerFactory).\n\nThe build compatible extension rules gain the one that avoids it: list\nthose interfaces in @io.vidocq.vauban.api.ClientProxies, on the\n*-cdi-vauban extension or, for a container-neutral brick, on its Vidocq\nruntime extension.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01DQoEaJaTRT5QCChBF3qYFK\nSigned-off-by: Yann Blazart <redacted@example.invalid>\n"
+      }
+    },
+    "author": {
+      "id": 1825,
+      "login": "yblazart",
+      "login_name": "",
+      "source_id": 0,
+      "full_name": "",
+      "email": "yblazart@example.invalid",
+      "avatar_url": "https://secure.gravatar.com/avatar/38fc8d0af8747ab95d1bb475e709b71a?d=https%3A%2F%2Fcodefloe.com%2Favatar-placeholder%2F38fc8d0af8747ab95d1bb475e709b71a.png",
+      "html_url": "https://codefloe.com/yblazart",
+      "language": "",
+      "is_admin": false,
+      "last_login": "0001-01-01T00:00:00Z",
+      "created": "2026-05-27T15:49:26Z",
+      "restricted": false,
+      "active": false,
+      "prohibit_login": false,
+      "location": "",
+      "pronouns": "",
+      "website": "",
+      "description": "",
+      "visibility": "public",
+      "followers_count": 0,
+      "following_count": 0,
+      "starred_repos_count": 1,
+      "username": "yblazart"
+    },
+    "committer": {
+      "id": 3142,
+      "login": "vidocq-ci-bot",
+      "login_name": "",
+      "source_id": 0,
+      "full_name": "",
+      "email": "vidocq-ci-bot@example.invalid",
+      "avatar_url": "https://secure.gravatar.com/avatar/f965581a4ba2b7371efdcd5be44b30fa?d=https%3A%2F%2Fcodefloe.com%2Favatar-placeholder%2Ff965581a4ba2b7371efdcd5be44b30fa.png",
+      "html_url": "https://codefloe.com/vidocq-ci-bot",
+      "language": "",
+      "is_admin": false,
+      "last_login": "0001-01-01T00:00:00Z",
+      "created": "2026-08-28T16:08:00Z",
+      "restricted": false,
+      "active": false,
+      "prohibit_login": false,
+      "location": "",
+      "pronouns": "",
+      "website": "",
+      "description": "",
+      "visibility": "public",
+      "followers_count": 0,
+      "following_count": 0,
+      "starred_repos_count": 0,
+      "username": "vidocq-ci-bot"
+    },
+    "parents": [
+      {
+        "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/commits/bf234478e68b744c6b2b1780981ac1caf48a9cb4",
+        "sha": "bf234478e68b744c6b2b1780981ac1caf48a9cb4",
+        "created": "0001-01-01T00:00:00Z"
+      }
+    ],
+    "files": [
+      {
+        "filename": "AGENTS.md",
+        "status": "modified"
+      },
+      {
+        "filename": "CLAUDE.md",
+        "status": "modified"
+      }
+    ],
+    "stats": {
+      "total": 20,
+      "additions": 20,
+      "deletions": 0
+    }
+  },
+  {
+    "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/commits/bf234478e68b744c6b2b1780981ac1caf48a9cb4",
+    "sha": "bf234478e68b744c6b2b1780981ac1caf48a9cb4",
+    "created": "2026-11-14T11:07:42Z",
+    "html_url": "https://codefloe.com/Vidocq/vauban/commit/bf234478e68b744c6b2b1780981ac1caf48a9cb4",
+    "commit": {
+      "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/commits/bf234478e68b744c6b2b1780981ac1caf48a9cb4",
+      "author": {
+        "name": "Yann Blazart",
+        "email": "yblazart@example.invalid",
+        "date": "2026-11-14T11:26:48+01:00"
+      },
+      "committer": {
+        "name": "Vidocq CI Bot",
+        "email": "yblazart@example.invalid",
+        "date": "2026-11-14T11:07:42Z"
+      },
+      "message": "fix(processor): name @ClientProxies instead of loading it, for an older vauban-api on the processor path\n\nThe downstream Vidocq build of this branch failed in\nvidocq-runtime-dirac-metrics-extension: \"Provider\nio.vidocq.vauban.processor.VaubanProcessor could not be instantiated\". The\nprocessor took the annotation's name from ClientProxies.class in a static\nfield, and that module's processor path held the published vauban-api,\nwithout the type, through a codegen bundle built on it: Maven's\nnearest-wins mediation picked it over the one vauban-processor depends on.\n\nThe processor names the type as a string, as it already does for\nVaubanComponentProvider. OlderApiOnProcessorPathTest loads the processor\nthrough a class loader that hides ClientProxies: red before, green now.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01DQoEaJaTRT5QCChBF3qYFK\nSigned-off-by: Yann Blazart <redacted@example.invalid>\n",
+      "tree": {
+        "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/trees/bf234478e68b744c6b2b1780981ac1caf48a9cb4",
+        "sha": "bf234478e68b744c6b2b1780981ac1caf48a9cb4",
+        "created": "2026-11-14T11:07:42Z"
+      },
+      "verification": {
+        "verified": true,
+        "reason": "vidocq-ci-bot / D21D1F9DD7214787",
+        "signature": "-----BEGIN PGP SIGNATURE-----\n\niQIzBAABCgAdFiEEmXeRKLQeN39LT/6a0h0fndchR4cFAmr4QP4ACgkQ0h0fndch\nR4cB+g//dQCrAbiQXU0UUO4F8GgXLgPL2XBbJzoXXziy4o81f5N7VpqE4QV+9lhE\nZhUghInAiWZdlIU9/tPquy2o8fQmgdmvlo7LNH91UC2mMe5gQb/aWC7qKXmxt5+T\n3YMOp+4T5roVaThG1SIY/U7pHlKlHbfv3ag25uTAmFT2XfH58RjP1I28QJLsJCAv\njslYkiuFfibR16a7SzqBjV9BTv1Pf305oGE4dwQDcowzDtB0bfaTH5WxXt4JrHH2\nfBFgNInEHxvV8nlI8hVBu8uFS37ouZOJMbC/mf3+ET6GoEBdmBUp4U4O/3QB0PqU\nH3e+sYUdHATCpcak8gyAM+yn2PcHwIPfP6Q7VtXxgYsgSqU4PYiq1ABHceGig/FG\ngVz9QUK4YFMB2DSiV9KhpLUEWzvOh30mOsfojO1LYkNJDEuYvtrLhzMXSGIqCvw6\nWZitmpnLBApAp1cumjp6ryMsfzDlUo2cfl9BQTLvx4HmDI/l4gc4ChqF9UDrPjaa\nGFI1stUwZtwlTPOHEbnOMghiAQJX/Pf+P+Pxu72KKw4+inzTDq0rhfVDU/xAfU7Z\nu77ED4jTNMWym4pBBBD/cczfLZ0dRERlYSCifZy7SUjr+tThBh42nKw+Ui0B0nQC\n8N/gEmpzgBp1Pl7Edh8nt25W8BwDDAkcyL8voz0SuGSqN+gLFOU=\n=Thye\n-----END PGP SIGNATURE-----\n",
+        "signer": {
+          "name": "vidocq-ci-bot",
+          "email": "yblazart@example.invalid",
+          "username": ""
+        },
+        "payload": "tree 9e63b153ebd035bb41872bbbfbfe7fb86d5e2019\nparent f951939ab64562a62c0aabf5e8d009eaa3693f55\nauthor Yann Blazart <redacted@example.invalid> 1794652008 +0100\ncommitter Vidocq CI Bot <redacted@example.invalid> 1794654462 +0000\n\nfix(processor): name @ClientProxies instead of loading it, for an older vauban-api on the processor path\n\nThe downstream Vidocq build of this branch failed in\nvidocq-runtime-dirac-metrics-extension: \"Provider\nio.vidocq.vauban.processor.VaubanProcessor could not be instantiated\". The\nprocessor took the annotation's name from ClientProxies.class in a static\nfield, and that module's processor path held the published vauban-api,\nwithout the type, through a codegen bundle built on it: Maven's\nnearest-wins mediation picked it over the one vauban-processor depends on.\n\nThe processor names the type as a string, as it already does for\nVaubanComponentProvider. OlderApiOnProcessorPathTest loads the processor\nthrough a class loader that hides ClientProxies: red before, green now.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01DQoEaJaTRT5QCChBF3qYFK\nSigned-off-by: Yann Blazart <redacted@example.invalid>\n"
+      }
+    },
+    "author": {
+      "id": 1825,
+      "login": "yblazart",
+      "login_name": "",
+      "source_id": 0,
+      "full_name": "",
+      "email": "yblazart@example.invalid",
+      "avatar_url": "https://secure.gravatar.com/avatar/38fc8d0af8747ab95d1bb475e709b71a?d=https%3A%2F%2Fcodefloe.com%2Favatar-placeholder%2F38fc8d0af8747ab95d1bb475e709b71a.png",
+      "html_url": "https://codefloe.com/yblazart",
+      "language": "",
+      "is_admin": false,
+      "last_login": "0001-01-01T00:00:00Z",
+      "created": "2026-05-27T15:49:26Z",
+      "restricted": false,
+      "active": false,
+      "prohibit_login": false,
+      "location": "",
+      "pronouns": "",
+      "website": "",
+      "description": "",
+      "visibility": "public",
+      "followers_count": 0,
+      "following_count": 0,
+      "starred_repos_count": 1,
+      "username": "yblazart"
+    },
+    "committer": {
+      "id": 3142,
+      "login": "vidocq-ci-bot",
+      "login_name": "",
+      "source_id": 0,
+      "full_name": "",
+      "email": "vidocq-ci-bot@example.invalid",
+      "avatar_url": "https://secure.gravatar.com/avatar/f965581a4ba2b7371efdcd5be44b30fa?d=https%3A%2F%2Fcodefloe.com%2Favatar-placeholder%2Ff965581a4ba2b7371efdcd5be44b30fa.png",
+      "html_url": "https://codefloe.com/vidocq-ci-bot",
+      "language": "",
+      "is_admin": false,
+      "last_login": "0001-01-01T00:00:00Z",
+      "created": "2026-08-28T16:08:00Z",
+      "restricted": false,
+      "active": false,
+      "prohibit_login": false,
+      "location": "",
+      "pronouns": "",
+      "website": "",
+      "description": "",
+      "visibility": "public",
+      "followers_count": 0,
+      "following_count": 0,
+      "starred_repos_count": 0,
+      "username": "vidocq-ci-bot"
+    },
+    "parents": [
+      {
+        "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/commits/f951939ab64562a62c0aabf5e8d009eaa3693f55",
+        "sha": "f951939ab64562a62c0aabf5e8d009eaa3693f55",
+        "created": "0001-01-01T00:00:00Z"
+      }
+    ],
+    "files": [
+      {
+        "filename": "vauban-processor/src/test/java/io/vidocq/vauban/processor/OlderApiOnProcessorPathTest.java",
+        "status": "added"
+      },
+      {
+        "filename": "BUG.md",
+        "status": "modified"
+      },
+      {
+        "filename": "vauban-processor/src/main/java/io/vidocq/vauban/processor/VaubanProcessor.java",
+        "status": "modified"
+      }
+    ],
+    "stats": {
+      "total": 97,
+      "additions": 96,
+      "deletions": 1
+    }
+  },
+  {
+    "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/commits/f951939ab64562a62c0aabf5e8d009eaa3693f55",
+    "sha": "f951939ab64562a62c0aabf5e8d009eaa3693f55",
+    "created": "2026-11-14T11:07:42Z",
+    "html_url": "https://codefloe.com/Vidocq/vauban/commit/f951939ab64562a62c0aabf5e8d009eaa3693f55",
+    "commit": {
+      "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/commits/f951939ab64562a62c0aabf5e8d009eaa3693f55",
+      "author": {
+        "name": "Yann Blazart",
+        "email": "yblazart@example.invalid",
+        "date": "2026-11-14T11:09:32+01:00"
+      },
+      "committer": {
+        "name": "Vidocq CI Bot",
+        "email": "yblazart@example.invalid",
+        "date": "2026-11-14T11:07:42Z"
+      },
+      "message": "docs: @ClientProxies in the generated-code table, _VaubanComponents and the README\n\nThe internals table of generated code said a client proxy of an interface\nis always a java.lang.reflect.Proxy built at boot; it now says the\nprocessor generates one for a producer of an interface and for each\ninterface listed in @ClientProxies, and that the announcement names a\nsynthetic bean's apart. The _VaubanComponents description lists the\nproxies the provider creates, and says it is written for a package\nwithout a bean when a class of it lists interfaces. The README's\nvauban-api section names the generated-code contract and @ClientProxies.\n\nAlso restores three missing spaces in the _VaubanComponents description.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01DQoEaJaTRT5QCChBF3qYFK\nSigned-off-by: Yann Blazart <redacted@example.invalid>\n",
+      "tree": {
+        "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/trees/f951939ab64562a62c0aabf5e8d009eaa3693f55",
+        "sha": "f951939ab64562a62c0aabf5e8d009eaa3693f55",
+        "created": "2026-11-14T11:07:42Z"
+      },
+      "verification": {
+        "verified": true,
+        "reason": "vidocq-ci-bot / D21D1F9DD7214787",
+        "signature": "-----BEGIN PGP SIGNATURE-----\n\niQIzBAABCgAdFiEEmXeRKLQeN39LT/6a0h0fndchR4cFAmr4QP4ACgkQ0h0fndch\nR4cRrw//Yjsp8D5DcAyTat8kWDfBcZZBfee29UtMkWfASKJaPMZyJL/ZhVJeAiIr\ncQHJ0jkB6VS+qrnOXCSr5re9mtoE83ZCrf/aW3raIlOu747urZEr+JS29GUrfWGg\njZGwfGQvZuO/uvPbOf5FvSAsWKMjL3UvG/ydEP3Ott79MPRwwl4M0WlUWWvDQusb\n6Cd1/vm397idE6uSRjUOY59GL0i7ZLyY85qOYQ3lhmPo+IHUS0mS1zc9H+9ci6PJ\n5guiYb6Lwaf6IMON8RP2MVZPPBgBolam69+MKXab9c4BpuQHLYZemsiQwZxGlPA+\n/xq3agsaPv2l4SlAOA/fOFIWVzbwj4/G+K47y5A7XgRcJp+EgRmD8DJhE9dVE6IZ\nAKfqMCcE9kTn3r8i5TrTI8T05FBOX707rp+Ap8G7TcnrlsYQGCVV8KfkTjR+ziVI\nts5oW3t6R2HDi8wNC2cy85jvJuedM5KN6DsIxFjnjeyTiHsJg/+YywzeSwYaPwv3\nnb3t4Y+1Tvp0hDlGjYH+HRTCtRGM7Su+4bl9MCkiNL+zzcJL3Xafus34HLaQJaKx\n4Q+zlkZQYvGM+2cTMiEd3lJkOrIe+eEKgP99X2Z61SvwPeJfcgKtjNfV6ptTmf+5\nSV375jdKgSOJEnToFsSSirQzkza1ywgQPSNScQhblMVS7gd2udM=\n=USpR\n-----END PGP SIGNATURE-----\n",
+        "signer": {
+          "name": "vidocq-ci-bot",
+          "email": "yblazart@example.invalid",
+          "username": ""
+        },
+        "payload": "tree 9db2b91843a87ef853159e104ad91b5c36a8e77b\nparent 98ce7c72960d123b6d447365ed152ba06686f972\nauthor Yann Blazart <redacted@example.invalid> 1794650972 +0100\ncommitter Vidocq CI Bot <redacted@example.invalid> 1794654462 +0000\n\ndocs: @ClientProxies in the generated-code table, _VaubanComponents and the README\n\nThe internals table of generated code said a client proxy of an interface\nis always a java.lang.reflect.Proxy built at boot; it now says the\nprocessor generates one for a producer of an interface and for each\ninterface listed in @ClientProxies, and that the announcement names a\nsynthetic bean's apart. The _VaubanComponents description lists the\nproxies the provider creates, and says it is written for a package\nwithout a bean when a class of it lists interfaces. The README's\nvauban-api section names the generated-code contract and @ClientProxies.\n\nAlso restores three missing spaces in the _VaubanComponents description.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01DQoEaJaTRT5QCChBF3qYFK\nSigned-off-by: Yann Blazart <redacted@example.invalid>\n"
+      }
+    },
+    "author": {
+      "id": 1825,
+      "login": "yblazart",
+      "login_name": "",
+      "source_id": 0,
+      "full_name": "",
+      "email": "yblazart@example.invalid",
+      "avatar_url": "https://secure.gravatar.com/avatar/38fc8d0af8747ab95d1bb475e709b71a?d=https%3A%2F%2Fcodefloe.com%2Favatar-placeholder%2F38fc8d0af8747ab95d1bb475e709b71a.png",
+      "html_url": "https://codefloe.com/yblazart",
+      "language": "",
+      "is_admin": false,
+      "last_login": "0001-01-01T00:00:00Z",
+      "created": "2026-05-27T15:49:26Z",
+      "restricted": false,
+      "active": false,
+      "prohibit_login": false,
+      "location": "",
+      "pronouns": "",
+      "website": "",
+      "description": "",
+      "visibility": "public",
+      "followers_count": 0,
+      "following_count": 0,
+      "starred_repos_count": 1,
+      "username": "yblazart"
+    },
+    "committer": {
+      "id": 3142,
+      "login": "vidocq-ci-bot",
+      "login_name": "",
+      "source_id": 0,
+      "full_name": "",
+      "email": "vidocq-ci-bot@example.invalid",
+      "avatar_url": "https://secure.gravatar.com/avatar/f965581a4ba2b7371efdcd5be44b30fa?d=https%3A%2F%2Fcodefloe.com%2Favatar-placeholder%2Ff965581a4ba2b7371efdcd5be44b30fa.png",
+      "html_url": "https://codefloe.com/vidocq-ci-bot",
+      "language": "",
+      "is_admin": false,
+      "last_login": "0001-01-01T00:00:00Z",
+      "created": "2026-08-28T16:08:00Z",
+      "restricted": false,
+      "active": false,
+      "prohibit_login": false,
+      "location": "",
+      "pronouns": "",
+      "website": "",
+      "description": "",
+      "visibility": "public",
+      "followers_count": 0,
+      "following_count": 0,
+      "starred_repos_count": 0,
+      "username": "vidocq-ci-bot"
+    },
+    "parents": [
+      {
+        "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/commits/98ce7c72960d123b6d447365ed152ba06686f972",
+        "sha": "98ce7c72960d123b6d447365ed152ba06686f972",
+        "created": "0001-01-01T00:00:00Z"
+      }
+    ],
+    "files": [
+      {
+        "filename": "README.md",
+        "status": "modified"
+      },
+      {
+        "filename": "docs/en/modules/ROOT/pages/internals.adoc",
+        "status": "modified"
+      }
+    ],
+    "stats": {
+      "total": 15,
+      "additions": 11,
+      "deletions": 4
+    }
+  },
+  {
+    "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/commits/98ce7c72960d123b6d447365ed152ba06686f972",
+    "sha": "98ce7c72960d123b6d447365ed152ba06686f972",
+    "created": "2026-11-14T11:07:41Z",
+    "html_url": "https://codefloe.com/Vidocq/vauban/commit/98ce7c72960d123b6d447365ed152ba06686f972",
+    "commit": {
+      "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/commits/98ce7c72960d123b6d447365ed152ba06686f972",
+      "author": {
+        "name": "Yann Blazart",
+        "email": "yblazart@example.invalid",
+        "date": "2026-11-14T11:02:12+01:00"
+      },
+      "committer": {
+        "name": "Vidocq CI Bot",
+        "email": "yblazart@example.invalid",
+        "date": "2026-11-14T11:07:41Z"
+      },
+      "message": "fix(processor): build-time client proxies for the interfaces of synthetic beans (BUG-20261113-19)\n\nThe processor generates the client proxy of a normal-scoped bean it sees,\nan interface-typed producer included (a class that implements the\ninterface, #42). A synthetic bean has no class it sees, so the container\nproxied one of an interface type with java.lang.reflect.Proxy at boot,\nevery call through Method.invoke, and the boot warning advised adding\nvauban-processor, which the module already had. Every Noether application\non Vidocq showed it for the EntityManager and EntityManagerFactory beans of\nits units.\n\n@io.vidocq.vauban.api.ClientProxies lists the interfaces of the synthetic\nbeans an extension registers, on any class of a module compiled with the\nprocessor. The processor generates for each the class a producer of that\ninterface gets, in the package of the annotated class, under the key the\ncontainer looks up, in that package's _VaubanComponents, which it now\nwrites for a module without a bean too. A producer of the same interface\nin the same package shares the proxy. A listed type that is not a public\ninterface fails the compilation.\n\nThe boot warning lists the run-time proxy of a synthetic bean apart, with\nthe @ClientProxies advice, and gives the vauban-processor advice only when\nanother kind of class is listed.\n\nDocs: concepts, \"Client proxies of synthetic beans\"; internals (the proxy\ntable and AOT compatibility); reference (vauban-api); What's new.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01DQoEaJaTRT5QCChBF3qYFK\nSigned-off-by: Yann Blazart <redacted@example.invalid>\n",
+      "tree": {
+        "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/trees/98ce7c72960d123b6d447365ed152ba06686f972",
+        "sha": "98ce7c72960d123b6d447365ed152ba06686f972",
+        "created": "2026-11-14T11:07:41Z"
+      },
+      "verification": {
+        "verified": true,
+        "reason": "vidocq-ci-bot / D21D1F9DD7214787",
+        "signature": "-----BEGIN PGP SIGNATURE-----\n\niQIzBAABCgAdFiEEmXeRKLQeN39LT/6a0h0fndchR4cFAmr4QP0ACgkQ0h0fndch\nR4fMOA//WRxnI5DugaJlKfe1YaW3chmsVCmK2FmOqYFEsihlSXhpeNEPFHppnmv7\nXLXYTv5cDwNdyxKgmGZ444l4FajDpx8ZA+0eO47APZDhAlHB1D5wsmKbYIQ4mVEH\nbPMP4dTIWZr97gALu1+J92qLfIrJY/QATFQxhN9dh/+XUTUEAazIU/rGd7HwZKdt\nIPvRS8yQnCcRjAqmLVJ7ImBcClHUOh15L5BoHVbcy6BknTbUjRT6Ou7q5oZFSizw\nym/3U33sluiSGWFs8bsuu66TeDD9R6JV2Tk7MR7oupw60yvbNjt/btRNF9uYxVn7\nEg80DTAog/NhW/GigVhsE+ZdHnR45MhbieFZGp5G0aTBfKfAkuoEabVZl6vYCP+4\n3n3/Nsa9auImjirH5OSfGLpW3kCF8o0140Sktt+CnUr2usvGzSghBdMJfbbswBAu\nVaKTB7m6w496MeeJMekXcN5MnB8LK8tdXn9TKOvFvYVJMnHM/7luAJ/4acBlY9hL\nU2JLuJWWkTQ5l2OhojrHfAqiNWpUnrVtPekmf3lMC2NrLD0EKdLSlZXMnksw4pYK\nTZ8efjG1F9/hfMCwYq+2JjI931wQ2+e600HY6hEr1BhhTuYsXsbMkyr1+W01nCPY\nJK2ScYDX/PEIcnf/3QYTvWTe75qfyhE8pxEmyZfePfozkuvVvSc=\n=F4M7\n-----END PGP SIGNATURE-----\n",
+        "signer": {
+          "name": "vidocq-ci-bot",
+          "email": "yblazart@example.invalid",
+          "username": ""
+        },
+        "payload": "tree f923cd3db8fb07344e8d23882d0966ae4013aebf\nparent 24f810c681b4112cfd2882e18b7c16af0941a568\nauthor Yann Blazart <redacted@example.invalid> 1794650532 +0100\ncommitter Vidocq CI Bot <redacted@example.invalid> 1794654461 +0000\n\nfix(processor): build-time client proxies for the interfaces of synthetic beans (BUG-20261113-19)\n\nThe processor generates the client proxy of a normal-scoped bean it sees,\nan interface-typed producer included (a class that implements the\ninterface, #42). A synthetic bean has no class it sees, so the container\nproxied one of an interface type with java.lang.reflect.Proxy at boot,\nevery call through Method.invoke, and the boot warning advised adding\nvauban-processor, which the module already had. Every Noether application\non Vidocq showed it for the EntityManager and EntityManagerFactory beans of\nits units.\n\n@io.vidocq.vauban.api.ClientProxies lists the interfaces of the synthetic\nbeans an extension registers, on any class of a module compiled with the\nprocessor. The processor generates for each the class a producer of that\ninterface gets, in the package of the annotated class, under the key the\ncontainer looks up, in that package's _VaubanComponents, which it now\nwrites for a module without a bean too. A producer of the same interface\nin the same package shares the proxy. A listed type that is not a public\ninterface fails the compilation.\n\nThe boot warning lists the run-time proxy of a synthetic bean apart, with\nthe @ClientProxies advice, and gives the vauban-processor advice only when\nanother kind of class is listed.\n\nDocs: concepts, \"Client proxies of synthetic beans\"; internals (the proxy\ntable and AOT compatibility); reference (vauban-api); What's new.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01DQoEaJaTRT5QCChBF3qYFK\nSigned-off-by: Yann Blazart <redacted@example.invalid>\n"
+      }
+    },
+    "author": {
+      "id": 1825,
+      "login": "yblazart",
+      "login_name": "",
+      "source_id": 0,
+      "full_name": "",
+      "email": "yblazart@example.invalid",
+      "avatar_url": "https://secure.gravatar.com/avatar/38fc8d0af8747ab95d1bb475e709b71a?d=https%3A%2F%2Fcodefloe.com%2Favatar-placeholder%2F38fc8d0af8747ab95d1bb475e709b71a.png",
+      "html_url": "https://codefloe.com/yblazart",
+      "language": "",
+      "is_admin": false,
+      "last_login": "0001-01-01T00:00:00Z",
+      "created": "2026-05-27T15:49:26Z",
+      "restricted": false,
+      "active": false,
+      "prohibit_login": false,
+      "location": "",
+      "pronouns": "",
+      "website": "",
+      "description": "",
+      "visibility": "public",
+      "followers_count": 0,
+      "following_count": 0,
+      "starred_repos_count": 1,
+      "username": "yblazart"
+    },
+    "committer": {
+      "id": 3142,
+      "login": "vidocq-ci-bot",
+      "login_name": "",
+      "source_id": 0,
+      "full_name": "",
+      "email": "vidocq-ci-bot@example.invalid",
+      "avatar_url": "https://secure.gravatar.com/avatar/f965581a4ba2b7371efdcd5be44b30fa?d=https%3A%2F%2Fcodefloe.com%2Favatar-placeholder%2Ff965581a4ba2b7371efdcd5be44b30fa.png",
+      "html_url": "https://codefloe.com/vidocq-ci-bot",
+      "language": "",
+      "is_admin": false,
+      "last_login": "0001-01-01T00:00:00Z",
+      "created": "2026-08-28T16:08:00Z",
+      "restricted": false,
+      "active": false,
+      "prohibit_login": false,
+      "location": "",
+      "pronouns": "",
+      "website": "",
+      "description": "",
+      "visibility": "public",
+      "followers_count": 0,
+      "following_count": 0,
+      "starred_repos_count": 0,
+      "username": "vidocq-ci-bot"
+    },
+    "parents": [
+      {
+        "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/commits/24f810c681b4112cfd2882e18b7c16af0941a568",
+        "sha": "24f810c681b4112cfd2882e18b7c16af0941a568",
+        "created": "0001-01-01T00:00:00Z"
+      }
+    ],
+    "files": [
+      {
+        "filename": "BUG.md",
+        "status": "modified"
+      },
+      {
+        "filename": "docs/en/modules/ROOT/pages/concepts.adoc",
+        "status": "modified"
+      },
+      {
+        "filename": "docs/en/modules/ROOT/pages/internals.adoc",
+        "status": "modified"
+      },
+      {
+        "filename": "docs/en/modules/ROOT/pages/reference.adoc",
+        "status": "modified"
+      },
+      {
+        "filename": "docs/en/modules/ROOT/pages/whats-new.adoc",
+        "status": "modified"
+      },
+      {
+        "filename": "vauban-core/src/main/java/io/vidocq/vauban/core/container/InterceptorBeanWrapper.java",
+        "status": "modified"
+      },
+      {
+        "filename": "vauban-core/src/main/java/io/vidocq/vauban/core/container/RuntimeGeneration.java",
+        "status": "modified"
+      },
+      {
+        "filename": "vauban-core/src/test/java/io/vidocq/vauban/core/container/RuntimeGenerationTest.java",
+        "status": "modified"
+      },
+      {
+        "filename": "vauban-processor/src/main/java/io/vidocq/vauban/processor/ClientProxyArtefacts.java",
+        "status": "modified"
+      },
+      {
+        "filename": "vauban-processor/src/main/java/io/vidocq/vauban/processor/Generation.java",
+        "status": "modified"
+      },
+      {
+        "filename": "vauban-processor/src/main/java/io/vidocq/vauban/processor/VaubanProcessor.java",
+        "status": "modified"
+      },
+      {
+        "filename": "vauban-api/src/main/java/io/vidocq/vauban/api/ClientProxies.java",
+        "status": "added"
+      },
+      {
+        "filename": "vauban-processor/src/test/java/io/vidocq/vauban/processor/apt/ClientProxiesDeclarationTest.java",
+        "status": "added"
+      }
+    ],
+    "stats": {
+      "total": 523,
+      "additions": 497,
+      "deletions": 26
+    }
+  },
+  {
+    "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/commits/24f810c681b4112cfd2882e18b7c16af0941a568",
+    "sha": "24f810c681b4112cfd2882e18b7c16af0941a568",
+    "created": "2026-11-14T10:19:15Z",
+    "html_url": "https://codefloe.com/Vidocq/vauban/commit/24f810c681b4112cfd2882e18b7c16af0941a568",
+    "commit": {
+      "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/commits/24f810c681b4112cfd2882e18b7c16af0941a568",
+      "author": {
+        "name": "Yann Blazart",
+        "email": "yblazart@example.invalid",
+        "date": "2026-11-13T19:47:31+01:00"
+      },
+      "committer": {
+        "name": "Vidocq CI Bot",
+        "email": "yblazart@example.invalid",
+        "date": "2026-11-14T10:19:15Z"
+      },
+      "message": "fix(build): generate the $$Intercepted subclass of a class an extension binds\n\nThe processor and vauban:generate decided which beans get a $$Intercepted\nsubclass from what the class carries: javac's model of the source, or the\ncompiled class by reflection. An interceptor binding an @Enhancement adds is in\nneither, so the container defined the subclass at start, with the Class-File\nAPI, instead of using generated code (BUG-20261113-13, seen with Humboldt's\n@SpanBinding on @WithSpan methods, Vidocq/vidocq#546).\n\nBceProcessor.boundByEnhancement lists the classes the @Enhancement\nmodifications bind, on the class, a method or a constructor, whichever\naddAnnotation added the binding. Both front-ends generate the subclass of such\na class when the container can wrap it (InterceptionTargets.isWrappable).\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01DQoEaLnfwGpxVYSXFoFQA8\nSigned-off-by: Yann Blazart <redacted@example.invalid>\n",
+      "tree": {
+        "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/trees/24f810c681b4112cfd2882e18b7c16af0941a568",
+        "sha": "24f810c681b4112cfd2882e18b7c16af0941a568",
+        "created": "2026-11-14T10:19:15Z"
+      },
+      "verification": {
+        "verified": true,
+        "reason": "vidocq-ci-bot / D21D1F9DD7214787",
+        "signature": "-----BEGIN PGP SIGNATURE-----\n\niQIzBAABCgAdFiEEmXeRKLQeN39LT/6a0h0fndchR4cFAmr4NaMACgkQ0h0fndch\nR4fkYhAA0XX+FqkbEaRgbYJAe3RkmfnJxaiqlsUibEIPOAwkkqxPYqaDfDqG18eI\nYum/JmzVMjGKR8X1j9lH8a+Jkic4d5DSYG64I3rWrYR3YxskqNl1GYWwzpOzJZWh\n5oGn9vFBgyZ2oEqU+5QMRSEse4WcLJC7fXnoSjFZh43R7nGHYbIe7VHfAZgaToI4\n1wHPcVaYk42/c1Xoj+fExglyM/EXTbpO1BMQZ/tV+OZUUNehMra2s7yN8v27nDZY\ndaBzM267Jhl64uxez9ycbQjOgrG0o+iHmPtUPAca+fPupuLpdEhXPKtOz1OjF/Xu\n/fqZXYYfJVujEl6bLOLEYS0L8ttuuuKhHK/8mepWcVDsjxRejS5YvV1f4wB1btnq\n3axuS+WZyCo6t4mtTzegoNZgUh62pUDVHPgsbxsLe1wLHdYVGk8NlTQkf3gr3Pvp\nEpJa/VmR9X8jBFO3S4y27nztX+Jm+3IGpdY0J4nTk+SWQnweOXr+qrpFrK387ypK\n8S7Jf36K+vTI9DarPKDSB7Qbotw1lVkQHAZ4uIjHvY5m2qE2iLJV3QZqzA9gXuQ8\nA4o9TjSj9tIg3fjlO7mR78ZGXPs45yAyMNLnznuKH+1SCRi/6RRB4WFyDDEyGreJ\nA7TeuF2Azs4nWTqsYe3lTey7NRysHhFk9atZtphD3509+KAmVIo=\n=cyrF\n-----END PGP SIGNATURE-----\n",
+        "signer": {
+          "name": "vidocq-ci-bot",
+          "email": "yblazart@example.invalid",
+          "username": ""
+        },
+        "payload": "tree f9d2e0a587f82103d2bcd9c9eff2321da2702250\nparent 8eb74c0ea8cb2f93bd241848198bba6e71e20f8a\nauthor Yann Blazart <redacted@example.invalid> 1794595651 +0100\ncommitter Vidocq CI Bot <redacted@example.invalid> 1794651555 +0000\n\nfix(build): generate the $$Intercepted subclass of a class an extension binds\n\nThe processor and vauban:generate decided which beans get a $$Intercepted\nsubclass from what the class carries: javac's model of the source, or the\ncompiled class by reflection. An interceptor binding an @Enhancement adds is in\nneither, so the container defined the subclass at start, with the Class-File\nAPI, instead of using generated code (BUG-20261113-13, seen with Humboldt's\n@SpanBinding on @WithSpan methods, Vidocq/vidocq#546).\n\nBceProcessor.boundByEnhancement lists the classes the @Enhancement\nmodifications bind, on the class, a method or a constructor, whichever\naddAnnotation added the binding. Both front-ends generate the subclass of such\na class when the container can wrap it (InterceptionTargets.isWrappable).\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01DQoEaLnfwGpxVYSXFoFQA8\nSigned-off-by: Yann Blazart <redacted@example.invalid>\n"
+      }
+    },
+    "author": {
+      "id": 1825,
+      "login": "yblazart",
+      "login_name": "",
+      "source_id": 0,
+      "full_name": "",
+      "email": "yblazart@example.invalid",
+      "avatar_url": "https://secure.gravatar.com/avatar/38fc8d0af8747ab95d1bb475e709b71a?d=https%3A%2F%2Fcodefloe.com%2Favatar-placeholder%2F38fc8d0af8747ab95d1bb475e709b71a.png",
+      "html_url": "https://codefloe.com/yblazart",
+      "language": "",
+      "is_admin": false,
+      "last_login": "0001-01-01T00:00:00Z",
+      "created": "2026-05-27T15:49:26Z",
+      "restricted": false,
+      "active": false,
+      "prohibit_login": false,
+      "location": "",
+      "pronouns": "",
+      "website": "",
+      "description": "",
+      "visibility": "public",
+      "followers_count": 0,
+      "following_count": 0,
+      "starred_repos_count": 1,
+      "username": "yblazart"
+    },
+    "committer": {
+      "id": 3142,
+      "login": "vidocq-ci-bot",
+      "login_name": "",
+      "source_id": 0,
+      "full_name": "",
+      "email": "vidocq-ci-bot@example.invalid",
+      "avatar_url": "https://secure.gravatar.com/avatar/f965581a4ba2b7371efdcd5be44b30fa?d=https%3A%2F%2Fcodefloe.com%2Favatar-placeholder%2Ff965581a4ba2b7371efdcd5be44b30fa.png",
+      "html_url": "https://codefloe.com/vidocq-ci-bot",
+      "language": "",
+      "is_admin": false,
+      "last_login": "0001-01-01T00:00:00Z",
+      "created": "2026-08-28T16:08:00Z",
+      "restricted": false,
+      "active": false,
+      "prohibit_login": false,
+      "location": "",
+      "pronouns": "",
+      "website": "",
+      "description": "",
+      "visibility": "public",
+      "followers_count": 0,
+      "following_count": 0,
+      "starred_repos_count": 0,
+      "username": "vidocq-ci-bot"
+    },
+    "parents": [
+      {
+        "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/commits/8eb74c0ea8cb2f93bd241848198bba6e71e20f8a",
+        "sha": "8eb74c0ea8cb2f93bd241848198bba6e71e20f8a",
+        "created": "0001-01-01T00:00:00Z"
+      }
+    ],
+    "files": [
+      {
+        "filename": "BUG.md",
+        "status": "modified"
+      },
+      {
+        "filename": "vauban-core/src/main/java/io/vidocq/vauban/core/extensions/BceProcessor.java",
+        "status": "modified"
+      },
+      {
+        "filename": "vauban-core/src/main/java/io/vidocq/vauban/core/extensions/EnhancementApplier.java",
+        "status": "modified"
+      },
+      {
+        "filename": "vauban-core/src/main/java/io/vidocq/vauban/core/interceptor/InterceptionTargets.java",
+        "status": "modified"
+      },
+      {
+        "filename": "vauban-maven-plugin/src/main/java/io/vidocq/vauban/maven/generate/VaubanGenerator.java",
+        "status": "modified"
+      },
+      {
+        "filename": "vauban-maven-plugin/src/test/java/io/vidocq/vauban/maven/generate/VaubanGeneratorTest.java",
+        "status": "modified"
+      },
+      {
+        "filename": "vauban-processor/src/main/java/io/vidocq/vauban/processor/InterceptedArtefacts.java",
+        "status": "modified"
+      },
+      {
+        "filename": "vauban-processor/src/main/java/io/vidocq/vauban/processor/VaubanProcessor.java",
+        "status": "modified"
+      },
+      {
+        "filename": "vauban-processor/src/test/java/io/vidocq/vauban/processor/apt/BceCompileTimeTest.java",
+        "status": "modified"
+      }
+    ],
+    "stats": {
+      "total": 228,
+      "additions": 204,
+      "deletions": 24
+    }
+  },
+  {
+    "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/commits/8eb74c0ea8cb2f93bd241848198bba6e71e20f8a",
+    "sha": "8eb74c0ea8cb2f93bd241848198bba6e71e20f8a",
+    "created": "2026-11-14T01:07:03Z",
+    "html_url": "https://codefloe.com/Vidocq/vauban/commit/8eb74c0ea8cb2f93bd241848198bba6e71e20f8a",
+    "commit": {
+      "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/commits/8eb74c0ea8cb2f93bd241848198bba6e71e20f8a",
+      "author": {
+        "name": "Yann Blazart",
+        "email": "yblazart@example.invalid",
+        "date": "2026-11-13T19:37:25+01:00"
+      },
+      "committer": {
+        "name": "Vidocq CI Bot",
+        "email": "yblazart@example.invalid",
+        "date": "2026-11-14T01:07:03Z"
+      },
+      "message": "fix(core): install the contexts of extensions before the startup events (BUG-20261113-18)\n\nThe VaubanContainer constructor fired @Initialized(ApplicationScoped.class)\nand Startup, and the builder installed the contexts build compatible\nextensions register (MetaAnnotations.addContext) on the container it\nreturned, so after them: a Startup observer calling a @TransactionScoped\nbean failed the start with \"No context registered for scope\". The builder\nnow calls VaubanContainer.start() last, once the contexts, the supplied\nfactories and the module lookups are set.\n\nFound by a Vidocq IT of persistence units per module. BUG.md also records\nBUG-20261113-19, seen in the same run: a synthetic bean of an interface\ntype always takes the run-time client proxy.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01DQoEaJaTRT5QCChBF3qYFK\nSigned-off-by: Yann Blazart <redacted@example.invalid>\n",
+      "tree": {
+        "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/trees/8eb74c0ea8cb2f93bd241848198bba6e71e20f8a",
+        "sha": "8eb74c0ea8cb2f93bd241848198bba6e71e20f8a",
+        "created": "2026-11-14T01:07:03Z"
+      },
+      "verification": {
+        "verified": true,
+        "reason": "vidocq-ci-bot / D21D1F9DD7214787",
+        "signature": "-----BEGIN PGP SIGNATURE-----\n\niQIzBAABCgAdFiEEmXeRKLQeN39LT/6a0h0fndchR4cFAmr3tDcACgkQ0h0fndch\nR4dCqhAApCuwVuunZzcyaQKkMnWDxyjJORgikuJJvE51i1aI6+kgfNzSROmHWW5b\nS/HPQ6KhgKRD5qOI4bVkHZmX8DQJO4ukO+KZxJwWuzPoph5cZy9tEV5+686xIE+W\n62lGT2NdydgoSCN5iGeryB+EKuHSBe5anUDOBn5bSc9iTZn9w+T+E67zm+RAD3PZ\nOSX34nuE99u2plqj0XuBe5OXfFAnhsX4LibsBleYjiyozgwdS8cps2yzGaBRJvxo\nDCQ+siOD1WWK4o0j2XYVpU8uaNYysyxRjldEiLtTV1vbGFZJVt2RU55vAndn/Fxj\n81cDF0orCiPG2dBGC/Pqa2KhJVNPHG5uhZk7DixTnAGcFJMZ6VaOwqY3+5h/mkmw\nJT9JLSqPbiDhMZO1xuOGIKOU+kb4yMgMn/dYEPypxgO2gc3eyLesmtcuvxEpbbOU\nqe8N/bP3eq3yRR7QAM4kklkRPZAt5FjdBDvp1yLrj5a/OnhQt5byAAqtm+lqy+I5\n/B4do5dU6hwpfevbAdxp4hrqPcA/XdnXtx9FGkYpO8fiwn/1aiwrfeAe4Xgu6UUm\nkWOL6a8mH0vhBq8fXLe97GrHmU+RxB0lkIM/mJ/6YsDQvc3bYd7ajCqKBakz6YHT\nWGm6UZvmFouc+zIXbRQVpcPqTWBs/K/jlS6ANUY5Kt4C31bDZXo=\n=7lM/\n-----END PGP SIGNATURE-----\n",
+        "signer": {
+          "name": "vidocq-ci-bot",
+          "email": "yblazart@example.invalid",
+          "username": ""
+        },
+        "payload": "tree 117694f3c17c882fc20239ffbedb6bb1b96ac484\nparent ecd683210acde486c292ebfad336eedcdf6476d7\nauthor Yann Blazart <redacted@example.invalid> 1794595045 +0100\ncommitter Vidocq CI Bot <redacted@example.invalid> 1794618423 +0000\n\nfix(core): install the contexts of extensions before the startup events (BUG-20261113-18)\n\nThe VaubanContainer constructor fired @Initialized(ApplicationScoped.class)\nand Startup, and the builder installed the contexts build compatible\nextensions register (MetaAnnotations.addContext) on the container it\nreturned, so after them: a Startup observer calling a @TransactionScoped\nbean failed the start with \"No context registered for scope\". The builder\nnow calls VaubanContainer.start() last, once the contexts, the supplied\nfactories and the module lookups are set.\n\nFound by a Vidocq IT of persistence units per module. BUG.md also records\nBUG-20261113-19, seen in the same run: a synthetic bean of an interface\ntype always takes the run-time client proxy.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01DQoEaJaTRT5QCChBF3qYFK\nSigned-off-by: Yann Blazart <redacted@example.invalid>\n"
+      }
+    },
+    "author": {
+      "id": 1825,
+      "login": "yblazart",
+      "login_name": "",
+      "source_id": 0,
+      "full_name": "",
+      "email": "yblazart@example.invalid",
+      "avatar_url": "https://secure.gravatar.com/avatar/38fc8d0af8747ab95d1bb475e709b71a?d=https%3A%2F%2Fcodefloe.com%2Favatar-placeholder%2F38fc8d0af8747ab95d1bb475e709b71a.png",
+      "html_url": "https://codefloe.com/yblazart",
+      "language": "",
+      "is_admin": false,
+      "last_login": "0001-01-01T00:00:00Z",
+      "created": "2026-05-27T15:49:26Z",
+      "restricted": false,
+      "active": false,
+      "prohibit_login": false,
+      "location": "",
+      "pronouns": "",
+      "website": "",
+      "description": "",
+      "visibility": "public",
+      "followers_count": 0,
+      "following_count": 0,
+      "starred_repos_count": 1,
+      "username": "yblazart"
+    },
+    "committer": {
+      "id": 3142,
+      "login": "vidocq-ci-bot",
+      "login_name": "",
+      "source_id": 0,
+      "full_name": "",
+      "email": "vidocq-ci-bot@example.invalid",
+      "avatar_url": "https://secure.gravatar.com/avatar/f965581a4ba2b7371efdcd5be44b30fa?d=https%3A%2F%2Fcodefloe.com%2Favatar-placeholder%2Ff965581a4ba2b7371efdcd5be44b30fa.png",
+      "html_url": "https://codefloe.com/vidocq-ci-bot",
+      "language": "",
+      "is_admin": false,
+      "last_login": "0001-01-01T00:00:00Z",
+      "created": "2026-08-28T16:08:00Z",
+      "restricted": false,
+      "active": false,
+      "prohibit_login": false,
+      "location": "",
+      "pronouns": "",
+      "website": "",
+      "description": "",
+      "visibility": "public",
+      "followers_count": 0,
+      "following_count": 0,
+      "starred_repos_count": 0,
+      "username": "vidocq-ci-bot"
+    },
+    "parents": [
+      {
+        "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/commits/ecd683210acde486c292ebfad336eedcdf6476d7",
+        "sha": "ecd683210acde486c292ebfad336eedcdf6476d7",
+        "created": "0001-01-01T00:00:00Z"
+      }
+    ],
+    "files": [
+      {
+        "filename": "BUG.md",
+        "status": "modified"
+      },
+      {
+        "filename": "docs/en/modules/ROOT/pages/usage.adoc",
+        "status": "modified"
+      },
+      {
+        "filename": "docs/en/modules/ROOT/pages/whats-new.adoc",
+        "status": "modified"
+      },
+      {
+        "filename": "vauban-core/src/main/java/io/vidocq/vauban/core/container/VaubanContainer.java",
+        "status": "modified"
+      },
+      {
+        "filename": "vauban-core/src/main/java/io/vidocq/vauban/core/container/VaubanContainerBuilder.java",
+        "status": "modified"
+      },
+      {
+        "filename": "vauban-core/src/test/java/io/vidocq/vauban/core/container/ExtensionContextsAtStartupTest.java",
+        "status": "added"
+      }
+    ],
+    "stats": {
+      "total": 210,
+      "additions": 210,
+      "deletions": 0
+    }
+  },
+  {
+    "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/commits/ecd683210acde486c292ebfad336eedcdf6476d7",
+    "sha": "ecd683210acde486c292ebfad336eedcdf6476d7",
+    "created": "2026-11-13T21:20:57Z",
+    "html_url": "https://codefloe.com/Vidocq/vauban/commit/ecd683210acde486c292ebfad336eedcdf6476d7",
+    "commit": {
+      "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/commits/ecd683210acde486c292ebfad336eedcdf6476d7",
+      "author": {
+        "name": "Yann Blazart",
+        "email": "yblazart@example.invalid",
+        "date": "2026-11-13T22:13:16+01:00"
+      },
+      "committer": {
+        "name": "Vidocq CI Bot",
+        "email": "yblazart@example.invalid",
+        "date": "2026-11-13T21:20:57Z"
+      },
+      "message": "docs(agents): build compatible extensions work at build only\n\nvidocq:generate runs the CDI build compatible extensions of an application\nonce and records what they did; a packaged application loads that record\ninstead of running them (Vidocq/vauban#288). The agent instructions now\ncarry the rules an extension must follow for that, and point to Vauban's\nguide.\n\nCo-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01DQoEaLnfwGpxVYSXFoFQA8\nSigned-off-by: Yann Blazart <redacted@example.invalid>\n",
+      "tree": {
+        "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/trees/ecd683210acde486c292ebfad336eedcdf6476d7",
+        "sha": "ecd683210acde486c292ebfad336eedcdf6476d7",
+        "created": "2026-11-13T21:20:57Z"
+      },
+      "verification": {
+        "verified": true,
+        "reason": "vidocq-ci-bot / D21D1F9DD7214787",
+        "signature": "-----BEGIN PGP SIGNATURE-----\n\niQIzBAABCgAdFiEEmXeRKLQeN39LT/6a0h0fndchR4cFAmr3fzkACgkQ0h0fndch\nR4cZiw/8CdCkCBVK7Ojrud39sMgSSkTVD8GpIeGKu18zEsHBGZGwWIuXlo+FPcEH\ne2IZT5JOoTi18nlk6dpiuqxiQKqlNbwef0CBi8oKWJIQrANvb5z0NPb/dq9HTR1E\nlEQfWEGXDueTBNg6aPbnK/vTzBI3Nm7NTk5leXGXYy/AuKzxyCI+HgyR9v8j1tKK\n6I2Qh27OjwVMF4K6Znlqkk3DTRbJ7tpz/fbWZWu/N1FxjkokFVkb2YJXmrUB+ORi\ng4HMxrSFZjBXRr/+RbG8+5Xy0ulcU2d9hyKv1W54At2QKcTY5xbGzdc1N2IWqEek\ngsYl9Qh0NfmaaBOnT64bxqg3qghE+4jUUfEs4nDG/K8BduMBPqr13fbIzuXV7mEd\nawS+f68jUGxeDDGAqyMeVhP026AvH8XyePeb+8NYWcS/jHiHCDC9kJTkNwGQasIa\n23RdDVdx1biXZ5lezck52Fe628gN5uVn6lNyBeNcIXzZrH8Wv6xGOsw3Zsb6+MNE\nJhm9VJgUiAnimT1pUrcbXB8Bf6SU7SpNEAfsPQJqgYy/U4e8g9hkb5oUXrmxAkXS\nwX3e0woPm7DPiQEqQWLC6f9MMx9Kej8AxbnJOZCrRsg87VPmgqsYBbdmfp1JrfwR\nB+zK/VlmjtEILiAP5IikQX+xEEP2o4zlKGroIm7xPMw30q/VUjo=\n=02ki\n-----END PGP SIGNATURE-----\n",
+        "signer": {
+          "name": "vidocq-ci-bot",
+          "email": "yblazart@example.invalid",
+          "username": ""
+        },
+        "payload": "tree 6335619fecd0af2d7442cf6471df5ef032eb4820\nparent de88d5f4ea727591b90d14d16dbb9e9bac1c99b7\nauthor Yann Blazart <redacted@example.invalid> 1794604396 +0100\ncommitter Vidocq CI Bot <redacted@example.invalid> 1794604857 +0000\n\ndocs(agents): build compatible extensions work at build only\n\nvidocq:generate runs the CDI build compatible extensions of an application\nonce and records what they did; a packaged application loads that record\ninstead of running them (Vidocq/vauban#288). The agent instructions now\ncarry the rules an extension must follow for that, and point to Vauban's\nguide.\n\nCo-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01DQoEaLnfwGpxVYSXFoFQA8\nSigned-off-by: Yann Blazart <redacted@example.invalid>\n"
+      }
+    },
+    "author": {
+      "id": 1825,
+      "login": "yblazart",
+      "login_name": "",
+      "source_id": 0,
+      "full_name": "",
+      "email": "yblazart@example.invalid",
+      "avatar_url": "https://secure.gravatar.com/avatar/38fc8d0af8747ab95d1bb475e709b71a?d=https%3A%2F%2Fcodefloe.com%2Favatar-placeholder%2F38fc8d0af8747ab95d1bb475e709b71a.png",
+      "html_url": "https://codefloe.com/yblazart",
+      "language": "",
+      "is_admin": false,
+      "last_login": "0001-01-01T00:00:00Z",
+      "created": "2026-05-27T15:49:26Z",
+      "restricted": false,
+      "active": false,
+      "prohibit_login": false,
+      "location": "",
+      "pronouns": "",
+      "website": "",
+      "description": "",
+      "visibility": "public",
+      "followers_count": 0,
+      "following_count": 0,
+      "starred_repos_count": 1,
+      "username": "yblazart"
+    },
+    "committer": {
+      "id": 3142,
+      "login": "vidocq-ci-bot",
+      "login_name": "",
+      "source_id": 0,
+      "full_name": "",
+      "email": "vidocq-ci-bot@example.invalid",
+      "avatar_url": "https://secure.gravatar.com/avatar/f965581a4ba2b7371efdcd5be44b30fa?d=https%3A%2F%2Fcodefloe.com%2Favatar-placeholder%2Ff965581a4ba2b7371efdcd5be44b30fa.png",
+      "html_url": "https://codefloe.com/vidocq-ci-bot",
+      "language": "",
+      "is_admin": false,
+      "last_login": "0001-01-01T00:00:00Z",
+      "created": "2026-08-28T16:08:00Z",
+      "restricted": false,
+      "active": false,
+      "prohibit_login": false,
+      "location": "",
+      "pronouns": "",
+      "website": "",
+      "description": "",
+      "visibility": "public",
+      "followers_count": 0,
+      "following_count": 0,
+      "starred_repos_count": 0,
+      "username": "vidocq-ci-bot"
+    },
+    "parents": [
+      {
+        "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/commits/de88d5f4ea727591b90d14d16dbb9e9bac1c99b7",
+        "sha": "de88d5f4ea727591b90d14d16dbb9e9bac1c99b7",
+        "created": "0001-01-01T00:00:00Z"
+      }
+    ],
+    "files": [
+      {
+        "filename": "AGENTS.md",
+        "status": "modified"
+      },
+      {
+        "filename": "CLAUDE.md",
+        "status": "modified"
+      }
+    ],
+    "stats": {
+      "total": 44,
+      "additions": 44,
+      "deletions": 0
+    }
+  },
+  {
+    "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/commits/de88d5f4ea727591b90d14d16dbb9e9bac1c99b7",
+    "sha": "de88d5f4ea727591b90d14d16dbb9e9bac1c99b7",
+    "created": "2026-11-13T20:30:42Z",
+    "html_url": "https://codefloe.com/Vidocq/vauban/commit/de88d5f4ea727591b90d14d16dbb9e9bac1c99b7",
+    "commit": {
+      "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/commits/de88d5f4ea727591b90d14d16dbb9e9bac1c99b7",
+      "author": {
+        "name": "Yann Blazart",
+        "email": "yblazart@example.invalid",
+        "date": "2026-11-13T21:10:59+01:00"
+      },
+      "committer": {
+        "name": "Vidocq CI Bot",
+        "email": "yblazart@example.invalid",
+        "date": "2026-11-13T20:30:42Z"
+      },
+      "message": "fix(core): the fingerprint counts what the extensions see, not debug information\n\nA jlink image is linked with --strip-debug by default. jlink removes\nSourceFile, LineNumberTable, LocalVariableTable, LocalVariableTypeTable and\nMethodParameters, and computes some StackMapTables again, so the image's\nclass bytes are not the build's. The fingerprint was a CRC32C of those\nbytes: the image never matched the record its build wrote, and every\nextension ran at start.\n\nA bean class now counts by what the extensions see of it: its model, as\nthe index holds it and the language model shows it, without the parameter\nnames, written as one text that is the same on any JVM (annotation members\nin name order, each value tagged). A build compatible extension also counts\nby its code, since its method bodies are what it does: the constant pool,\nand each method's bytecode and exception table, without the debug\nattributes and the stack maps. Over the 322 classes of vauban-core, jlink\nkeeps the pool, the code arrays, max_stack, max_locals and the exception\ntables identical, and changes 202 stack map tables.\n\nA change to the body of a bean's method no longer invalidates the record:\nno extension sees it.\n\nBUG-20261113-17 (second cause).\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01DQoEaLnfwGpxVYSXFoFQA8\nSigned-off-by: Yann Blazart <redacted@example.invalid>\n",
+      "tree": {
+        "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/trees/de88d5f4ea727591b90d14d16dbb9e9bac1c99b7",
+        "sha": "de88d5f4ea727591b90d14d16dbb9e9bac1c99b7",
+        "created": "2026-11-13T20:30:42Z"
+      },
+      "verification": {
+        "verified": true,
+        "reason": "vidocq-ci-bot / D21D1F9DD7214787",
+        "signature": "-----BEGIN PGP SIGNATURE-----\n\niQIzBAABCgAdFiEEmXeRKLQeN39LT/6a0h0fndchR4cFAmr3c3IACgkQ0h0fndch\nR4c4UBAAvEfPQ3INAWGeSYR3RsLAP5RV9Zuh/7+c8jUFktS+aDjQFx1HHu7Z6d9K\nqk4WgSJUdcfDS184BKLyvkjD3pJurnAp5r2zP8GyU/YtXrCx7F1A6zVQZbGmZ7/R\nsJYpkffcmFqznAzU9imYep4+72xzy/EHXpn15DIgGKxbid/CK18nS+/bj8CPYMoj\nzViZv9jguWdiSog8GKgmclYWXtl7ZgyWbSciVOz0kt8R4Wh/xhAoDRa/Fwt81bfH\nQxLDO6HgbE6naOxmcO/J5z4b1O8t1d52tnLOl4lluLnf/OX8ZGV2rrXGgh7ziLWU\ng84En4oT48YsDYlmsEDcmta0beknwUp0bwj68ytcxfqPw0nY98mBeHSIgsjVajPX\nHSxN46xkUgLyHkne/Wne9eHJjSiVIrw67+kMCzk02F88Xib1WyIzgcdx8ZuWRlGG\nLKRDI5f/ruErSYW4S2P9pqCLQZz2ZhYm+Mjy94+s4b1oqD5AhAVrA9sJauaMK+Li\nNkLvqm4hsWXlN6BJ1JvJpfLHMOM+qqgNY1F0cQAaAli97pevwsQBhl+7ChrCqwj1\nJcGBpnRXEI/03ycxPK8Y8fzp2rl4OQnb85LvLrahMixGOZgTYEXGxymPgtaZz5TY\nskZFU7LNUBxcLgFjEWlYdhzBDm9BdTCJAjtMxp4YJ8UxRo6QBkQ=\n=YSP+\n-----END PGP SIGNATURE-----\n",
+        "signer": {
+          "name": "vidocq-ci-bot",
+          "email": "yblazart@example.invalid",
+          "username": ""
+        },
+        "payload": "tree d208558ae16b1eb8be4a47ec80d8430a7830c73c\nparent 796708dc4faedcdb368ab017913535fa6ffa466e\nauthor Yann Blazart <redacted@example.invalid> 1794600659 +0100\ncommitter Vidocq CI Bot <redacted@example.invalid> 1794601842 +0000\n\nfix(core): the fingerprint counts what the extensions see, not debug information\n\nA jlink image is linked with --strip-debug by default. jlink removes\nSourceFile, LineNumberTable, LocalVariableTable, LocalVariableTypeTable and\nMethodParameters, and computes some StackMapTables again, so the image's\nclass bytes are not the build's. The fingerprint was a CRC32C of those\nbytes: the image never matched the record its build wrote, and every\nextension ran at start.\n\nA bean class now counts by what the extensions see of it: its model, as\nthe index holds it and the language model shows it, without the parameter\nnames, written as one text that is the same on any JVM (annotation members\nin name order, each value tagged). A build compatible extension also counts\nby its code, since its method bodies are what it does: the constant pool,\nand each method's bytecode and exception table, without the debug\nattributes and the stack maps. Over the 322 classes of vauban-core, jlink\nkeeps the pool, the code arrays, max_stack, max_locals and the exception\ntables identical, and changes 202 stack map tables.\n\nA change to the body of a bean's method no longer invalidates the record:\nno extension sees it.\n\nBUG-20261113-17 (second cause).\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01DQoEaLnfwGpxVYSXFoFQA8\nSigned-off-by: Yann Blazart <redacted@example.invalid>\n"
+      }
+    },
+    "author": {
+      "id": 1825,
+      "login": "yblazart",
+      "login_name": "",
+      "source_id": 0,
+      "full_name": "",
+      "email": "yblazart@example.invalid",
+      "avatar_url": "https://secure.gravatar.com/avatar/38fc8d0af8747ab95d1bb475e709b71a?d=https%3A%2F%2Fcodefloe.com%2Favatar-placeholder%2F38fc8d0af8747ab95d1bb475e709b71a.png",
+      "html_url": "https://codefloe.com/yblazart",
+      "language": "",
+      "is_admin": false,
+      "last_login": "0001-01-01T00:00:00Z",
+      "created": "2026-05-27T15:49:26Z",
+      "restricted": false,
+      "active": false,
+      "prohibit_login": false,
+      "location": "",
+      "pronouns": "",
+      "website": "",
+      "description": "",
+      "visibility": "public",
+      "followers_count": 0,
+      "following_count": 0,
+      "starred_repos_count": 1,
+      "username": "yblazart"
+    },
+    "committer": {
+      "id": 3142,
+      "login": "vidocq-ci-bot",
+      "login_name": "",
+      "source_id": 0,
+      "full_name": "",
+      "email": "vidocq-ci-bot@example.invalid",
+      "avatar_url": "https://secure.gravatar.com/avatar/f965581a4ba2b7371efdcd5be44b30fa?d=https%3A%2F%2Fcodefloe.com%2Favatar-placeholder%2Ff965581a4ba2b7371efdcd5be44b30fa.png",
+      "html_url": "https://codefloe.com/vidocq-ci-bot",
+      "language": "",
+      "is_admin": false,
+      "last_login": "0001-01-01T00:00:00Z",
+      "created": "2026-08-28T16:08:00Z",
+      "restricted": false,
+      "active": false,
+      "prohibit_login": false,
+      "location": "",
+      "pronouns": "",
+      "website": "",
+      "description": "",
+      "visibility": "public",
+      "followers_count": 0,
+      "following_count": 0,
+      "starred_repos_count": 0,
+      "username": "vidocq-ci-bot"
+    },
+    "parents": [
+      {
+        "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/commits/796708dc4faedcdb368ab017913535fa6ffa466e",
+        "sha": "796708dc4faedcdb368ab017913535fa6ffa466e",
+        "created": "0001-01-01T00:00:00Z"
+      }
+    ],
+    "files": [
+      {
+        "filename": "vauban-core/src/main/java/io/vidocq/vauban/core/container/ClassChecksums.java",
+        "status": "added"
+      },
+      {
+        "filename": "vauban-core/src/test/java/io/vidocq/vauban/core/container/ClassChecksumsTest.java",
+        "status": "added"
+      },
+      {
+        "filename": "vauban-core/src/test/java/io/vidocq/vauban/core/container/JlinkStripping.java",
+        "status": "added"
+      },
+      {
+        "filename": "BUG.md",
+        "status": "modified"
+      },
+      {
+        "filename": "docs/en/modules/ROOT/pages/concepts.adoc",
+        "status": "modified"
+      },
+      {
+        "filename": "vauban-core/src/main/java/io/vidocq/vauban/core/container/DeploymentFingerprint.java",
+        "status": "modified"
+      },
+      {
+        "filename": "vauban-core/src/main/java/io/vidocq/vauban/core/container/VaubanContainerBuilder.java",
+        "status": "modified"
+      },
+      {
+        "filename": "vauban-core/src/test/java/io/vidocq/vauban/core/container/DeploymentFingerprintTest.java",
+        "status": "modified"
+      }
+    ],
+    "stats": {
+      "total": 771,
+      "additions": 728,
+      "deletions": 43
+    }
+  },
+  {
+    "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/commits/796708dc4faedcdb368ab017913535fa6ffa466e",
+    "sha": "796708dc4faedcdb368ab017913535fa6ffa466e",
+    "created": "2026-11-13T19:54:36Z",
+    "html_url": "https://codefloe.com/Vidocq/vauban/commit/796708dc4faedcdb368ab017913535fa6ffa466e",
+    "commit": {
+      "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/commits/796708dc4faedcdb368ab017913535fa6ffa466e",
+      "author": {
+        "name": "Yann Blazart",
+        "email": "yblazart@example.invalid",
+        "date": "2026-11-13T20:19:15+01:00"
+      },
+      "committer": {
+        "name": "Vidocq CI Bot",
+        "email": "yblazart@example.invalid",
+        "date": "2026-11-13T19:54:36Z"
+      },
+      "message": "fix(classloader): one record seen through two loaders is one record\n\nIn a jlink image, Vidocq finds the application module in the boot layer and\nlayers it again in vauban-app-layer. getResources gives the parent's\nresources, then the loader's own, so VaubanClassLoader returned the record of\nthe frozen extensions twice, and FrozenExtensions.find took the two results\nfor two records: the build's work was refused and every extension ran at\nstart, even in an image whose classes are byte for byte those of the build.\n\nVaubanClassLoader.findResources now leaves out what its parent already\ngives, as CompositeClassLoader does, with file:///x and file:/x taken for the\nsame file. FrozenExtensions.find counts distinct files.\n\nLeft: jlink's default --strip-debug changes the class bytes, so the\nfingerprint of a stripped image still differs from the build's. That is a\nchoice between the fingerprint and vidocq:jlink, not part of this fix.\n\nBUG-20261113-17.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01DQoEaLnfwGpxVYSXFoFQA8\nSigned-off-by: Yann Blazart <redacted@example.invalid>\n",
+      "tree": {
+        "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/trees/796708dc4faedcdb368ab017913535fa6ffa466e",
+        "sha": "796708dc4faedcdb368ab017913535fa6ffa466e",
+        "created": "2026-11-13T19:54:36Z"
+      },
+      "verification": {
+        "verified": true,
+        "reason": "vidocq-ci-bot / D21D1F9DD7214787",
+        "signature": "-----BEGIN PGP SIGNATURE-----\n\niQIzBAABCgAdFiEEmXeRKLQeN39LT/6a0h0fndchR4cFAmr3avwACgkQ0h0fndch\nR4c/sA/+JyjLvaOpFMTWB9EWpUKgObDalUSlQ1jCKmnd/XmnzqHtTwbvMNMDqidk\nBLUR6Vc4FNiMui9zohCzn704buO62hVSN6T2IMMXv+iUxgB21eeM61qoBH1S9JTE\nRAkyAp7tyH++pBvyG2E5AWoGQ4ZM6LZiQo72rSTPa1dFfR9JhKTAl8MrgMsQWtGq\nXHPZYGxOZyRm4T5ZGbICkC8rz1ExxR0T03NqFdfULVKbjKVLGKP8V5a0yrruR3+f\nS7fyRKwlXbfp5Z8ASOwov8XfXrBvjyQ1PyzEikX4LslbRIhUM9TbATb6+1Z2HaTl\nijNvuVUw6y4TuCh/e7mnFq4qCgIQ7AiBwNJPqGLjX0B/sCdyvh5v9Ir2sfgN8wOZ\nlEj8yIxaGMzjrvSnQq4ZHaj/pGiPCzqj+/P0+QV2IYAIUehE24H2uTaep0fApVW0\nnCY2iyANmLDvyfhPRYU5puxjuk5Q/4c4f8/As1C8VQpC0aZ2FFZtpkJQ1sV8PX3r\nWMaCyhHoRUfPmQNv2DGNEBsb5j+AovSBMy31fN59yyonB5JdDXXHYdStDd6LKQtM\nx/2Bdxcd7f94Hx1mR2jVgFBYH8fy/WKfNluaV+lPeYn837MD99aoP7o03Cxg9Bkj\nGyjjf/eHAQzl66uHxSVaclMUTC3jMmqTBvKIZRf6mymZtki1c3k=\n=huTl\n-----END PGP SIGNATURE-----\n",
+        "signer": {
+          "name": "vidocq-ci-bot",
+          "email": "yblazart@example.invalid",
+          "username": ""
+        },
+        "payload": "tree 7dd348c0d377d33387fcddd078a91bf200898121\nparent 95306fde37201739f1fe9e0cf90c728e030b762a\nauthor Yann Blazart <redacted@example.invalid> 1794597555 +0100\ncommitter Vidocq CI Bot <redacted@example.invalid> 1794599676 +0000\n\nfix(classloader): one record seen through two loaders is one record\n\nIn a jlink image, Vidocq finds the application module in the boot layer and\nlayers it again in vauban-app-layer. getResources gives the parent's\nresources, then the loader's own, so VaubanClassLoader returned the record of\nthe frozen extensions twice, and FrozenExtensions.find took the two results\nfor two records: the build's work was refused and every extension ran at\nstart, even in an image whose classes are byte for byte those of the build.\n\nVaubanClassLoader.findResources now leaves out what its parent already\ngives, as CompositeClassLoader does, with file:///x and file:/x taken for the\nsame file. FrozenExtensions.find counts distinct files.\n\nLeft: jlink's default --strip-debug changes the class bytes, so the\nfingerprint of a stripped image still differs from the build's. That is a\nchoice between the fingerprint and vidocq:jlink, not part of this fix.\n\nBUG-20261113-17.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01DQoEaLnfwGpxVYSXFoFQA8\nSigned-off-by: Yann Blazart <redacted@example.invalid>\n"
+      }
+    },
+    "author": {
+      "id": 1825,
+      "login": "yblazart",
+      "login_name": "",
+      "source_id": 0,
+      "full_name": "",
+      "email": "yblazart@example.invalid",
+      "avatar_url": "https://secure.gravatar.com/avatar/38fc8d0af8747ab95d1bb475e709b71a?d=https%3A%2F%2Fcodefloe.com%2Favatar-placeholder%2F38fc8d0af8747ab95d1bb475e709b71a.png",
+      "html_url": "https://codefloe.com/yblazart",
+      "language": "",
+      "is_admin": false,
+      "last_login": "0001-01-01T00:00:00Z",
+      "created": "2026-05-27T15:49:26Z",
+      "restricted": false,
+      "active": false,
+      "prohibit_login": false,
+      "location": "",
+      "pronouns": "",
+      "website": "",
+      "description": "",
+      "visibility": "public",
+      "followers_count": 0,
+      "following_count": 0,
+      "starred_repos_count": 1,
+      "username": "yblazart"
+    },
+    "committer": {
+      "id": 3142,
+      "login": "vidocq-ci-bot",
+      "login_name": "",
+      "source_id": 0,
+      "full_name": "",
+      "email": "vidocq-ci-bot@example.invalid",
+      "avatar_url": "https://secure.gravatar.com/avatar/f965581a4ba2b7371efdcd5be44b30fa?d=https%3A%2F%2Fcodefloe.com%2Favatar-placeholder%2Ff965581a4ba2b7371efdcd5be44b30fa.png",
+      "html_url": "https://codefloe.com/vidocq-ci-bot",
+      "language": "",
+      "is_admin": false,
+      "last_login": "0001-01-01T00:00:00Z",
+      "created": "2026-08-28T16:08:00Z",
+      "restricted": false,
+      "active": false,
+      "prohibit_login": false,
+      "location": "",
+      "pronouns": "",
+      "website": "",
+      "description": "",
+      "visibility": "public",
+      "followers_count": 0,
+      "following_count": 0,
+      "starred_repos_count": 0,
+      "username": "vidocq-ci-bot"
+    },
+    "parents": [
+      {
+        "url": "https://codefloe.com/api/v1/repos/Vidocq/vauban/git/commits/95306fde37201739f1fe9e0cf90c728e030b762a",
+        "sha": "95306fde37201739f1fe9e0cf90c728e030b762a",
+        "created": "0001-01-01T00:00:00Z"
+      }
+    ],
+    "files": [
+      {
+        "filename": "BUG.md",
+        "status": "modified"
+      },
+      {
+        "filename": "vauban-classloader/src/main/java/io/vidocq/vauban/classloader/VaubanClassLoader.java",
+        "status": "modified"
+      },
+      {
+        "filename": "vauban-classloader/src/test/java/io/vidocq/vauban/classloader/StandardResourceUrlsTest.java",
+        "status": "modified"
+      },
+      {
+        "filename": "vauban-core/src/main/java/io/vidocq/vauban/core/extensions/FrozenExtensions.java",
+        "status": "modified"
+      },
+      {
+        "filename": "vauban-core/src/test/java/io/vidocq/vauban/core/extensions/FrozenExtensionsRecordTest.java",
+        "status": "modified"
+      }
+    ],
+    "stats": {
+      "total": 91,
+      "additions": 85,
+      "deletions": 6
+    }
+  }
+]

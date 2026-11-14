@@ -8,6 +8,10 @@ module io.vidocq.tools.dashboard {
     requires jakarta.servlet;
     requires io.vidocq.runtime.extensions.jakartaee.web.vaadin;
     requires io.vidocq.runtime.extensions.microprofile.ravel;
+    requires io.vidocq.runtime.extensions.microprofile.cyrano;
+    requires jakarta.cdi;
+    requires jakarta.inject;
+    requires jakarta.json.bind;
 
     // The Vaadin jars have no module-info: their module names come from their file names.
     requires flow.server;
@@ -16,4 +20,6 @@ module io.vidocq.tools.dashboard {
 
     // Vaadin creates the routes by reflection.
     opens io.vidocq.tools.dashboard.ui;
+    // JSON-B (Champollion) binds the raw Forgejo records by reflection.
+    opens io.vidocq.tools.dashboard.forge.cyrano;
 }

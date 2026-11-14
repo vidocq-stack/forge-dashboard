@@ -1,0 +1,53 @@
+{
+  "id": 187264,
+  "run_id": 86097,
+  "attempt": 1,
+  "handle": "6a5a2ac8-3a6b-4856-85ae-3baf5adfc96c",
+  "repo_id": 6284,
+  "owner_id": 1826,
+  "name": "sonar",
+  "html_url": "https://codefloe.com/Vidocq/vauban/actions/runs/1929/jobs/0/attempt/1",
+  "needs": null,
+  "runs_on": [
+    "vidocq-runner"
+  ],
+  "task_id": 176705,
+  "status": "success",
+  "steps": [
+    {
+      "number": 0,
+      "name": "Set up job",
+      "status": "success",
+      "started": "2026-11-14T11:58:33Z",
+      "stopped": "2026-11-14T11:58:34Z"
+    },
+    {
+      "number": 1,
+      "name": "actions/checkout@v4",
+      "status": "success",
+      "started": "2026-11-14T11:58:34Z",
+      "stopped": "2026-11-14T11:58:36Z"
+    },
+    {
+      "number": 2,
+      "name": "https://codefloe.com/Vidocq/ci/setup-maven@main",
+      "status": "success",
+      "started": "2026-11-14T11:58:36Z",
+      "stopped": "2026-11-14T11:58:44Z"
+    },
+    {
+      "number": 3,
+      "name": "https://codefloe.com/Vidocq/ci/sonar-analysis@main",
+      "status": "success",
+      "started": "2026-11-14T11:58:44Z",
+      "stopped": "2026-11-14T11:59:53Z"
+    },
+    {
+      "number": 4,
+      "name": "Complete job",
+      "status": "success",
+      "started": "2026-11-14T11:59:53Z",
+      "stopped": "2026-11-14T12:00:01Z"
+    }
+  ]
+}
