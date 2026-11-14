@@ -108,6 +108,7 @@ public class CollectorScheduler {
             return;
         }
         registry.seedIfEmpty(Arrays.asList(initialOrgs.split(",")));
+        restore(registry.activeOrgs());
         Supplier<List<String>> orgs = registry::activeOrgs;
         Duration backfill = Duration.ofSeconds(backfillSeconds);
 
@@ -148,12 +149,20 @@ public class CollectorScheduler {
     private void pass(ScheduledExecutorService executor, LoopRunner runner, UnaryOperator<Duration> adjust) {
         Duration next;
         try {
-            next = adjust.apply(runner.runOnce());
+            next = nextDelay(runner, runner.runOnce(), adjust);
         } catch (Throwable t) {   // an Error must not end the loop for good
             LOG.log(System.Logger.Level.ERROR, "Collector loop " + runner.name() + " crashed", t);
             next = AFTER_ERROR;
         }
         submit(executor, () -> pass(executor, runner, adjust), next);
+    }
+
+    /**
+     * The delay before the next pass of {@code runner}: what its pass returned, as {@code adjust} changes it after a
+     * success. After a failure the backoff (or the Retry-After of a rate limit) stands.
+     */
+    static Duration nextDelay(LoopRunner runner, Duration next, UnaryOperator<Duration> adjust) {
+        return runner.failing() ? next : adjust.apply(next);
     }
 
     private static void submit(ScheduledExecutorService executor, Runnable task, Duration delay) {
@@ -164,6 +173,18 @@ public class CollectorScheduler {
             executor.schedule(task, delay.toMillis(), TimeUnit.MILLISECONDS);
         } catch (RejectedExecutionException stopping) {
             // shut down meanwhile
+        }
+    }
+
+    /** The last stored state of each organisation, shown until the first passes (spec §5.4). */
+    private void restore(List<String> orgs) {
+        for (String org : orgs) {
+            try {
+                pulls.restore(org);
+                runners.restore(org);
+            } catch (RuntimeException e) {
+                LOG.log(System.Logger.Level.WARNING, "Restoring the stored state of " + org + " failed", e);
+            }
         }
     }
 

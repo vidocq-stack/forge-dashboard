@@ -104,6 +104,22 @@ class CommitsLoopIntegrationTest {
         assertEquals(T0.minus(Duration.ofDays(90)), forge.commitSinces.getFirst());
     }
 
+    /** "aaa-gone" comes first and CodeFloe answers 404 for it (deleted, or its default branch is gone). */
+    @Test
+    void oneFailingRepositoryDoesNotStopTheOthers() {
+        forge.repos.put(ORG, List.of(new ForgeRepo(2, ORG, "aaa-gone", "main", false, false),
+                new ForgeRepo(1, ORG, "vauban", "main", false, false)));
+        new PullsLoop(forge, repos, InProcessApp.bean(io.vidocq.tools.dashboard.store.PullRequestStateRepository.class),
+                InProcessApp.bean(io.vidocq.tools.dashboard.store.SonarSnapshotRepository.class),
+                new io.vidocq.tools.dashboard.live.LiveState(bus),
+                new io.vidocq.tools.dashboard.forge.ForgeLinks("https://codefloe.com"), clock).refreshRepos(ORG);
+        history(commit("c1", T0.minusSeconds(300), "Yann", "yblazart", "feat: one"));
+
+        loop().tick(ORG);
+
+        assertTrue(commits.findById("Vidocq/vauban@c1").isPresent());
+    }
+
     @Test
     void secondTickIsIncremental() {
         history(commit("c1", T0.minusSeconds(300), "Yann", "yblazart", "feat: one"));

@@ -59,13 +59,15 @@ jobs:
           key: m2-${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: m2-${{ runner.os }}-
 
-      - name: Package (Maven wrapper)
+      - name: Build and test (Maven wrapper)
         run: |
           set -eu
-          # Vidocq SNAPSHOTs are read anonymously from the Central Portal Snapshots
-          # (repository declared in the pom): no settings.xml, no credentials.
+          # Vidocq SNAPSHOTs are read anonymously from the snapshot repository declared in
+          # the pom: no settings.xml, no credentials.
+          # The tests gate the image: nothing is pushed or deployed unless they pass. Every
+          # test run starts a PostgreSQL dev service on the DinD daemon (DOCKER_HOST above).
           # Writes forge-dashboard-app/target/forge-dashboard-app-<version>/, the image's content.
-          ./mvnw -ntp -B -U package -DskipTests
+          ./mvnw -ntp -B -U verify
 
       - name: Login to container registry
         env:
@@ -115,10 +117,3 @@ jobs:
           cat /tmp/r.txt || true
           # Portainer renvoie 204 No Content sur succes du webhook container.
           test "$code" = "200" || test "$code" = "204"
-
-      # Observation only, after the deploy so it never delays it: the integration tests need
-      # Docker (PostgreSQL dev service). Whether they run on this DinD runner is to be seen in
-      # this step's log, not assumed; until then a red result here does not fail the job.
-      - name: Tests (observation, DinD)
-        continue-on-error: true
-        run: ./mvnw -ntp -B verify

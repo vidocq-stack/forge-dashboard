@@ -6,6 +6,7 @@ import io.vidocq.tools.dashboard.domain.CommitClassifier;
 import io.vidocq.tools.dashboard.domain.CommitKind;
 import io.vidocq.tools.dashboard.domain.RawCommit;
 import io.vidocq.tools.dashboard.forge.ForgeApi;
+import io.vidocq.tools.dashboard.forge.ForgeNotFoundException;
 import io.vidocq.tools.dashboard.forge.ForgePull;
 import io.vidocq.tools.dashboard.live.ChangeBus;
 import io.vidocq.tools.dashboard.live.ChangeEvent;
@@ -56,6 +57,8 @@ public class CommitsLoop {
     private final Map<Long, Resume> resumes = new HashMap<>();
     /** The organisations whose last tick left a repository unread for lack of budget. */
     private final Set<String> starved = new HashSet<>();
+    /** The back-fill pages the current tick may still read (ticks are synchronized). */
+    private int budget;
 
     @Inject
     public CommitsLoop(ForgeApi forge, CommitStatRepository commits, PrStatRepository prs, RepoRowRepository repos,
@@ -72,60 +75,24 @@ public class CommitsLoop {
     public synchronized void tick(String org) {
         Instant now = clock.instant();
         CommitClassifier classifier = config.classifier();
-        int budget = MAX_BACKFILL_PAGES_PER_TICK;
+        budget = MAX_BACKFILL_PAGES_PER_TICK;
         int fresh = 0;
         boolean skipped = false;
+        RepoPass pass = new RepoPass(org);
         for (RepoRow row : repos.findByOrgOrderByNameAsc(org)) {
             if (Boolean.TRUE.equals(row.getArchived()) || Boolean.TRUE.equals(row.getEmptyRepo())) {
                 continue;
             }
-            Instant cursor = row.getLastCommitAt();
-            boolean backfill = cursor == null;
-            if (backfill && budget <= 0) {
+            if (row.getLastCommitAt() == null && budget <= 0) {
                 skipped = true;
                 continue;
             }
-            Resume r = resumes.getOrDefault(row.getId(),
-                    new Resume(backfill ? now.minus(BACKFILL) : cursor, 1, cursor));
-            int page = r.nextPage();
-            Instant newest = r.newest();
-            boolean complete = false;
-            while (!backfill || budget > 0) {
-                List<RawCommit> batch = forge.listCommits(org, row.getName(), row.getDefaultBranch(), r.since(), page);
-                if (backfill) {
-                    budget--;
-                }
-                for (RawCommit c : batch) {
-                    commits.save(stat(org, row.getName(), c, classifier));
-                    if (c.authoredAt() != null) {
-                        if (cursor == null || c.authoredAt().isAfter(cursor)) {
-                            fresh++;
-                        }
-                        if (newest == null || c.authoredAt().isAfter(newest)) {
-                            newest = c.authoredAt();
-                        }
-                    }
-                }
-                if (batch.size() < PAGE_SIZE) {
-                    complete = true;
-                    break;
-                }
-                page++;
-            }
-            if (!complete) {
-                resumes.put(row.getId(), new Resume(r.since(), page, newest));
-                continue;
-            }
-            resumes.remove(row.getId());
-            fresh += savePulls(org, row.getName(), r.since());
-            if (newest == null) {
-                newest = r.since();   // nothing in 90 days: the next ticks read from there
-            }
-            if (!newest.equals(cursor)) {
-                row.setLastCommitAt(newest);
-                repos.save(row);
+            if (pass.read(row.getName(), () -> read(org, row, now, classifier))
+                    instanceof RepoPass.Outcome.Read<Integer> read) {
+                fresh += read.value();
             }
         }
+        pass.end();
         if (skipped) {
             starved.add(org);
         } else {
@@ -134,6 +101,57 @@ public class CommitsLoop {
         if (fresh > 0) {
             bus.publish(new ChangeEvent.CommitsChanged());
         }
+    }
+
+    /**
+     * Reads the new commits of one repository, the back-fill pages within the tick's budget.
+     *
+     * @return the number of commits newer than the cursor and of pull requests stored
+     */
+    private int read(String org, RepoRow row, Instant now, CommitClassifier classifier) {
+        Instant cursor = row.getLastCommitAt();
+        boolean backfill = cursor == null;
+        Resume r = resumes.getOrDefault(row.getId(), new Resume(backfill ? now.minus(BACKFILL) : cursor, 1, cursor));
+        int fresh = 0;
+        int page = r.nextPage();
+        Instant newest = r.newest();
+        boolean complete = false;
+        while (!backfill || budget > 0) {
+            List<RawCommit> batch = forge.listCommits(org, row.getName(), row.getDefaultBranch(), r.since(), page);
+            if (backfill) {
+                budget--;
+            }
+            for (RawCommit c : batch) {
+                commits.save(stat(org, row.getName(), c, classifier));
+                if (c.authoredAt() != null) {
+                    if (cursor == null || c.authoredAt().isAfter(cursor)) {
+                        fresh++;
+                    }
+                    if (newest == null || c.authoredAt().isAfter(newest)) {
+                        newest = c.authoredAt();
+                    }
+                }
+            }
+            if (batch.size() < PAGE_SIZE) {
+                complete = true;
+                break;
+            }
+            page++;
+        }
+        if (!complete) {
+            resumes.put(row.getId(), new Resume(r.since(), page, newest));
+            return fresh;
+        }
+        resumes.remove(row.getId());
+        fresh += savePulls(org, row.getName(), r.since());
+        if (newest == null) {
+            newest = r.since();   // nothing in 90 days: the next ticks read from there
+        }
+        if (!newest.equals(cursor)) {
+            row.setLastCommitAt(newest);
+            repos.save(row);
+        }
+        return fresh;
     }
 
     /** Whether a back-fill is left for the next ticks: the scheduler then runs them sooner than the cadence. */
@@ -168,10 +186,16 @@ public class CommitsLoop {
         return s;
     }
 
-    /** @return the number of pull requests stored */
+    /** @return the number of pull requests stored; none when the repository has them disabled (404) */
     private int savePulls(String org, String repo, Instant since) {
+        List<ForgePull> updated;
+        try {
+            updated = forge.listPullsUpdatedSince(org, repo, since);
+        } catch (ForgeNotFoundException disabled) {
+            return 0;
+        }
         int saved = 0;
-        for (ForgePull p : forge.listPullsUpdatedSince(org, repo, since)) {
+        for (ForgePull p : updated) {
             if (p.createdAt() == null) {
                 continue;
             }

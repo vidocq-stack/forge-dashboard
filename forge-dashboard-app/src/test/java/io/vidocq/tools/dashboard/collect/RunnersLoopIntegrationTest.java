@@ -175,6 +175,36 @@ class RunnersLoopIntegrationTest {
         assertEquals(T0.plusSeconds(15), jobs.findById(175_790L).orElseThrow().getStoppedAt());
     }
 
+    /** A restart while CodeFloe is down: the runners stored by the last pass, not an empty screen. */
+    @Test
+    void restartShowsTheStoredRunnersBeforeAnyPass() {
+        forge.runners.put(ORG, List.of(runner(1219, U, "active")));
+        loop().tick(ORG);
+        live = new LiveState(new ChangeBus());   // restarted: nothing in memory
+
+        loop().restore(ORG);
+
+        assertEquals(List.of("active"), live.snapshot(ORG).runners().stream().map(RunnerView::status).toList());
+    }
+
+    /** CodeFloe answers 500 on some jobs: that one job must not freeze the runners of the whole organisation. */
+    @Test
+    void vanishedJobWithUnavailableDetailIsClosedAndThePassGoesOn() {
+        ForgeJob j = job(175_790, "running");
+        running(j);
+        loop().tick(ORG);
+        running();
+        clock.advance(Duration.ofSeconds(15));
+        forge.failNext("getJob", new io.vidocq.tools.dashboard.forge.ForgeUnavailableException("500 on job", null));
+
+        loop().tick(ORG);
+
+        JobExecution e = jobs.findById(175_790L).orElseThrow();
+        assertEquals(T0.plusSeconds(15), e.getStoppedAt());
+        assertEquals("unknown", e.getStatus());
+        assertEquals(T0.plusSeconds(15), live.snapshot(ORG).updatedAt());
+    }
+
     @Test
     void runnerStatusChangeIsRecordedOnce() {
         forge.runners.put(ORG, List.of(runner(1219, U, "idle")));

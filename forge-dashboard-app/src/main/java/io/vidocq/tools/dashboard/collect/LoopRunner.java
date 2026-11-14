@@ -68,6 +68,11 @@ final class LoopRunner {
         return health;
     }
 
+    /** Whether the last pass failed. */
+    synchronized boolean failing() {
+        return failures > 0;
+    }
+
     String name() {
         return name;
     }

@@ -45,6 +45,7 @@ public class FakeForgeApi implements ForgeApi {
     public final List<Instant> commitSinces = new java.util.concurrent.CopyOnWriteArrayList<>();
 
     private final Map<String, RuntimeException> failures = new ConcurrentHashMap<>();
+    private final Map<String, RuntimeException> repoFailures = new ConcurrentHashMap<>();
 
     /** The next call of {@code method} (a {@link ForgeApi} method name) throws {@code e}. */
     public FakeForgeApi failNext(String method, RuntimeException e) {
@@ -52,9 +53,28 @@ public class FakeForgeApi implements ForgeApi {
         return this;
     }
 
+    /** Every call of {@code method} for {@code owner/repo} throws {@code e}, until {@link #recover}. */
+    public FakeForgeApi failAlways(String method, String ownerRepo, RuntimeException e) {
+        repoFailures.put(method + " " + ownerRepo, e);
+        return this;
+    }
+
+    public FakeForgeApi recover() {
+        repoFailures.clear();
+        return this;
+    }
+
     private void enter(String method) {
         calls.merge(method, 1, Integer::sum);
         RuntimeException e = failures.remove(method);
+        if (e != null) {
+            throw e;
+        }
+    }
+
+    private void enter(String method, String owner, String repo) {
+        enter(method);
+        RuntimeException e = repoFailures.get(method + " " + owner + "/" + repo);
         if (e != null) {
             throw e;
         }
@@ -87,13 +107,13 @@ public class FakeForgeApi implements ForgeApi {
 
     @Override
     public ForgeRun getRun(String owner, String repo, long runId) {
-        enter("getRun");
+        enter("getRun", owner, repo);
         return found(runs.get(runId), "run " + runId);
     }
 
     @Override
     public ForgeJob getJob(String owner, String repo, long jobId) {
-        enter("getJob");
+        enter("getJob", owner, repo);
         return found(jobs.get(jobId), "job " + jobId);
     }
 
@@ -105,26 +125,26 @@ public class FakeForgeApi implements ForgeApi {
 
     @Override
     public List<ForgePull> listOpenPulls(String owner, String repo) {
-        enter("listOpenPulls");
+        enter("listOpenPulls", owner, repo);
         return pulls.getOrDefault(owner + "/" + repo, List.of()).stream().filter(p -> p.mergedAt() == null).toList();
     }
 
     @Override
     public List<ForgePull> listPullsUpdatedSince(String owner, String repo, Instant since) {
-        enter("listPullsUpdatedSince");
+        enter("listPullsUpdatedSince", owner, repo);
         return pulls.getOrDefault(owner + "/" + repo, List.of()).stream()
                 .filter(p -> p.updatedAt() == null || !p.updatedAt().isBefore(since)).toList();
     }
 
     @Override
     public CombinedStatus getCombinedStatus(String owner, String repo, String ref) {
-        enter("getCombinedStatus");
+        enter("getCombinedStatus", owner, repo);
         return found(statuses.get(owner + "/" + repo + "@" + ref), "status of " + ref);
     }
 
     @Override
     public List<RawCommit> listCommits(String owner, String repo, String branch, Instant since, int page) {
-        enter("listCommits");
+        enter("listCommits", owner, repo);
         commitSinces.add(since);
         List<RawCommit> all = found(commits.get(owner + "/" + repo), "repo " + owner + "/" + repo).stream()
                 .filter(c -> c.authoredAt() == null || !c.authoredAt().isBefore(since)).toList();
@@ -134,7 +154,7 @@ public class FakeForgeApi implements ForgeApi {
 
     @Override
     public Optional<RawCommit> latestCommit(String owner, String repo, String branch) {
-        enter("latestCommit");
+        enter("latestCommit", owner, repo);
         return Optional.ofNullable(commits.get(owner + "/" + repo)).flatMap(all -> all.stream().findFirst());
     }
 

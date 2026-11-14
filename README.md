@@ -49,7 +49,8 @@ set -a; source ~/.config/vidocq/tokens.env; set +a
 FORGEJO_TOKEN=$CODEFLOE_BOT_TOKEN SONAR_TOKEN=$SONAR_USER_TOKEN \
 OIDC_CLIENT_ID=$DASHBOARD_OIDC_CLIENT_ID OIDC_CLIENT_SECRET=$DASHBOARD_OIDC_CLIENT_SECRET \
 DASHBOARD_PUBLIC_URL=http://localhost:8080 \
-  ./mvnw -ntp -pl forge-dashboard-app clean vidocq:dev -Dvidocq.dev.hotReload=false
+  ./mvnw -ntp -pl forge-dashboard-app clean vidocq:dev \
+    -Dvidocq.dev.hotReload=false -Dvidocq.dev.continuousTesting=false
 ```
 
 Sans `VIDOCQ_POOL_URL`, `vidocq:dev` démarre un conteneur PostgreSQL. Ouvrir <http://localhost:8080/> :
@@ -106,10 +107,10 @@ docker compose -f docker-compose.yml -f compose.local.yml -p forge-dashboard-loc
 ## CI/CD
 
 `.forgejo/workflows/build-deploy.yml`, sur un push sur `main` (runner `vidocq-dind`) :
-`./mvnw package` → image `registry.vidocq.dev/vidocq-tools/forge-dashboard:0.2.0-SNAPSHOT` et
-`main-<sha7>` → webhook Portainer (pull et redémarrage). Les tests tournent ensuite en simple
-observation (`continue-on-error`) : on ne sait pas encore si les tests d'intégration, qui ont besoin de
-Docker, passent sur le runner DinD.
+`./mvnw verify` → image `registry.vidocq.dev/vidocq-tools/forge-dashboard:0.2.0-SNAPSHOT` et
+`main-<sha7>` → webhook Portainer (pull et redémarrage). Les tests conditionnent l'image : rien n'est
+poussé ni déployé s'ils échouent. Chaque exécution des tests démarre un PostgreSQL de dev services sur le
+démon DinD. Si le runner ne le permet pas, le job échoue sans rien déployer.
 
 Secrets du repo : `DOCKER_REG_URL`, `DOCKER_REG_USER`, `DOCKER_REG_PASSWORD`, `PORTAINER_WEBHOOK_URL`.
 
@@ -127,7 +128,13 @@ Chacun tombe quand le correctif est publié ; le code renvoie au ticket là où 
   (`OidcFilter`) fait le flux code + PKCE. Cervantes vérifie l'`id_token`.
 - **Mode dev sans rechargement** : `-Dvidocq.dev.hotReload=false`. Un IDE qui réécrit `target/classes`
   (jdtls) déclenche une recharge sans les services générés (Cyrano, Mansart).
-  `-Dvidocq.dev.continuousTesting=false` coupe aussi les tests en continu si on n'en veut pas.
+- **Mode dev sans tests en continu** : `-Dvidocq.dev.continuousTesting=false`. Sous `vidocq:dev`, les tests
+  partagent pour l'instant la base de dev et la vident. Correctif Vidocq en cours : les tests auront leurs
+  propres dev services. En attendant, lancer `./mvnw verify` dans un autre terminal.
+- **Thème Lumo par un `<link>`** : Vaadin 25 n'applique aucun thème par défaut. `@StyleSheet(Lumo.STYLESHEET)`
+  ferait reconstruire le bundle frontend par Vite, alors que le projet utilise le bundle précompilé
+  `vaadin-prod-bundle`, sans npm. `DashboardAppShell` ajoute donc `lumo/lumo.css`, servi depuis le jar
+  `vaadin-lumo-theme`.
 
 ## Licence
 

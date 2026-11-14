@@ -81,6 +81,21 @@ public class RunnersLoop {
         this.clock = clock;
     }
 
+    /**
+     * At start, before any pass: the runners the database holds, with the executions still open, so that a restart
+     * while CodeFloe is down shows the last state (marked stale) rather than nothing. A snapshot a pass already filled
+     * is left alone.
+     */
+    public synchronized void restore(String org) {
+        List<RunnerRow> rows = runners.findByOrg(org);
+        if (rows.isEmpty()) {
+            return;
+        }
+        List<RunnerView> views = runnerViews(org, rows, clock.instant());
+        live.update(org, s -> s.runners().isEmpty() ? s.withRunners(views, s.waiting(), s.updatedAt()) : s,
+                new ChangeEvent.RunnersChanged(org));
+    }
+
     /** One complete pass for {@code org}. A failure of CodeFloe propagates: the scheduler backs off. */
     public synchronized void tick(String org) {
         Instant now = clock.instant();
@@ -140,7 +155,11 @@ public class RunnersLoop {
         }
     }
 
-    /** A task gone from the active jobs: its final status and stop from the job's detail, else now. */
+    /**
+     * A task gone from the active jobs: its final status and stop from the job's detail, else now. A detail CodeFloe
+     * cannot serve (it answers 500 for some jobs) closes it the same way: left open, it would freeze the pass of the
+     * whole organisation, or count as running for ever.
+     */
     private void close(JobExecution e, Map<String, RunnerRow> byUuid, Instant now) {
         try {
             ForgeJob detail = forge.getJob(e.getOrg(), e.getRepo(), e.getJobId());
@@ -149,7 +168,11 @@ public class RunnersLoop {
             if (e.getRunnerId() == null) {
                 JobResolver.applyHead(e, logHead(detail), byUuid);
             }
-        } catch (ForgeNotFoundException gone) {
+        } catch (ForgeNotFoundException | ForgeUnavailableException noDetail) {
+            if (noDetail instanceof ForgeUnavailableException) {
+                LOG.log(System.Logger.Level.INFO, "Job " + e.getJobId() + " closed without its detail: "
+                        + noDetail.getMessage());
+            }
             e.setStoppedAt(now);
             e.setStatus("unknown");
         }

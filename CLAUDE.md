@@ -69,7 +69,7 @@ Voir le tableau du README. L'essentiel : `FORGEJO_TOKEN`, `OIDC_CLIENT_ID`, `OID
 ```sh
 sdk env
 ./mvnw -ntp clean verify                                   # Docker requis (PostgreSQL des dev services)
-./mvnw -ntp -pl forge-dashboard-app clean vidocq:dev -Dvidocq.dev.hotReload=false
+./mvnw -ntp -pl forge-dashboard-app clean vidocq:dev -Dvidocq.dev.hotReload=false -Dvidocq.dev.continuousTesting=false
 ./mvnw -ntp -U clean package -DskipTests && docker build -t forge-dashboard:dev .
 ```
 
@@ -82,6 +82,6 @@ Toujours `clean` : jdtls réécrit `target/classes` et perd les services génér
 - `docker-compose.yml` : stack Portainer `forge-dashboard` + `postgres:17` (réseaux `dashboard-internal` et
   `reverseproxy_default`). `compose.local.yml` (non commité) pour la lancer en local.
 - `.forgejo/workflows/build-deploy.yml` : runner `vidocq-dind` + catthehacker + détection `DOCKER_HOST`,
-  `./mvnw package`, push `registry.vidocq.dev/vidocq-tools/forge-dashboard:0.2.0-SNAPSHOT` et
-  `main-<sha7>`, webhook Portainer ; tests en observation (`continue-on-error`).
+  `./mvnw verify` (les tests conditionnent l'image), push
+  `registry.vidocq.dev/vidocq-tools/forge-dashboard:0.2.0-SNAPSHOT` et `main-<sha7>`, webhook Portainer.
 - Déploiement et push : uniquement avec l'accord explicite de l'utilisateur.

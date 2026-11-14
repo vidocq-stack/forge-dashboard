@@ -5,6 +5,8 @@ import io.vidocq.tools.dashboard.domain.RawCommit;
 import io.vidocq.tools.dashboard.forge.CombinedStatus;
 import io.vidocq.tools.dashboard.forge.FakeForgeApi;
 import io.vidocq.tools.dashboard.forge.ForgeLinks;
+import io.vidocq.tools.dashboard.forge.ForgeNotFoundException;
+import io.vidocq.tools.dashboard.forge.ForgeUnavailableException;
 import io.vidocq.tools.dashboard.forge.ForgePull;
 import io.vidocq.tools.dashboard.forge.ForgeRepo;
 import io.vidocq.tools.dashboard.forge.StatusContext;
@@ -26,6 +28,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** The pull requests and main branch loop against a fake CodeFloe and the PostgreSQL of the dev services. */
@@ -110,6 +114,65 @@ class PullsLoopIntegrationTest {
         loop().tick(ORG);
 
         assertEquals(List.of("vauban"), live.snapshot(ORG).repos().stream().map(RepoView::name).toList());
+    }
+
+    /** Forgejo answers 404 on /pulls when pull requests are disabled (or on a mirror); the main state still counts. */
+    @Test
+    void repoWithoutPullsKeepsItsMainState() {
+        forge.failAlways("listOpenPulls", "Vidocq/vauban", new ForgeNotFoundException("pulls of Vidocq/vauban"));
+
+        loop().tick(ORG);
+
+        assertEquals(CiState.SUCCESS, view("vauban").mainState());
+        assertEquals(List.of(), view("vauban").pulls());
+    }
+
+    @Test
+    void oneUnavailableRepoKeepsItsLastViewAndTheOthersGoOn() {
+        forge.repos.get(ORG).add(repo(2, "foy", false));
+        forge.statuses.put("Vidocq/foy@main", status(CiState.SUCCESS));
+        loop().tick(ORG);
+        forge.failAlways("getCombinedStatus", "Vidocq/foy", new ForgeUnavailableException("500 on foy", null));
+        forge.statuses.put("Vidocq/vauban@main", status(CiState.FAILURE));
+
+        loop().tick(ORG);
+
+        assertEquals(CiState.FAILURE, view("vauban").mainState());
+        assertEquals(CiState.SUCCESS, view("foy").mainState());
+    }
+
+    @Test
+    void everyRepoUnavailableFailsThePass() {
+        loop().tick(ORG);
+        forge.failAlways("getCombinedStatus", "Vidocq/vauban", new ForgeUnavailableException("CodeFloe down", null));
+        var before = live.snapshot(ORG);
+
+        assertThrows(ForgeUnavailableException.class, () -> loop().tick(ORG));
+        assertSame(before, live.snapshot(ORG));
+    }
+
+    /** A restart while CodeFloe is down: the projects stored by the last pass, not an empty screen. */
+    @Test
+    void restartShowsTheStoredProjectsBeforeAnyPass() {
+        loop().tick(ORG);
+        live = new LiveState(new ChangeBus());   // restarted: nothing in memory
+        forge.failAlways("getCombinedStatus", "Vidocq/vauban", new ForgeUnavailableException("CodeFloe down", null));
+
+        loop().restore(ORG);
+
+        assertEquals(List.of(298), view("vauban").pulls().stream().map(p -> p.number()).toList());
+        assertEquals(CiState.PENDING, view("vauban").pulls().getFirst().state());
+        assertEquals(CiState.NONE, view("vauban").mainState());   // not stored: unknown until the first pass
+    }
+
+    @Test
+    void restoreNeverReplacesALivePass() {
+        loop().tick(ORG);
+        var before = live.snapshot(ORG);
+
+        loop().restore(ORG);
+
+        assertSame(before, live.snapshot(ORG));
     }
 
     @Test
