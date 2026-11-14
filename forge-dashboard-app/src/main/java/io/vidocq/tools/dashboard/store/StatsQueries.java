@@ -44,12 +44,12 @@ public class StatsQueries {
              ORDER BY runner_id, changed_at""";
 
     private static final String COMMITTERS = """
-            SELECT human_key, kind, agent_families, count(*),
+            SELECT coalesce(human_key, author_login, author_name), kind, agent_families, count(*),
                    coalesce(sum(additions), 0), coalesce(sum(deletions), 0)
               FROM commit_stat
              WHERE authored_at >= ? %s
-             GROUP BY human_key, kind, agent_families
-             ORDER BY count(*) DESC, human_key NULLS LAST, agent_families NULLS FIRST""";
+             GROUP BY 1, kind, agent_families
+             ORDER BY count(*) DESC, 1 NULLS LAST, agent_families NULLS FIRST""";
 
     private static final String PR_COUNTS = """
             SELECT author_login,
@@ -89,7 +89,7 @@ public class StatsQueries {
                 rs -> new StatusSpan(rs.getLong(1), rs.getString(2), instant(rs, 3)));
     }
 
-    /** The commits authored since {@code from}, per human, kind and set of agents, the busiest first. */
+    /** The commits authored since {@code from}, per human (a bot by its author), kind and set of agents, the busiest first. */
     public List<CommitterAggregate> committerAggregates(Optional<String> org, Instant from) {
         List<Object> params = new ArrayList<>(List.of(at(from)));
         org.ifPresent(params::add);

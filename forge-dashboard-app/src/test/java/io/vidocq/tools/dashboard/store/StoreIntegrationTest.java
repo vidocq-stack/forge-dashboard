@@ -103,6 +103,33 @@ class StoreIntegrationTest {
     }
 
     @Test
+    void botCommitsAreKeyedByTheirAuthor() {
+        Instant twoDaysAgo = now.minus(Duration.ofDays(2));
+        commits.save(commit("b1", twoDaysAgo, CommitKind.BOT, null, null, 1, 0));
+        CommitStat copilot = commit("b2", twoDaysAgo, CommitKind.BOT, null, null, 1, 0);
+        copilot.setAuthorName("Copilot");
+        commits.save(copilot);
+
+        var bots = stats.committerAggregates(Optional.empty(), now.minus(Duration.ofDays(30))).stream()
+                .filter(r -> r.kind() == CommitKind.BOT).map(CommitterAggregate::humanKey).sorted().toList();
+
+        assertEquals(java.util.List.of("Copilot", "Vidocq Bot"), bots);
+    }
+
+    @Test
+    void recentCommitsOfAHumanNewestFirst() {
+        commits.save(commit("r1", now.minus(Duration.ofDays(3)), CommitKind.HUMAN, "yblazart", null, 1, 1));
+        commits.save(commit("r2", now.minus(Duration.ofDays(1)), CommitKind.HUMAN, "yblazart", "Claude Opus", 1, 1));
+        commits.save(commit("r3", now.minus(Duration.ofDays(1)), CommitKind.HUMAN, "someone", null, 1, 1));
+        commits.save(commit("r4", now.minus(Duration.ofDays(40)), CommitKind.HUMAN, "yblazart", null, 1, 1));
+
+        var recent = commits.findByHumanKeyAndAuthoredAtGreaterThanOrderByAuthoredAtDesc("yblazart",
+                now.minus(Duration.ofDays(30)));
+
+        assertEquals(java.util.List.of("r2", "r1"), recent.stream().map(CommitStat::getSha).toList());
+    }
+
+    @Test
     void jobIntervalsAreClippedToWindowByCaller() {
         Instant from = now.minus(Duration.ofHours(6));
         jobs.save(job(10, "Vidocq", from.minus(Duration.ofHours(1)), from.plus(Duration.ofMinutes(10))));
