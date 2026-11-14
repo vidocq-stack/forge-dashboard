@@ -1,27 +1,19 @@
 /**
- * forge-dashboard — runtime Vidocq qui expose un dashboard JAX-RS server-rendered
- * (HTMX) sur les projets et runners de la forge Forgejo.
+ * forge-dashboard: projects, CI runners and committers of the Vidocq CodeFloe organisations, in Vaadin on Vidocq.
  */
-module io.vidocq.tools.dashboard.app {
-    requires java.net.http;
-    requires java.logging;
+module io.vidocq.tools.dashboard {
+    requires io.vidocq.runtime.extensions.jakartaee.web.foy;
+    requires io.vidocq.foy.api;
+    requires io.vidocq.vauban.api;
+    requires jakarta.servlet;
+    requires io.vidocq.runtime.extensions.jakartaee.web.vaadin;
+    requires io.vidocq.runtime.extensions.microprofile.ravel;
 
-    requires jakarta.cdi;
-    requires jakarta.inject;
-    requires jakarta.annotation;
-    requires jakarta.ws.rs;
-    requires jakarta.json;
-    requires jakarta.json.bind;
+    // The Vaadin jars have no module-info: their module names come from their file names.
+    requires flow.server;
+    requires flow.html.components;
+    requires vaadin.ordered.layout.flow;
 
-    requires io.vidocq.runtime.core;
-    requires io.vidocq.runtime.spi;
-    requires io.vidocq.runtime.ext.rest.cassini;
-    requires io.vidocq.chappe.api;
-    requires io.vidocq.vauban.core;
-
-    // JAX-RS et CDI font de la reflection sur les ressources, services et records.
-    opens io.vidocq.tools.dashboard.web;
-    opens io.vidocq.tools.dashboard.forgejo;
-    opens io.vidocq.tools.dashboard.service;
-    opens io.vidocq.tools.dashboard.model;
+    // Vaadin creates the routes by reflection.
+    opens io.vidocq.tools.dashboard.ui;
 }
