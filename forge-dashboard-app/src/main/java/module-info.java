@@ -22,4 +22,5 @@ module io.vidocq.tools.dashboard {
     opens io.vidocq.tools.dashboard.ui;
     // JSON-B (Champollion) binds the raw Forgejo records by reflection.
     opens io.vidocq.tools.dashboard.forge.cyrano;
+    opens io.vidocq.tools.dashboard.sonar.cyrano;
 }
