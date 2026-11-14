@@ -18,7 +18,8 @@ import java.io.IOException;
  * Shaped as a Jakarta Security {@code HttpAuthenticationMechanism} ({@link #validateRequest}), to be replaced by
  * {@code @OpenIdAuthenticationMechanismDefinition} once Vidocq has Jakarta Security (vidocq#63).
  */
-@WebFilter(filterName = "oidc", urlPatterns = "/*")
+// asyncSupported: the filter is in front of /VAADIN/push, whose long-polling requests Atmosphere suspends.
+@WebFilter(filterName = "oidc", urlPatterns = "/*", asyncSupported = true)
 public class OidcFilter extends HttpFilter {
 
     /** Mirror of {@code jakarta.security.enterprise.AuthenticationStatus}. */

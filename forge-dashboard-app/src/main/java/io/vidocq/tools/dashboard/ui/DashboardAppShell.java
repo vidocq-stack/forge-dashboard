@@ -5,6 +5,7 @@ import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.server.AppShellSettings;
 import com.vaadin.flow.shared.communication.PushMode;
 import com.vaadin.flow.shared.ui.Transport;
+import com.vaadin.flow.theme.lumo.Lumo;
 
 /**
  * Application shell, with server push.
@@ -20,5 +21,9 @@ public class DashboardAppShell implements AppShellConfigurator {
     @Override
     public void configurePage(AppShellSettings settings) {
         settings.setPageTitle("forge-dashboard");
+        // Vaadin 25 applies no theme by default, and the views use Lumo's variables. WORKAROUND: a plain <link> to
+        // the stylesheet that vaadin-lumo-theme serves from META-INF/resources, since @StyleSheet(Lumo.STYLESHEET)
+        // makes build-frontend rebuild the bundle with Vite (no npm here: the precompiled vaadin-prod-bundle).
+        settings.addLink("stylesheet", Lumo.STYLESHEET);
     }
 }

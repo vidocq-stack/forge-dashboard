@@ -78,6 +78,11 @@
             <groupId>com.vaadin</groupId>
             <artifactId>vaadin-core</artifactId>
         </dependency>
+        <!-- Vaadin 25 applies no theme by default; the views use Lumo (its stylesheet and CSS variables). -->
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-lumo-theme</artifactId>
+        </dependency>
         <!-- The precompiled frontend of the core components. -->
         <dependency>
             <groupId>com.vaadin</groupId>
