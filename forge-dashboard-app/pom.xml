@@ -45,6 +45,30 @@
             <artifactId>vidocq-runtime-cyrano-rest-client-extension</artifactId>
         </dependency>
 
+        <!-- PostgreSQL: the Mansart pool, Jakarta Data repositories, JTA, and the Flyway migrations. -->
+        <dependency>
+            <groupId>io.vidocq.runtime.extensions.jakartaee.web</groupId>
+            <artifactId>vidocq-runtime-mansart-pool-extension</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.vidocq.runtime.extensions.jakartaee.web</groupId>
+            <artifactId>vidocq-runtime-mansart-data-extension</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.vidocq.runtime.extensions.jakartaee.web</groupId>
+            <artifactId>vidocq-runtime-mansart-transactions-extension</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.vidocq.runtime.extensions.essentials</groupId>
+            <artifactId>vidocq-runtime-flyway-migration-extension</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${postgresql.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
         <dependency>
             <groupId>com.vaadin</groupId>
             <artifactId>vaadin-core</artifactId>
@@ -65,6 +89,19 @@
         <dependency>
             <groupId>io.vidocq.runtime</groupId>
             <artifactId>vidocq-runtime-junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- One PostgreSQL container for the whole test run, its coordinates injected as vidocq.pool.* system
+             properties. Not required by module-info.java: Surefire leaves it on the class path, where the
+             ServiceLoader of the JUnit launcher finds it. -->
+        <dependency>
+            <groupId>io.vidocq.runtime</groupId>
+            <artifactId>vidocq-runtime-devservices-junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.vidocq.runtime</groupId>
+            <artifactId>vidocq-runtime-devservice-postgres</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -102,6 +139,14 @@
                 <artifactId>vidocq-runtime-maven-plugin</artifactId>
                 <version>${vidocq.version}</version>
                 <extensions>true</extensions>
+                <!-- vidocq:dev starts a PostgreSQL container when no vidocq.pool.url is given. -->
+                <dependencies>
+                    <dependency>
+                        <groupId>io.vidocq.runtime</groupId>
+                        <artifactId>vidocq-runtime-devservice-postgres</artifactId>
+                        <version>${vidocq.version}</version>
+                    </dependency>
+                </dependencies>
             </plugin>
         </plugins>
     </build>
