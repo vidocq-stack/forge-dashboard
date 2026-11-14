@@ -1,13 +1,16 @@
 .git
 .idea
 .vscode
+.claude
+.superpowers
 **/*.iml
 .DS_Store
 .sdkmanrc
 CLAUDE.md
+compose.local.yml
 
-# Exclure target/ par defaut, sauf le JAR applicatif et le repertoire des deps.
+# Nothing of target/ but the distribution directory built by `./mvnw package`.
 **/target/*
-!**/target/dependency
-!**/target/dependency/*
-!**/target/forge-dashboard-app-*.jar
+!forge-dashboard-app/target/forge-dashboard-app-*
+forge-dashboard-app/target/*.zip
+forge-dashboard-app/target/*.jar

@@ -1,27 +1,62 @@
 /**
- * forge-dashboard — runtime Vidocq qui expose un dashboard JAX-RS server-rendered
- * (HTMX) sur les projets et runners de la forge Forgejo.
+ * forge-dashboard: projects, CI runners and committers of the Vidocq CodeFloe organisations, in Vaadin on Vidocq.
  */
-module io.vidocq.tools.dashboard.app {
+module io.vidocq.tools.dashboard {
+    requires io.vidocq.runtime.extensions.jakartaee.web.foy;
+    requires io.vidocq.foy.api;
+    requires io.vidocq.vauban.api;
+    requires jakarta.servlet;
+    requires io.vidocq.runtime.extensions.jakartaee.web.vaadin;
+    requires io.vidocq.runtime.extensions.microprofile.ravel;
+    requires io.vidocq.runtime.extensions.microprofile.cyrano;
+    requires io.vidocq.runtime.extensions.microprofile.cervantes;
     requires java.net.http;
-    requires java.logging;
-
+    requires io.vidocq.runtime.extensions.jakartaee.web.mansart.pool;
+    requires io.vidocq.runtime.extensions.jakartaee.web.mansart.data;
+    requires io.vidocq.runtime.extensions.jakartaee.web.mansart.transactions;
+    requires io.vidocq.runtime.extensions.essentials.migration.flyway;
+    // VidocqBootstrap, for the tests that start the application in process.
+    requires io.vidocq.runtime.core;
     requires jakarta.cdi;
     requires jakarta.inject;
-    requires jakarta.annotation;
-    requires jakarta.ws.rs;
-    requires jakarta.json;
     requires jakarta.json.bind;
+    requires jakarta.persistence;
+    requires jakarta.data;
+    requires jakarta.transaction;
+    requires java.sql;
+    // The Mansart Data processor needs javax.annotation.processing.Generated at compile time only.
+    requires static java.compiler;
 
-    requires io.vidocq.runtime.core;
-    requires io.vidocq.runtime.spi;
-    requires io.vidocq.runtime.ext.rest.cassini;
-    requires io.vidocq.chappe.api;
-    requires io.vidocq.vauban.core;
+    // The Vaadin jars have no module-info: their module names come from their file names.
+    requires flow.server;
+    requires flow.html.components;
+    requires vaadin.ordered.layout.flow;
+    requires vaadin.tabs.flow;
+    requires vaadin.button.flow;
+    requires vaadin.avatar.flow;
+    requires vaadin.menu.bar.flow;
+    requires vaadin.context.menu.flow;
+    requires vaadin.grid.flow;
+    requires vaadin.checkbox.flow;
+    requires vaadin.dialog.flow;
+    requires vaadin.text.field.flow;
+    requires vaadin.renderer.flow;
+    requires vaadin.lumo.theme;
 
-    // JAX-RS et CDI font de la reflection sur les ressources, services et records.
-    opens io.vidocq.tools.dashboard.web;
-    opens io.vidocq.tools.dashboard.forgejo;
-    opens io.vidocq.tools.dashboard.service;
-    opens io.vidocq.tools.dashboard.model;
+    // Vaadin takes the routes and components that are CDI beans from Vauban.
+    provides com.vaadin.flow.di.InstantiatorFactory with io.vidocq.tools.dashboard.ui.cdi.VaubanInstantiatorFactory;
+
+    // Vaadin creates the routes by reflection.
+    opens io.vidocq.tools.dashboard.ui;
+    opens io.vidocq.tools.dashboard.ui.cdi;
+    opens io.vidocq.tools.dashboard.auth;
+    // JSON-B (Champollion) binds the raw Forgejo records by reflection.
+    opens io.vidocq.tools.dashboard.forge.cyrano;
+    opens io.vidocq.tools.dashboard.sonar.cyrano;
+    // Mansart Data reads and writes the entities, and the enums of their columns, by reflection.
+    opens io.vidocq.tools.dashboard.store;
+    opens io.vidocq.tools.dashboard.domain;
+    opens io.vidocq.tools.dashboard.sonar;
+    // Flyway finds the SQL migrations as resources of this module.
+    opens db.migration;
 }

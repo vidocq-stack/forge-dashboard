@@ -1,18 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.1.0"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.1.0 http://maven.apache.org/xsd/maven-4.1.0.xsd">
-    <modelVersion>4.1.0</modelVersion>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>io.vidocq.tools.dashboard</groupId>
         <artifactId>forge-dashboard-parent</artifactId>
-        <version>0.1.0-SNAPSHOT</version>
+        <version>0.2.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>forge-dashboard-app</artifactId>
     <name>forge-dashboard :: app</name>
-    <description>Runtime Vidocq + ressources JAX-RS + templates HTML server-rendered (HTMX)</description>
+    <description>Vaadin Flow UI on the Vidocq runtime (Foy servlet container)</description>
+
+    <properties>
+        <!-- The runtime's own main boots this module: no main class. -->
+        <vidocq.mainModule>io.vidocq.tools.dashboard</vidocq.mainModule>
+        <!-- Vaadin production mode with the precompiled frontend of vaadin-prod-bundle: no Node needed. -->
+        <vidocq.dev.jvmArgs>-Dvaadin.productionMode=true</vidocq.dev.jvmArgs>
+        <vidocq.run.jvmArgs>-Dvaadin.productionMode=true</vidocq.run.jvmArgs>
+        <vidocq.jvmArgs>-Dvaadin.productionMode=true</vidocq.jvmArgs>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -20,65 +29,91 @@
             <artifactId>vidocq-runtime-core</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.vidocq.runtime.extensions.jakartaee.web</groupId>
+            <artifactId>vidocq-runtime-foy-servlet-extension</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.vidocq.runtime.extensions.jakartaee.web</groupId>
+            <artifactId>vidocq-runtime-vaadin-extension</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.vidocq.runtime.extensions.microprofile</groupId>
+            <artifactId>vidocq-runtime-ravel-config-extension</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.vidocq.runtime.extensions.microprofile</groupId>
+            <artifactId>vidocq-runtime-cyrano-rest-client-extension</artifactId>
+        </dependency>
+        <!-- MicroProfile JWT: validation of the CodeFloe id_token (signature, issuer, audience, expiry). -->
+        <dependency>
+            <groupId>io.vidocq.runtime.extensions.microprofile</groupId>
+            <artifactId>vidocq-runtime-cervantes-jwt-extension</artifactId>
+        </dependency>
+
+        <!-- PostgreSQL: the Mansart pool, Jakarta Data repositories, JTA, and the Flyway migrations. -->
+        <dependency>
+            <groupId>io.vidocq.runtime.extensions.jakartaee.web</groupId>
+            <artifactId>vidocq-runtime-mansart-pool-extension</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.vidocq.runtime.extensions.jakartaee.web</groupId>
+            <artifactId>vidocq-runtime-mansart-data-extension</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.vidocq.runtime.extensions.jakartaee.web</groupId>
+            <artifactId>vidocq-runtime-mansart-transactions-extension</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.vidocq.runtime.extensions.essentials</groupId>
+            <artifactId>vidocq-runtime-flyway-migration-extension</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${postgresql.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-core</artifactId>
+        </dependency>
+        <!-- Vaadin 25 applies no theme by default; the views use Lumo (its stylesheet and CSS variables). -->
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-lumo-theme</artifactId>
+        </dependency>
+        <!-- The precompiled frontend of the core components. -->
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-prod-bundle</artifactId>
+            <version>${vaadin.version}</version>
+        </dependency>
+        <!-- Vaadin logs through SLF4J: without a provider it is silent. This one writes to java.util.logging. -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-jdk14</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>io.vidocq.runtime</groupId>
-            <artifactId>vidocq-runtime-cassini-rest-extension</artifactId>
+            <artifactId>vidocq-runtime-junit</artifactId>
+            <scope>test</scope>
         </dependency>
-
+        <!-- One PostgreSQL container for the whole test run, its coordinates injected as vidocq.pool.* system
+             properties. Not required by module-info.java: Surefire leaves it on the class path, where the
+             ServiceLoader of the JUnit launcher finds it. -->
         <dependency>
-            <groupId>io.vidocq.chappe</groupId>
-            <artifactId>chappe-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.vidocq.chappe</groupId>
-            <artifactId>chappe-core</artifactId>
-        </dependency>
-
-        <!-- Vauban indexer : scanne notre classpath pour exposer les beans CDI. -->
-        <dependency>
-            <groupId>io.vidocq.vauban</groupId>
-            <artifactId>vauban-indexer</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>jakarta.ws.rs</groupId>
-            <artifactId>jakarta.ws.rs-api</artifactId>
+            <groupId>io.vidocq.runtime</groupId>
+            <artifactId>vidocq-runtime-devservices-junit</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>jakarta.enterprise</groupId>
-            <artifactId>jakarta.enterprise.cdi-api</artifactId>
+            <groupId>io.vidocq.runtime</groupId>
+            <artifactId>vidocq-runtime-devservice-postgres</artifactId>
+            <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>jakarta.inject</groupId>
-            <artifactId>jakarta.inject-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>jakarta.annotation</groupId>
-            <artifactId>jakarta.annotation-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>jakarta.json</groupId>
-            <artifactId>jakarta.json-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>jakarta.json.bind</groupId>
-            <artifactId>jakarta.json.bind-api</artifactId>
-        </dependency>
-
-        <!-- Yasson + Parsson en runtime — alignement sur l'exemple officiel
-             vidocq-runtime-cassini-rest-example. Cible : passer a champollion-jsonb. -->
-        <dependency>
-            <groupId>org.eclipse</groupId>
-            <artifactId>yasson</artifactId>
-            <version>3.0.4</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.parsson</groupId>
-            <artifactId>parsson</artifactId>
-            <version>1.1.7</version>
-            <scope>runtime</scope>
-        </dependency>
-
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -88,49 +123,40 @@
 
     <build>
         <plugins>
-            <!-- Copie toutes les deps runtime dans target/dependency/ pour le Dockerfile. -->
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.6.1</version>
+                <groupId>com.vaadin</groupId>
+                <artifactId>vaadin-maven-plugin</artifactId>
+                <version>${vaadin.version}</version>
                 <executions>
                     <execution>
-                        <id>copy-deps</id>
-                        <phase>package</phase>
-                        <goals><goal>copy-dependencies</goal></goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/dependency</outputDirectory>
-                            <includeScope>runtime</includeScope>
-                        </configuration>
+                        <id>prepare-frontend</id>
+                        <goals>
+                            <goal>prepare-frontend</goal>
+                        </goals>
+                    </execution>
+                    <!-- Bound to process-classes: vidocq:run and vidocq:dev never reach prepare-package. -->
+                    <execution>
+                        <id>build-frontend</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>build-frontend</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>
-            <!-- Genere les _ClientProxy.class CDI + META-INF/vauban-beans.list a la compilation.
-                 Sans ce goal, Vauban ne decouvre aucun bean au runtime. -->
             <plugin>
                 <groupId>io.vidocq.runtime</groupId>
                 <artifactId>vidocq-runtime-maven-plugin</artifactId>
-                <version>${vidocq.runtime.version}</version>
-                <executions>
-                    <execution>
-                        <id>generate</id>
-                        <goals><goal>generate</goal></goals>
-                        <configuration>
-                            <!-- Wildcard pour que le plugin scanne nos classes
-                                 ET les deps Vidocq non pre-processed (Class-File API). -->
-                            <scanDependencies>
-                                <scanDependency>io.vidocq.*</scanDependency>
-                            </scanDependencies>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <configuration>
-                    <mainClass>io.vidocq.tools.dashboard.App</mainClass>
-                </configuration>
+                <version>${vidocq.version}</version>
+                <extensions>true</extensions>
+                <!-- vidocq:dev starts a PostgreSQL container when no vidocq.pool.url is given. -->
+                <dependencies>
+                    <dependency>
+                        <groupId>io.vidocq.runtime</groupId>
+                        <artifactId>vidocq-runtime-devservice-postgres</artifactId>
+                        <version>${vidocq.version}</version>
+                    </dependency>
+                </dependencies>
             </plugin>
         </plugins>
     </build>

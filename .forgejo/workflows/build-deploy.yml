@@ -7,7 +7,7 @@ on:
 
 env:
   JAVA_VERSION: '25'
-  MAVEN_VERSION: '4.0.0-rc-5'
+  IMAGE_VERSION: '0.2.0-SNAPSHOT'
 
 jobs:
   build:
@@ -59,23 +59,15 @@ jobs:
           key: m2-${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: m2-${{ runner.os }}-
 
-      - name: Setup Maven ${{ env.MAVEN_VERSION }}
+      - name: Build and test (Maven wrapper)
         run: |
           set -eu
-          # dlcdn only keeps current releases; superseded RCs live on archive.apache.org.
-          curl -fsSL -o /tmp/maven.tgz "https://dlcdn.apache.org/maven/maven-4/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz" \
-            || curl -fsSL -o /tmp/maven.tgz "https://archive.apache.org/dist/maven/maven-4/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz"
-          mkdir -p $HOME/maven
-          tar -xzf /tmp/maven.tgz -C $HOME/maven --strip-components=1
-          echo "$HOME/maven/bin" >> $GITHUB_PATH
-
-      - name: Build (mvn install)
-        run: |
-          set -eu
-          mvn --version
-          # SNAPSHOTs Vidocq upstream consommes en anonyme depuis le Central Portal Snapshots
-          # (repo declare dans le pom) — pas de settings.xml/credentials.
-          mvn -ntp -B install -DskipTests
+          # Vidocq SNAPSHOTs are read anonymously from the snapshot repository declared in
+          # the pom: no settings.xml, no credentials.
+          # The tests gate the image: nothing is pushed or deployed unless they pass. Every
+          # test run starts a PostgreSQL dev service on the DinD daemon (DOCKER_HOST above).
+          # Writes forge-dashboard-app/target/forge-dashboard-app-<version>/, the image's content.
+          ./mvnw -ntp -B -U verify
 
       - name: Login to container registry
         env:
@@ -85,7 +77,8 @@ jobs:
         run: |
           set -eu
           REG=$(printf '%s' "$DOCKER_REG_URL" | tr -d '[:space:]'); REG="${REG#*://}"; REG=$(printf '%s' "$REG" | sed 's#/*$##')
-          echo "$DOCKER_REG_PASSWORD" | docker login "$REG" -u "$DOCKER_REG_USER" --password-stdin
+          USR=$(printf '%s' "$DOCKER_REG_USER" | tr -d '[:space:]')
+          printf '%s' "$DOCKER_REG_PASSWORD" | tr -d '\r\n' | docker login "$REG" -u "$USR" --password-stdin
 
       - name: Build & push Docker image
         env:
@@ -99,15 +92,14 @@ jobs:
           REG=$(printf '%s' "$DOCKER_REG_URL" | tr -d '[:space:]'); REG="${REG#*://}"; REG=$(printf '%s' "$REG" | sed 's#/*$##')
           IMAGE="${REG}/vidocq-tools/forge-dashboard"
           SHORT_SHA=$(echo "${REVISION}" | cut -c1-7)
-          echo "Image cible : ${IMAGE} (sha ${SHORT_SHA})"
+          echo "Image cible : ${IMAGE} (${IMAGE_VERSION}, sha ${SHORT_SHA})"
           docker build \
-            --label "org.opencontainers.image.source=https://codefloe.com/VidocqTools/forge-dashboard" \
             --label "org.opencontainers.image.revision=${REVISION}" \
             --label "org.opencontainers.image.created=${CREATED}" \
-            -t "${IMAGE}:0.1.0-SNAPSHOT" \
+            -t "${IMAGE}:${IMAGE_VERSION}" \
             -t "${IMAGE}:main-${SHORT_SHA}" \
             .
-          docker push "${IMAGE}:0.1.0-SNAPSHOT"
+          docker push "${IMAGE}:${IMAGE_VERSION}"
           docker push "${IMAGE}:main-${SHORT_SHA}"
 
       - name: Trigger Portainer redeploy

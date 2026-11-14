@@ -1,0 +1,2 @@
+2026-11-14T11:58:33.5061076Z Runner f924a289-a095-41cb-aebb-326899bb485b (version:v13.2.0) received task 176705 of job sonar, triggered by event: pull_request
+2026-11-14T11:58:33.5070657Z workflow prepared
