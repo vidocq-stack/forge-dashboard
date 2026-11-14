@@ -1,29 +1,72 @@
+# Portainer stack. Set the variables in the stack (never in this file):
+#   FORGEJO_TOKEN, SONAR_TOKEN, OIDC_CLIENT_ID, OIDC_CLIENT_SECRET, DB_PASSWORD (required)
+#   FORGEJO_URL, SONAR_URL, DASHBOARD_PUBLIC_URL, DB_URL, DB_USER,
+#   DASHBOARD_ALLOWED_GROUPS, DASHBOARD_ADMIN_GROUPS (defaults below)
 services:
   forge-dashboard:
-    # Registry fige en dur : le templating par ${DOCKER_REG_URL} cassait le deploiement
-    # Portainer (var non definie dans la stack -> "invalid reference format"). Le CI, lui,
-    # pousse bien sur registry.vidocq.dev (secret DOCKER_REG_URL).
-    image: registry.vidocq.dev/vidocq-tools/forge-dashboard:0.1.0-SNAPSHOT
+    # Registry written out: templating it with ${DOCKER_REG_URL} broke the Portainer deploy
+    # (variable missing from the stack -> "invalid reference format"). CI pushes to registry.vidocq.dev.
+    image: registry.vidocq.dev/vidocq-tools/forge-dashboard:0.2.0-SNAPSHOT
     pull_policy: always
+    # NPM forwards forge-dashboard.vidocq.dev to forge-dashboard:8080 on reverseproxy_default.
     container_name: forge-dashboard
     restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
     environment:
-      FORGEJO_URL: ${CODEBERG_URL}
-      FORGEJO_TOKEN: ${CODEBERG_TOKEN}
-      FORGEJO_ORGS: ${CODEBERG_ORGS:-vidocq,VidocqTools}
-      DASHBOARD_CACHE_TTL_SECONDS: ${DASHBOARD_CACHE_TTL_SECONDS:-30}
+      FORGEJO_URL: ${FORGEJO_URL:-https://codefloe.com}
+      FORGEJO_TOKEN: ${FORGEJO_TOKEN:?FORGEJO_TOKEN is required}
+      SONAR_URL: ${SONAR_URL:-https://sonar.vidocq.dev}
+      SONAR_TOKEN: ${SONAR_TOKEN:-}
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:?OIDC_CLIENT_ID is required}
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:?OIDC_CLIENT_SECRET is required}
+      DASHBOARD_PUBLIC_URL: ${DASHBOARD_PUBLIC_URL:-https://forge-dashboard.vidocq.dev}
+      DASHBOARD_ALLOWED_GROUPS: ${DASHBOARD_ALLOWED_GROUPS:-Vidocq:owners,Vidocq:devs}
+      DASHBOARD_ADMIN_GROUPS: ${DASHBOARD_ADMIN_GROUPS:-Vidocq:owners}
+      VIDOCQ_HTTP_PORT: "8080"
+      # WORKAROUND (README, « Contournements »): the pool reads VIDOCQ_POOL_*, not DB_*.
+      VIDOCQ_POOL_URL: ${DB_URL:-jdbc:postgresql://postgres:5432/forge_dashboard}
+      VIDOCQ_POOL_USERNAME: ${DB_USER:-forge_dashboard}
+      VIDOCQ_POOL_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
     expose:
       - "8080"
     networks:
+      - internal
       - proxy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/api/healthz || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/healthz || exit 1"]
       interval: 30s
       timeout: 5s
+      start_period: 60s
       retries: 3
 
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: forge_dashboard
+      POSTGRES_USER: ${DB_USER:-forge_dashboard}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+    volumes:
+      - forge-dashboard-db:/var/lib/postgresql/data
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+volumes:
+  forge-dashboard-db:
+
 networks:
-  # Reseau partage du reverse-proxy (NPM). NPM forward vers forge-dashboard:8080.
+  # Database traffic only; forge-dashboard reaches CodeFloe and Sonar through the proxy network.
+  internal:
+    name: dashboard-internal
+    internal: true
+  # The reverse proxy's network (NPM).
   proxy:
     external: true
     name: reverseproxy_default
