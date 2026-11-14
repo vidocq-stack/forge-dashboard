@@ -24,6 +24,7 @@ import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
 
 import java.time.Clock;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -42,6 +43,7 @@ public class ProjectsPanel extends Div {
     private final Grid<ProjectRow> grid = new Grid<>();
     private final Drawers drawers;
     private final Set<String> unfolded = new HashSet<>();
+    private final List<Grid.Column<ProjectRow>> wideOnly = new ArrayList<>();
     private String org;
 
     @Inject
@@ -60,15 +62,16 @@ public class ProjectsPanel extends Div {
                 .setAutoWidth(true).setFlexGrow(1);
         grid.addComponentColumn(r -> Badges.dot(r.main())).setHeader("main").setAutoWidth(true).setFlexGrow(0)
                 .setTextAlign(ColumnTextAlign.CENTER);
-        grid.addColumn(ProjectRow::loc).setHeader("LOC").setAutoWidth(true).setFlexGrow(0)
-                .setTextAlign(ColumnTextAlign.END);
-        grid.addColumn(ProjectRow::tests).setHeader("Tests").setAutoWidth(true).setFlexGrow(0)
-                .setTextAlign(ColumnTextAlign.END);
-        grid.addColumn(ProjectRow::coverage).setHeader("Couv.").setAutoWidth(true).setFlexGrow(0)
-                .setTextAlign(ColumnTextAlign.END);
+        wideOnly.add(grid.addColumn(ProjectRow::loc).setHeader("LOC").setAutoWidth(true).setFlexGrow(0)
+                .setTextAlign(ColumnTextAlign.END));
+        wideOnly.add(grid.addColumn(ProjectRow::tests).setHeader("Tests").setAutoWidth(true).setFlexGrow(0)
+                .setTextAlign(ColumnTextAlign.END));
+        wideOnly.add(grid.addColumn(ProjectRow::coverage).setHeader("Couv.").setAutoWidth(true).setFlexGrow(0)
+                .setTextAlign(ColumnTextAlign.END));
         grid.addComponentColumn(r -> Badges.gate(r.gate())).setHeader("Gate").setAutoWidth(true).setFlexGrow(0);
         grid.addComponentColumn(this::pullCounter).setHeader("PR").setAutoWidth(true).setFlexGrow(0);
-        grid.addColumn(ProjectRow::lastCommit).setHeader("Dernier commit").setAutoWidth(true).setFlexGrow(0);
+        wideOnly.add(grid.addColumn(ProjectRow::lastCommit).setHeader("Dernier commit").setAutoWidth(true)
+                .setFlexGrow(0));
         grid.setDetailsVisibleOnClick(false);
         grid.setItemDetailsRenderer(new ComponentRenderer<>(this::pullList));
         add(grid, drawers);
@@ -80,6 +83,14 @@ public class ProjectsPanel extends Div {
         refresh();
         LiveBinding.bind(this, bus, e -> e.equals(new ChangeEvent.PullsChanged(org))
                 || e.equals(new ChangeEvent.SonarChanged(org)), this::refresh);
+        return this;
+    }
+
+    /** On a narrow screen, only the repo, main, gate and PR columns; may be called before {@link #forOrg}. */
+    ProjectsPanel narrow(boolean narrow) {
+        wideOnly.forEach(column -> column.setVisible(!narrow));
+        // the auto widths were measured with the other set of columns
+        grid.recalculateColumnWidths();
         return this;
     }
 

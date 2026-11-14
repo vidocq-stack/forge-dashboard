@@ -63,6 +63,7 @@ public class CommittersPanel extends Div {
     private String org;
     private int periodDays;
     private IntConsumer savePeriod;
+    private boolean narrow;
 
     @Inject
     public CommittersPanel(StatsQueries stats, CommitStatRepository commits, ForgeLinks links, ChangeBus bus,
@@ -104,6 +105,17 @@ public class CommittersPanel extends Div {
         return this;
     }
 
+    /** On a narrow screen, only who, commits and share; may be called before {@link #forOrg}. */
+    CommittersPanel narrow(boolean narrow) {
+        if (narrow != this.narrow) {
+            this.narrow = narrow;
+            if (org != null) {
+                refresh();
+            }
+        }
+        return this;
+    }
+
     private void markPeriod() {
         periodButtons.forEach((days, b) -> {
             b.removeThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_CONTRAST);
@@ -124,7 +136,10 @@ public class CommittersPanel extends Div {
                     + scope.map(o -> " dans " + o).orElse("") + "."));
             return;
         }
-        body.add(Parts.section("Humains"), grid(view.humans(), total, true), legend(view.humans()));
+        body.add(Parts.section("Humains"), grid(view.humans(), total, true));
+        if (!narrow) {
+            body.add(legend(view.humans()));
+        }
         if (view.unattributed() != null) {
             body.add(Parts.muted(view.unattributed().commits() + " commits d'agents sans auteur retrouvé (pas de PR)."));
         }
@@ -147,12 +162,15 @@ public class CommittersPanel extends Div {
                 .setTextAlign(ColumnTextAlign.END);
         grid.addColumn(r -> percent(r.commits(), total)).setHeader("Part").setAutoWidth(true).setFlexGrow(0)
                 .setTextAlign(ColumnTextAlign.END);
-        grid.addColumn(r -> "+" + Formats.compact(r.additions()) + " / −" + Formats.compact(r.deletions()))
-                .setHeader("Lignes").setAutoWidth(true).setFlexGrow(0);
-        if (people) {
-            grid.addColumn(r -> r.prsOpened() + " / " + r.prsMerged()).setHeader("PR ouvertes / mergées")
-                    .setAutoWidth(true).setFlexGrow(0);
-            grid.addComponentColumn(CommittersPanel::bar).setHeader("Avec agents").setWidth("14rem").setFlexGrow(0);
+        if (!narrow) {
+            grid.addColumn(r -> "+" + Formats.compact(r.additions()) + " / −" + Formats.compact(r.deletions()))
+                    .setHeader("Lignes").setAutoWidth(true).setFlexGrow(0);
+            if (people) {
+                grid.addColumn(r -> r.prsOpened() + " / " + r.prsMerged()).setHeader("PR ouvertes / mergées")
+                        .setAutoWidth(true).setFlexGrow(0);
+                grid.addComponentColumn(CommittersPanel::bar).setHeader("Avec agents").setWidth("14rem")
+                        .setFlexGrow(0);
+            }
         }
         grid.setItems(rows);
         return grid;

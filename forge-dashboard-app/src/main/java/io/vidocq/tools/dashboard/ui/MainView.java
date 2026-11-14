@@ -13,16 +13,19 @@ import com.vaadin.flow.component.menubar.MenuBarVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.page.ExtendedClientDetails;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.shared.Registration;
 import io.vidocq.tools.dashboard.auth.DashboardUser;
 import io.vidocq.tools.dashboard.collect.CollectorScheduler;
 import io.vidocq.tools.dashboard.collect.OrgAdmin;
 import io.vidocq.tools.dashboard.collect.OrgRegistry;
 import io.vidocq.tools.dashboard.live.ChangeBus;
 import io.vidocq.tools.dashboard.live.ChangeEvent;
+import io.vidocq.tools.dashboard.ui.model.Screen;
 import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
@@ -37,7 +40,8 @@ import java.util.Optional;
 /**
  * The dashboard: one tab per tracked org, the toggle {@code Projets | CI | Commiters} in the middle of the header,
  * the freshness badge and the user menu on the right, and the panel of the current view for the current org below.
- * The view, the period and the org tab come back from the user's preferences; each change is saved.
+ * The view, the period and the org tab come back from the user's preferences; each change is saved. On a phone
+ * ({@link Screen#narrow}) the toggle takes its own row and the tables keep their essential columns.
  */
 @Route("")
 @PageTitle("forge-dashboard")
@@ -56,8 +60,14 @@ public class MainView extends VerticalLayout {
     private final Tab addOrg = new Tab("+");
     private final Map<ViewMode, Button> toggle = new EnumMap<>(ViewMode.class);
     private final Div content = new Div();
+    private final HorizontalLayout header;
+    private final HorizontalLayout toggleRow;
+    private final HorizontalLayout right;
     private UserPreferences current;
     private String org;
+    private Component shown;
+    private boolean narrow;
+    private Registration resize;
 
     @Inject
     public MainView(ChangeBus bus, UserPrefs prefs, OrgRegistry orgs, CollectorScheduler collector, Clock clock,
@@ -91,21 +101,78 @@ public class MainView extends VerticalLayout {
             }
         });
         HorizontalLayout left = section(orgTabs);
-        HorizontalLayout right = section(new FreshnessBadge(collector::health, clock, bus), userMenu());
+        right = section(new FreshnessBadge(collector::health, clock, bus), userMenu());
         right.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
-        HorizontalLayout header = new HorizontalLayout(left, viewToggle(), right);
+        toggleRow = viewToggle();
+        header = new HorizontalLayout(left, toggleRow, right);
         header.setWidthFull();
         header.setAlignItems(FlexComponent.Alignment.CENTER);
-        header.getStyle().set("padding", "0 var(--lumo-space-m)")
-                .set("border-bottom", "1px solid var(--lumo-contrast-10pct)");
+        header.getStyle().set("border-bottom", "1px solid var(--lumo-contrast-10pct)");
 
         content.setSizeFull();
-        content.getStyle().set("padding", "var(--lumo-space-m)").set("box-sizing", "border-box");
+        content.getStyle().set("box-sizing", "border-box");
         add(header, content);
         setFlexGrow(1, content);
 
+        UI ui = UI.getCurrent();
+        narrow = ui != null && Screen.narrow(windowWidth(ui));
+        layout();
         refreshTabs();
         LiveBinding.bind(this, bus, e -> e instanceof ChangeEvent.OrgsChanged, this::refreshTabs);
+        addAttachListener(e -> {
+            narrow(Screen.narrow(windowWidth(e.getUI())));
+            resize = e.getUI().getPage().addBrowserWindowResizeListener(r -> narrow(Screen.narrow(r.getWidth())));
+        });
+        addDetachListener(e -> {
+            if (resize != null) {
+                resize.remove();
+                resize = null;
+            }
+        });
+    }
+
+    /** The browser's {@code window.innerWidth}, sent when the page starts; -1 if unknown. */
+    private static int windowWidth(UI ui) {
+        ExtendedClientDetails details = ui.getPage().getExtendedClientDetails();
+        return details == null ? -1 : details.getWindowInnerWidth();
+    }
+
+    /**
+     * The layout for a phone ({@code true}: the view toggle on its own row under the org tabs, the columns that
+     * matter at a glance) or a wider screen; the panel shown is kept, with what the user unfolded in it.
+     */
+    void narrow(boolean narrow) {
+        if (narrow == this.narrow) {
+            return;
+        }
+        this.narrow = narrow;
+        layout();
+        if (shown instanceof ProjectsPanel panel) {
+            panel.narrow(narrow);
+        } else if (shown instanceof CommittersPanel panel) {
+            panel.narrow(narrow);
+        }
+    }
+
+    private void layout() {
+        String gutter = narrow ? "var(--lumo-space-s)" : "var(--lumo-space-m)";
+        header.getStyle().set("padding", "0 " + gutter);
+        content.getStyle().set("padding", gutter);
+        onNarrow(header, "flex-wrap", "wrap");
+        // order 1: after the org tabs and the user menu, which share the first row
+        onNarrow(toggleRow, "order", "1");
+        onNarrow(toggleRow, "flex-basis", "100%");
+        onNarrow(toggleRow, "justify-content", "center");
+        onNarrow(toggleRow, "padding-bottom", "var(--lumo-space-s)");
+        right.getStyle().set("flex", narrow ? "0 0 auto" : "1 1 0");
+    }
+
+    private void onNarrow(Component component, String property, String value) {
+        if (narrow) {
+            component.getElement().getStyle().set(property, value);
+        } else {
+            component.getElement().getStyle().remove(property);
+        }
     }
 
     /** Left and right parts of the header, of equal width so that the toggle stays in the middle. */
@@ -116,7 +183,7 @@ public class MainView extends VerticalLayout {
         return section;
     }
 
-    private Component viewToggle() {
+    private HorizontalLayout viewToggle() {
         HorizontalLayout group = new HorizontalLayout();
         group.setSpacing(false);
         group.getStyle().set("gap", "2px");
@@ -181,16 +248,18 @@ public class MainView extends VerticalLayout {
     /** A new panel of the current view for the current org; the one replaced is detached, so unsubscribed. */
     private void showContent() {
         content.removeAll();
+        shown = null;
         if (org == null) {
             content.add(new Span("Aucune organisation suivie."));
             return;
         }
-        content.add(switch (current.view()) {
-            case PROJECTS -> projects.get().forOrg(org);
+        shown = switch (current.view()) {
+            case PROJECTS -> projects.get().narrow(narrow).forOrg(org);
             case CI -> ci.get().forOrg(org);
-            case COMMITTERS -> committers.get().forOrg(org, current.periodDays(),
+            case COMMITTERS -> committers.get().narrow(narrow).forOrg(org, current.periodDays(),
                     days -> save(current.withPeriodDays(days)));
-        });
+        };
+        content.add(shown);
     }
 
     /** Shows the org just added; the other UIs get it through {@code OrgsChanged}. */
