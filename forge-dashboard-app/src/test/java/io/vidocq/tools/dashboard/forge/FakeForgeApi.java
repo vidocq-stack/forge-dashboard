@@ -41,6 +41,8 @@ public class FakeForgeApi implements ForgeApi {
     public final List<String> runnersForbidden = new ArrayList<>();
     /** Method name → number of calls. */
     public final Map<String, Integer> calls = new ConcurrentHashMap<>();
+    /** The {@code since} of each {@link #listCommits} call, in order. */
+    public final List<Instant> commitSinces = new java.util.concurrent.CopyOnWriteArrayList<>();
 
     private final Map<String, RuntimeException> failures = new ConcurrentHashMap<>();
 
@@ -123,6 +125,7 @@ public class FakeForgeApi implements ForgeApi {
     @Override
     public List<RawCommit> listCommits(String owner, String repo, String branch, Instant since, int page) {
         enter("listCommits");
+        commitSinces.add(since);
         List<RawCommit> all = found(commits.get(owner + "/" + repo), "repo " + owner + "/" + repo).stream()
                 .filter(c -> c.authoredAt() == null || !c.authoredAt().isBefore(since)).toList();
         int from = (page - 1) * 50;
