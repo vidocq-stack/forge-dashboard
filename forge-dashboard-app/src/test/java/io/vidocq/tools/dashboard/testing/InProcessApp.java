@@ -31,6 +31,7 @@ public final class InProcessApp {
         System.setProperty("vidocq.launch.mode", "test");
         System.setProperty("vidocq.chappe.listener.default.port", String.valueOf(freePort()));
         System.setProperty("vaadin.productionMode", "true");
+        System.setProperty("dashboard.collect.enabled", "false");   // the tests never call CodeFloe
         openToRuntime();
         bootstrap = VidocqBootstrap.create().configure().start();
     }

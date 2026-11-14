@@ -22,8 +22,10 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * The commits loop (60 min): the new commits of each default branch, classified, and the pull requests updated since.
@@ -52,6 +54,8 @@ public class CommitsLoop {
     private final ChangeBus bus;
     private final Clock clock;
     private final Map<Long, Resume> resumes = new HashMap<>();
+    /** The organisations whose last tick left a repository unread for lack of budget. */
+    private final Set<String> starved = new HashSet<>();
 
     @Inject
     public CommitsLoop(ForgeApi forge, CommitStatRepository commits, PrStatRepository prs, RepoRowRepository repos,
@@ -70,6 +74,7 @@ public class CommitsLoop {
         CommitClassifier classifier = config.classifier();
         int budget = MAX_BACKFILL_PAGES_PER_TICK;
         int fresh = 0;
+        boolean skipped = false;
         for (RepoRow row : repos.findByOrgOrderByNameAsc(org)) {
             if (Boolean.TRUE.equals(row.getArchived()) || Boolean.TRUE.equals(row.getEmptyRepo())) {
                 continue;
@@ -77,6 +82,7 @@ public class CommitsLoop {
             Instant cursor = row.getLastCommitAt();
             boolean backfill = cursor == null;
             if (backfill && budget <= 0) {
+                skipped = true;
                 continue;
             }
             Resume r = resumes.getOrDefault(row.getId(),
@@ -112,14 +118,27 @@ public class CommitsLoop {
             }
             resumes.remove(row.getId());
             fresh += savePulls(org, row.getName(), r.since());
-            if (newest != null && !newest.equals(cursor)) {
+            if (newest == null) {
+                newest = r.since();   // nothing in 90 days: the next ticks read from there
+            }
+            if (!newest.equals(cursor)) {
                 row.setLastCommitAt(newest);
                 repos.save(row);
             }
         }
+        if (skipped) {
+            starved.add(org);
+        } else {
+            starved.remove(org);
+        }
         if (fresh > 0) {
             bus.publish(new ChangeEvent.CommitsChanged());
         }
+    }
+
+    /** Whether a back-fill is left for the next ticks: the scheduler then runs them sooner than the cadence. */
+    public synchronized boolean backfillPending() {
+        return !resumes.isEmpty() || !starved.isEmpty();
     }
 
     private CommitStat stat(String org, String repo, RawCommit c, CommitClassifier classifier) {

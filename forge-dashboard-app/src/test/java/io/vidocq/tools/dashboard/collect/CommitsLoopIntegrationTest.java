@@ -27,7 +27,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** The commits loop against a fake CodeFloe and the PostgreSQL of the dev services. */
 class CommitsLoopIntegrationTest {
@@ -134,10 +136,23 @@ class CommitsLoopIntegrationTest {
         assertEquals(20, forge.calls.get("listCommits"));
         assertEquals(20 * 50, commits.findAll().count());
         assertNull(repos.findById(1L).orElseThrow().getLastCommitAt());
+        assertTrue(loop.backfillPending());
 
         loop.tick(ORG);
         assertEquals(30 * 50, commits.findAll().count());
         assertEquals(T0.minusSeconds(60), repos.findById(1L).orElseThrow().getLastCommitAt());
+        assertFalse(loop.backfillPending());
+    }
+
+    @Test
+    void quietRepositoryLeavesTheBackfillAfterOneTick() {
+        history();
+        var loop = loop();
+
+        loop.tick(ORG);
+
+        assertEquals(T0.minus(Duration.ofDays(90)), repos.findById(1L).orElseThrow().getLastCommitAt());
+        assertFalse(loop.backfillPending());
     }
 
     @Test
