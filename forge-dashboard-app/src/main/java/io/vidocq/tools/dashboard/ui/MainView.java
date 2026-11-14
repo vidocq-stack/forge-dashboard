@@ -22,6 +22,7 @@ import io.vidocq.tools.dashboard.collect.OrgRegistry;
 import io.vidocq.tools.dashboard.live.ChangeBus;
 import io.vidocq.tools.dashboard.live.ChangeEvent;
 import jakarta.enterprise.context.Dependent;
+import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 
 import java.time.Clock;
@@ -43,6 +44,7 @@ public class MainView extends VerticalLayout {
 
     private final UserPrefs prefs;
     private final OrgRegistry orgs;
+    private final Instance<ProjectsPanel> projects;
     private final Optional<DashboardUser> user;
     private final Tabs orgTabs = new Tabs();
     private final Map<Tab, String> tabOrgs = new LinkedHashMap<>();
@@ -52,9 +54,11 @@ public class MainView extends VerticalLayout {
     private String org;
 
     @Inject
-    public MainView(ChangeBus bus, UserPrefs prefs, OrgRegistry orgs, CollectorScheduler collector, Clock clock) {
+    public MainView(ChangeBus bus, UserPrefs prefs, OrgRegistry orgs, CollectorScheduler collector, Clock clock,
+            Instance<ProjectsPanel> projects) {
         this.prefs = prefs;
         this.orgs = orgs;
+        this.projects = projects;
         this.user = CurrentUser.get();
         this.current = user.map(u -> prefs.load(u.login())).orElseGet(() -> UserPreferences.defaults("?"));
 
@@ -149,14 +153,17 @@ public class MainView extends VerticalLayout {
         showContent();
     }
 
-    /** The panel of the current view for the current org; provisional until Tasks 13 to 15 add the panels. */
+    /** A new panel of the current view for the current org; the one replaced is detached, so unsubscribed. */
     private void showContent() {
         content.removeAll();
         if (org == null) {
             content.add(new Span("Aucune organisation suivie."));
             return;
         }
-        content.add(new Span(current.view().label() + " — " + org));
+        content.add(switch (current.view()) {
+            case PROJECTS -> projects.get().forOrg(org);
+            case CI, COMMITTERS -> new Span(current.view().label() + " — " + org);   // Tasks 14 and 15
+        });
     }
 
     private void save(UserPreferences next) {

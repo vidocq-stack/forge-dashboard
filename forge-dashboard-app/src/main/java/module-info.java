@@ -36,6 +36,8 @@ module io.vidocq.tools.dashboard {
     requires vaadin.avatar.flow;
     requires vaadin.menu.bar.flow;
     requires vaadin.context.menu.flow;
+    requires vaadin.grid.flow;
+    requires vaadin.renderer.flow;
 
     // Vaadin takes the routes and components that are CDI beans from Vauban.
     provides com.vaadin.flow.di.InstantiatorFactory with io.vidocq.tools.dashboard.ui.cdi.VaubanInstantiatorFactory;

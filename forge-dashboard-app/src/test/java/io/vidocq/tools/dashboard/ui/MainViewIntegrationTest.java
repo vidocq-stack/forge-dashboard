@@ -1,7 +1,6 @@
 package io.vidocq.tools.dashboard.ui;
 
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import io.vidocq.tools.dashboard.collect.OrgRegistry;
@@ -28,7 +27,7 @@ class MainViewIntegrationTest {
         Tabs tabs = descendants(view).filter(Tabs.class::isInstance).map(Tabs.class::cast).findFirst().orElseThrow();
         assertEquals(List.of("Vidocq", "VidocqTools"),
                 tabs.getChildren().map(tab -> ((Tab) tab).getLabel()).toList());
-        assertTrue(descendants(view).anyMatch(c -> c instanceof Span s && "Projets — Vidocq".equals(s.getText())),
+        assertTrue(descendants(view).anyMatch(ProjectsPanel.class::isInstance),
                 "the projects view of the first org is shown");
     }
 
