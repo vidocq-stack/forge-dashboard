@@ -60,6 +60,11 @@ jobs:
           restore-keys: m2-${{ runner.os }}-
 
       - name: Build and test (Maven wrapper)
+        env:
+          # Ryuk (the Testcontainers reaper) never starts on the DinD daemon ("Timed out waiting for
+          # log output matching '.*Started.*'"), and the PostgreSQL dev service fails with it. The
+          # daemon is thrown away with the job, so nothing is left to reap.
+          TESTCONTAINERS_RYUK_DISABLED: 'true'
         run: |
           set -eu
           # Vidocq SNAPSHOTs are read anonymously from the snapshot repository declared in
