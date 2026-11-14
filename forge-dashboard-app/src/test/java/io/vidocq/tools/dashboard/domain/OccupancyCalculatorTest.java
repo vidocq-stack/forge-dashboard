@@ -75,4 +75,13 @@ class OccupancyCalculatorTest {
         assertEquals(3, OccupancyCalculator.observedCapacity(List.of(new Interval(1, t(0), null),
                 new Interval(1, t(5), t(30)), new Interval(1, t(20), null))));
     }
+
+    @Test
+    void capacityIsTheOverrideElseTheObservedOne() {
+        List<Interval> twoAtOnce = List.of(new Interval(1, t(0), t(10)), new Interval(1, t(5), t(15)));
+        assertEquals(4, OccupancyCalculator.capacity(4, twoAtOnce));
+        assertEquals(2, OccupancyCalculator.capacity(null, twoAtOnce));
+        assertEquals(2, OccupancyCalculator.capacity(0, twoAtOnce));
+        assertEquals(1, OccupancyCalculator.capacity(null, List.of()));
+    }
 }

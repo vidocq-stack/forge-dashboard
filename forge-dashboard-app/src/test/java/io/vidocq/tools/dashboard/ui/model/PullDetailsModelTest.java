@@ -49,9 +49,9 @@ class PullDetailsModelTest {
         assertEquals(GateStatus.OK, d.sonarGate());
         assertEquals(PR.htmlUrl(), d.htmlUrl());
         assertEquals(List.of(
-                new PullJobLine("build", "vidocq-runner-1", "success", "2 min 00 s",
+                new PullJobLine("build", 1219L, "vidocq-runner-1", "success", "2 min 00 s",
                         "https://codefloe.com/Vidocq/vauban/actions/runs/7/jobs/10"),
-                new PullJobLine("sonar", "?", "running", "30 s",
+                new PullJobLine("sonar", null, "?", "running", "30 s",
                         "https://codefloe.com/Vidocq/vauban/actions/runs/7/jobs/11")), d.lastRunJobs());
     }
 

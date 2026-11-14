@@ -30,7 +30,7 @@ public final class PullDetailsModel {
     private static PullJobLine line(JobExecution j, Map<Long, String> runnerNames, Instant now) {
         String runner = j.getRunnerId() == null ? null : runnerNames.get(j.getRunnerId());
         Instant end = j.getStoppedAt() == null ? now : j.getStoppedAt();
-        return new PullJobLine(j.getJobName(), runner == null ? "?" : runner, j.getStatus(),
-                Formats.duration(Duration.between(j.getStartedAt(), end)), j.getHtmlUrl());
+        return new PullJobLine(j.getJobName(), runner == null ? null : j.getRunnerId(), runner == null ? "?" : runner,
+                j.getStatus(), Formats.duration(Duration.between(j.getStartedAt(), end)), j.getHtmlUrl());
     }
 }

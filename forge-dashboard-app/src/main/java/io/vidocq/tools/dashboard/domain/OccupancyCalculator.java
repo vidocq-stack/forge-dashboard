@@ -43,6 +43,11 @@ public final class OccupancyCalculator {
         return new Occupancy(slotRatio, anyBusyRatio);
     }
 
+    /** The slots of a runner: its override when set (above 0), else {@link #observedCapacity} of its recent jobs. */
+    public static int capacity(Integer override, List<Interval> recentJobs) {
+        return override != null && override > 0 ? override : observedCapacity(recentJobs);
+    }
+
     /** The largest number of jobs held at once, at least 1. Intervals are half-open: back to back is not together. */
     public static int observedCapacity(List<Interval> jobs) {
         record Edge(Instant at, int delta) {

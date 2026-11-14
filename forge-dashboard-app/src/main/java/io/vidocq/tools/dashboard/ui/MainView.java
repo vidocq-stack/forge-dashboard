@@ -45,6 +45,7 @@ public class MainView extends VerticalLayout {
     private final UserPrefs prefs;
     private final OrgRegistry orgs;
     private final Instance<ProjectsPanel> projects;
+    private final Instance<CiPanel> ci;
     private final Optional<DashboardUser> user;
     private final Tabs orgTabs = new Tabs();
     private final Map<Tab, String> tabOrgs = new LinkedHashMap<>();
@@ -55,10 +56,11 @@ public class MainView extends VerticalLayout {
 
     @Inject
     public MainView(ChangeBus bus, UserPrefs prefs, OrgRegistry orgs, CollectorScheduler collector, Clock clock,
-            Instance<ProjectsPanel> projects) {
+            Instance<ProjectsPanel> projects, Instance<CiPanel> ci) {
         this.prefs = prefs;
         this.orgs = orgs;
         this.projects = projects;
+        this.ci = ci;
         this.user = CurrentUser.get();
         this.current = user.map(u -> prefs.load(u.login())).orElseGet(() -> UserPreferences.defaults("?"));
 
@@ -162,7 +164,8 @@ public class MainView extends VerticalLayout {
         }
         content.add(switch (current.view()) {
             case PROJECTS -> projects.get().forOrg(org);
-            case CI, COMMITTERS -> new Span(current.view().label() + " — " + org);   // Tasks 14 and 15
+            case CI -> ci.get().forOrg(org);
+            case COMMITTERS -> new Span(current.view().label() + " — " + org);   // Task 15
         });
     }
 

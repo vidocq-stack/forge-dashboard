@@ -40,7 +40,7 @@ public class ProjectsPanel extends Div {
     private final ChangeBus bus;
     private final Clock clock;
     private final Grid<ProjectRow> grid = new Grid<>();
-    private final PullDetailsDrawer drawer;
+    private final Drawers drawers;
     private final Set<String> unfolded = new HashSet<>();
     private String org;
 
@@ -50,13 +50,13 @@ public class ProjectsPanel extends Div {
         this.live = live;
         this.bus = bus;
         this.clock = clock;
-        this.drawer = new PullDetailsDrawer(live, bus, jobs, runners, clock);
+        this.drawers = new Drawers(live, bus, jobs, runners, clock);
         setWidthFull();
 
         grid.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_ROW_STRIPES);
         grid.setAllRowsVisible(true);
         grid.setSelectionMode(Grid.SelectionMode.NONE);
-        grid.addComponentColumn(r -> PullDetailsDrawer.link(r.repo(), r.htmlUrl())).setHeader("Repo")
+        grid.addComponentColumn(r -> Parts.link(r.repo(), r.htmlUrl())).setHeader("Repo")
                 .setAutoWidth(true).setFlexGrow(1);
         grid.addComponentColumn(r -> Badges.dot(r.main())).setHeader("main").setAutoWidth(true).setFlexGrow(0)
                 .setTextAlign(ColumnTextAlign.CENTER);
@@ -71,7 +71,7 @@ public class ProjectsPanel extends Div {
         grid.addColumn(ProjectRow::lastCommit).setHeader("Dernier commit").setAutoWidth(true).setFlexGrow(0);
         grid.setDetailsVisibleOnClick(false);
         grid.setItemDetailsRenderer(new ComponentRenderer<>(this::pullList));
-        add(grid, drawer);
+        add(grid, drawers);
     }
 
     /** Shows {@code org}; called once, right after creation. */
@@ -126,8 +126,7 @@ public class ProjectsPanel extends Div {
     }
 
     private Component pullLine(PullView pr) {
-        Button open = new Button("#" + pr.number() + " " + pr.title(), e -> drawer.open(org, pr));
-        open.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
+        Button open = Parts.action("#" + pr.number() + " " + pr.title(), () -> drawers.openPull(org, pr));
         Span author = new Span(pr.author());
         author.getStyle().set("color", "var(--lumo-secondary-text-color)");
         HorizontalLayout line = new HorizontalLayout(Badges.dot(pr.state()), open, author);
