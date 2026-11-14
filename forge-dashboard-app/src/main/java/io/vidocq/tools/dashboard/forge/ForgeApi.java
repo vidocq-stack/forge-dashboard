@@ -42,6 +42,9 @@ public interface ForgeApi {
     /** One page (50 commits, with stats) of the branch's commits since {@code since}; empty past the last page. */
     List<RawCommit> listCommits(String owner, String repo, String branch, Instant since, int page);
 
+    /** The newest commit of the branch, without stats (one light call); empty for an empty repository. */
+    Optional<RawCommit> latestCommit(String owner, String repo, String branch);
+
     /** The login of the author of the pull request that brought {@code sha}, if any. */
     Optional<String> pullAuthorForCommit(String owner, String repo, String sha);
 

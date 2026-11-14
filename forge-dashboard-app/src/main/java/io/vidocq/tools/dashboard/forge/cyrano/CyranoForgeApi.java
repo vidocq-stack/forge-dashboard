@@ -141,6 +141,17 @@ public class CyranoForgeApi implements ForgeApi {
     }
 
     @Override
+    public Optional<RawCommit> latestCommit(String owner, String repo, String branch) {
+        try {
+            String body = get("last commit of " + owner + "/" + repo,
+                    () -> api.commits(owner, repo, branch, false, false, false, 1, 1)).body();
+            return ForgejoJson.toCommits(body, owner, repo).stream().findFirst();
+        } catch (ForgeNotFoundException emptyRepository) {
+            return Optional.empty();
+        }
+    }
+
+    @Override
     public Optional<String> pullAuthorForCommit(String owner, String repo, String sha) {
         try {
             String body = get("pull of " + owner + "/" + repo + "@" + sha,

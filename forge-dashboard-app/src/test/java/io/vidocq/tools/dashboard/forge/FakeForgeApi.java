@@ -130,6 +130,12 @@ public class FakeForgeApi implements ForgeApi {
     }
 
     @Override
+    public Optional<RawCommit> latestCommit(String owner, String repo, String branch) {
+        enter("latestCommit");
+        return Optional.ofNullable(commits.get(owner + "/" + repo)).flatMap(all -> all.stream().findFirst());
+    }
+
+    @Override
     public Optional<String> pullAuthorForCommit(String owner, String repo, String sha) {
         enter("pullAuthorForCommit");
         return Optional.ofNullable(pullAuthors.get(owner + "/" + repo + "@" + sha));
