@@ -37,15 +37,29 @@ class HealthTest {
         assertTrue(cookie.contains("SameSite=Lax"), cookie);
     }
 
-    /**
-     * A Vaadin bootstrap or an XHR without login is refused. (A message, heartbeat or push poll goes on to Vaadin,
-     * which answers that the session expired: see {@code OidcFilterTest}. Under {@code @VidocqTest} the Vaadin servlet
-     * does not start, two instantiators being found, so Vaadin's answer is checked on the image.)
-     */
+    /** A Vaadin bootstrap or an XHR without login is refused. */
     @Test
     void vaadinBootstrapOrXhrWithoutSessionIsUnauthorized(VidocqApplication app) {
         assertEquals(401, app.get("/?v-r=init&location=").status(), app.log());
         assertEquals(401, app.get("/", Map.of("X-Requested-With", "XMLHttpRequest")).status());
+    }
+
+    /**
+     * A page whose session is gone (it still sends its old cookie: without any, Vaadin answers "Cookies disabled")
+     * gets Vaadin's own "session expired", which reloads it and so starts the login, and no new session is opened.
+     */
+    @Test
+    void vaadinMessageOrHeartbeatWithoutSessionGetsSessionExpired(VidocqApplication app) {
+        Map<String, String> staleCookie = Map.of("Cookie", "JSESSIONID=stale");
+        var uidl = app.request("POST", "/?v-r=uidl&v-uiId=0", staleCookie, "application/json",
+                "{\"csrfToken\":\"x\",\"rpc\":[],\"syncId\":1}");
+        assertEquals(200, uidl.status(), app.log());
+        assertTrue(uidl.body().contains("\"sessionExpired\":true"), uidl.body());
+        assertTrue(uidl.header("Set-Cookie").isEmpty(), uidl.header("Set-Cookie").orElse(""));
+
+        var heartbeat = app.request("POST", "/?v-r=heartbeat&v-uiId=0", staleCookie, "text/plain", "");
+        assertEquals(403, heartbeat.status());
+        assertTrue(heartbeat.header("Set-Cookie").isEmpty(), heartbeat.header("Set-Cookie").orElse(""));
     }
 
     @Test
