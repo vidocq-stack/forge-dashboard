@@ -12,6 +12,10 @@ ajoute depuis l'interface). Un onglet par org, trois vues :
 
 La vue choisie, la période et la dernière org sont mémorisées par utilisateur.
 
+Sur un téléphone (fenêtre de moins de 720 px de large), le choix de la vue passe sous les onglets et les
+tableaux gardent l'essentiel : repo, `main`, gate et PR pour les projets ; commiter, commits et part pour
+les commiters. Le reste revient en tournant le téléphone (ou sur un écran plus large).
+
 ## Stack
 
 - **Runtime** : [Vidocq](https://codefloe.com/Vidocq) 0.4.0-SNAPSHOT (Vauban CDI Lite à la compilation,
