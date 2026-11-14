@@ -4,10 +4,13 @@ import io.vidocq.runtime.junit.VidocqApplication;
 import io.vidocq.runtime.junit.VidocqTest;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@VidocqTest(properties = {"vaadin.productionMode=true", "dashboard.collect.enabled=false"})
+@VidocqTest(properties = {"vaadin.productionMode=true", "dashboard.collect.enabled=false",
+        "OIDC_CLIENT_ID=cid", "OIDC_CLIENT_SECRET=test-secret", "DASHBOARD_PUBLIC_URL=http://localhost:8080"})
 class HealthTest {
 
     @Test
@@ -18,9 +21,47 @@ class HealthTest {
     }
 
     @Test
-    void rootServesVaadinPage(VidocqApplication app) {
+    void rootRedirectsToCodefloe(VidocqApplication app) {
         var r = app.get("/");
+        assertEquals(302, r.status(), app.log());
+        String location = r.header("Location").orElseThrow();
+        assertTrue(location.startsWith("https://codefloe.com/login/oauth/authorize?"), location);
+        assertTrue(location.contains("redirect_uri=http%3A%2F%2Flocalhost%3A8080%2Foauth2%2Fcallback"), location);
+    }
+
+    @Test
+    void sessionCookieIsSecureHttpOnlyLax(VidocqApplication app) {
+        String cookie = app.get("/").header("Set-Cookie").orElseThrow();
+        assertTrue(cookie.contains("HttpOnly"), cookie);
+        assertTrue(cookie.contains("Secure"), cookie);
+        assertTrue(cookie.contains("SameSite=Lax"), cookie);
+    }
+
+    @Test
+    void vaadinRequestWithoutSessionIsUnauthorized(VidocqApplication app) {
+        assertEquals(401, app.get("/?v-r=uidl").status(), app.log());
+        assertEquals(401, app.get("/", Map.of("X-Requested-With", "XMLHttpRequest")).status());
+    }
+
+    @Test
+    void callbackWithoutLoginRedirectsToRoot(VidocqApplication app) {
+        var r = app.get("/oauth2/callback?code=x&state=y", Map.of("Cookie", "JSESSIONID=stale"));
+        assertEquals(302, r.status(), app.log());
+        assertEquals("/", r.header("Location").orElseThrow());
+    }
+
+    @Test
+    void callbackWithoutCookieExplainsInsteadOfLooping(VidocqApplication app) {
+        var r = app.get("/oauth2/callback?code=x&state=y");
+        assertEquals(400, r.status(), app.log());
+        assertTrue(r.body().contains("cookie"), r.body());
+    }
+
+    @Test
+    void logoutShowsAReconnectLink(VidocqApplication app) {
+        var r = app.get("/oauth2/logout");
         assertEquals(200, r.status(), app.log());
-        assertTrue(r.body().contains("<html"), r.body());
+        assertTrue(r.body().contains("Déconnecté"), r.body());
+        assertTrue(r.body().contains("Se reconnecter"), r.body());
     }
 }

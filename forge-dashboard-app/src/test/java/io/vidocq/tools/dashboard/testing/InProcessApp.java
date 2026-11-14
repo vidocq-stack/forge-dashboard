@@ -32,6 +32,9 @@ public final class InProcessApp {
         System.setProperty("vidocq.chappe.listener.default.port", String.valueOf(freePort()));
         System.setProperty("vaadin.productionMode", "true");
         System.setProperty("dashboard.collect.enabled", "false");   // the tests never call CodeFloe
+        System.setProperty("OIDC_CLIENT_ID", "cid");
+        System.setProperty("OIDC_CLIENT_SECRET", "test-secret");
+        System.setProperty("DASHBOARD_PUBLIC_URL", "http://localhost:8080");
         openToRuntime();
         bootstrap = VidocqBootstrap.create().configure().start();
     }

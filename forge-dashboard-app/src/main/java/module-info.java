@@ -9,6 +9,8 @@ module io.vidocq.tools.dashboard {
     requires io.vidocq.runtime.extensions.jakartaee.web.vaadin;
     requires io.vidocq.runtime.extensions.microprofile.ravel;
     requires io.vidocq.runtime.extensions.microprofile.cyrano;
+    requires io.vidocq.runtime.extensions.microprofile.cervantes;
+    requires java.net.http;
     requires io.vidocq.runtime.extensions.jakartaee.web.mansart.pool;
     requires io.vidocq.runtime.extensions.jakartaee.web.mansart.data;
     requires io.vidocq.runtime.extensions.jakartaee.web.mansart.transactions;
@@ -32,6 +34,7 @@ module io.vidocq.tools.dashboard {
 
     // Vaadin creates the routes by reflection.
     opens io.vidocq.tools.dashboard.ui;
+    opens io.vidocq.tools.dashboard.auth;
     // JSON-B (Champollion) binds the raw Forgejo records by reflection.
     opens io.vidocq.tools.dashboard.forge.cyrano;
     opens io.vidocq.tools.dashboard.sonar.cyrano;

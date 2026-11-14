@@ -44,6 +44,11 @@
             <groupId>io.vidocq.runtime.extensions.microprofile</groupId>
             <artifactId>vidocq-runtime-cyrano-rest-client-extension</artifactId>
         </dependency>
+        <!-- MicroProfile JWT: validation of the CodeFloe id_token (signature, issuer, audience, expiry). -->
+        <dependency>
+            <groupId>io.vidocq.runtime.extensions.microprofile</groupId>
+            <artifactId>vidocq-runtime-cervantes-jwt-extension</artifactId>
+        </dependency>
 
         <!-- PostgreSQL: the Mansart pool, Jakarta Data repositories, JTA, and the Flyway migrations. -->
         <dependency>
