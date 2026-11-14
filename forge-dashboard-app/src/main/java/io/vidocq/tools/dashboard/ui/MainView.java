@@ -5,6 +5,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.menubar.MenuBar;
@@ -18,6 +19,7 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import io.vidocq.tools.dashboard.auth.DashboardUser;
 import io.vidocq.tools.dashboard.collect.CollectorScheduler;
+import io.vidocq.tools.dashboard.collect.OrgAdmin;
 import io.vidocq.tools.dashboard.collect.OrgRegistry;
 import io.vidocq.tools.dashboard.live.ChangeBus;
 import io.vidocq.tools.dashboard.live.ChangeEvent;
@@ -44,12 +46,14 @@ public class MainView extends VerticalLayout {
 
     private final UserPrefs prefs;
     private final OrgRegistry orgs;
+    private final OrgAdmin admin;
     private final Instance<ProjectsPanel> projects;
     private final Instance<CiPanel> ci;
     private final Instance<CommittersPanel> committers;
     private final Optional<DashboardUser> user;
     private final Tabs orgTabs = new Tabs();
     private final Map<Tab, String> tabOrgs = new LinkedHashMap<>();
+    private final Tab addOrg = new Tab("+");
     private final Map<ViewMode, Button> toggle = new EnumMap<>(ViewMode.class);
     private final Div content = new Div();
     private UserPreferences current;
@@ -57,9 +61,11 @@ public class MainView extends VerticalLayout {
 
     @Inject
     public MainView(ChangeBus bus, UserPrefs prefs, OrgRegistry orgs, CollectorScheduler collector, Clock clock,
-            Instance<ProjectsPanel> projects, Instance<CiPanel> ci, Instance<CommittersPanel> committers) {
+            Instance<ProjectsPanel> projects, Instance<CiPanel> ci, Instance<CommittersPanel> committers,
+            OrgAdmin admin) {
         this.prefs = prefs;
         this.orgs = orgs;
+        this.admin = admin;
         this.projects = projects;
         this.ci = ci;
         this.committers = committers;
@@ -70,8 +76,15 @@ public class MainView extends VerticalLayout {
         setPadding(false);
         setSpacing(false);
 
+        addOrg.getElement().setAttribute("title", "Suivre une autre org");
         orgTabs.addSelectedChangeListener(e -> {
-            if (e.isFromClient() && tabOrgs.containsKey(e.getSelectedTab())) {
+            if (!e.isFromClient()) {
+                return;
+            }
+            if (e.getSelectedTab() == addOrg) {
+                orgTabs.setSelectedTab(e.getPreviousTab());
+                user.ifPresent(u -> new OrgAdminDialog(admin, u, this::orgAdded).open());
+            } else if (tabOrgs.containsKey(e.getSelectedTab())) {
                 org = tabOrgs.get(e.getSelectedTab());
                 save(current.withLastOrg(org));
                 showContent();
@@ -145,6 +158,7 @@ public class MainView extends VerticalLayout {
         String selected = active.contains(wanted) ? wanted : active.isEmpty() ? null : active.getFirst();
         orgTabs.removeAll();
         tabOrgs.clear();
+        boolean isAdmin = user.map(DashboardUser::admin).orElse(false);
         for (String name : active) {
             Tab tab = new Tab(name);
             tabOrgs.put(tab, name);
@@ -152,6 +166,13 @@ public class MainView extends VerticalLayout {
             if (name.equals(selected)) {
                 orgTabs.setSelectedTab(tab);
             }
+            if (isAdmin) {
+                tab.getElement().setAttribute("title", "Clic droit : ne plus suivre " + name);
+                new ContextMenu(tab).addItem("Ne plus suivre " + name, e -> orgRemoved(name));
+            }
+        }
+        if (isAdmin) {
+            orgTabs.add(addOrg);
         }
         org = selected;
         showContent();
@@ -170,6 +191,23 @@ public class MainView extends VerticalLayout {
             case COMMITTERS -> committers.get().forOrg(org, current.periodDays(),
                     days -> save(current.withPeriodDays(days)));
         });
+    }
+
+    /** Shows the org just added; the other UIs get it through {@code OrgsChanged}. */
+    private void orgAdded(String name) {
+        org = name;
+        save(current.withLastOrg(name));
+        refreshTabs();
+    }
+
+    /** Off the tabs (its data is kept); the first org is shown if it was the current one. */
+    private void orgRemoved(String name) {
+        user.ifPresent(u -> admin.deactivate(name, u));
+        if (name.equals(org)) {
+            org = null;
+            save(current.withLastOrg(null));
+        }
+        refreshTabs();
     }
 
     private void save(UserPreferences next) {

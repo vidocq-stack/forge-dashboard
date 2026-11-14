@@ -38,6 +38,8 @@ module io.vidocq.tools.dashboard {
     requires vaadin.context.menu.flow;
     requires vaadin.grid.flow;
     requires vaadin.checkbox.flow;
+    requires vaadin.dialog.flow;
+    requires vaadin.text.field.flow;
     requires vaadin.renderer.flow;
 
     // Vaadin takes the routes and components that are CDI beans from Vauban.
