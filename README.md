@@ -46,7 +46,8 @@ sdk env
 
 ```sh
 set -a; source ~/.config/vidocq/tokens.env; set +a
-FORGEJO_TOKEN=$CODEFLOE_BOT_TOKEN SONAR_TOKEN=$SONAR_USER_TOKEN \
+# tokens.env pose FORGEJO_URL sur l'ancienne forge : on le remet sur CodeFloe.
+FORGEJO_URL=https://codefloe.com FORGEJO_TOKEN=$CODEFLOE_BOT_TOKEN SONAR_TOKEN=$SONAR_USER_TOKEN \
 OIDC_CLIENT_ID=$DASHBOARD_OIDC_CLIENT_ID OIDC_CLIENT_SECRET=$DASHBOARD_OIDC_CLIENT_SECRET \
 DASHBOARD_PUBLIC_URL=http://localhost:8080 \
   ./mvnw -ntp -pl forge-dashboard-app clean vidocq:dev \
@@ -108,6 +109,9 @@ le réseau externe du proxy par un réseau local :
 ```sh
 docker compose -f docker-compose.yml -f compose.local.yml -p forge-dashboard-local up -d
 ```
+
+Le compose lit les variables du shell (`FORGEJO_TOKEN`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `DB_PASSWORD`…),
+comme pour le mode dev. Après un `source` de `tokens.env`, remettre `FORGEJO_URL=https://codefloe.com`.
 
 ## CI/CD
 
