@@ -2,6 +2,8 @@ package io.vidocq.tools.dashboard.collect;
 
 import io.vidocq.tools.dashboard.forge.FakeForgeApi;
 import io.vidocq.tools.dashboard.forge.ForgeJob;
+import io.vidocq.tools.dashboard.forge.ForgeUnavailableException;
+import io.vidocq.tools.dashboard.forge.RateLimitedException;
 import io.vidocq.tools.dashboard.live.ChangeBus;
 import io.vidocq.tools.dashboard.live.LiveState;
 import io.vidocq.tools.dashboard.live.RunnerView;
@@ -27,6 +29,7 @@ import static io.vidocq.tools.dashboard.collect.ForgeFixtures.run;
 import static io.vidocq.tools.dashboard.collect.ForgeFixtures.runner;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /** The runners loop against a fake CodeFloe and the PostgreSQL of the dev services. */
 class RunnersLoopIntegrationTest {
@@ -103,6 +106,33 @@ class RunnersLoopIntegrationTest {
 
         assertEquals(1219L, jobs.findById(175_790L).orElseThrow().getRunnerId());
         assertEquals(HEAD_AT, jobs.findById(175_790L).orElseThrow().getStartedAt());
+    }
+
+    @Test
+    void unreadableLogHeadDoesNotFailThePassAndIsRetried() {
+        ForgeJob broken = job(1, 86_414, 175_790, "running", "vidocq");
+        ForgeJob fine = job(2, 86_414, 175_791, "running", "vidocq");
+        running(broken, fine);
+        forge.logHeads.put(fine.id(), logHead(HEAD_AT, U, 175_791));
+        forge.failNext("getJobLogHead",
+                new ForgeUnavailableException("CodeFloe answered 500 for log of job 1", null));
+        RunnersLoop loop = loop();
+
+        loop.tick(ORG);
+        assertNull(jobs.findById(175_790L).orElseThrow().getRunnerId());
+        assertEquals(1219L, jobs.findById(175_791L).orElseThrow().getRunnerId());
+
+        forge.logHeads.put(broken.id(), logHead(HEAD_AT, U, 175_790));
+        clock.advance(Duration.ofSeconds(15));
+        loop.tick(ORG);
+        assertEquals(1219L, jobs.findById(175_790L).orElseThrow().getRunnerId());
+    }
+
+    @Test
+    void rateLimitOnLogHeadStillStopsThePass() {
+        running(job(175_790, "running"));
+        forge.failNext("getJobLogHead", new RateLimitedException(Duration.ofSeconds(60)));
+        assertThrows(RateLimitedException.class, () -> loop().tick(ORG));
     }
 
     @Test

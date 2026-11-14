@@ -8,6 +8,7 @@ import io.vidocq.tools.dashboard.forge.ForgeJob;
 import io.vidocq.tools.dashboard.forge.ForgeNotFoundException;
 import io.vidocq.tools.dashboard.forge.ForgeRun;
 import io.vidocq.tools.dashboard.forge.ForgeRunner;
+import io.vidocq.tools.dashboard.forge.ForgeUnavailableException;
 import io.vidocq.tools.dashboard.live.ChangeEvent;
 import io.vidocq.tools.dashboard.live.JobView;
 import io.vidocq.tools.dashboard.live.LiveState;
@@ -48,6 +49,7 @@ import java.util.stream.Collectors;
 @ApplicationScoped
 public class RunnersLoop {
 
+    private static final System.Logger LOG = System.getLogger(RunnersLoop.class.getName());
     private static final String RUNNING = "running";
     private static final Duration CAPACITY_WINDOW = Duration.ofDays(7);
     private static final int RUN_CACHE_MAX = 512;
@@ -157,8 +159,18 @@ public class RunnersLoop {
         jobs.save(e);
     }
 
+    /**
+     * The head of the job's log, empty when CodeFloe cannot serve it now (it answers 500 for some logs): the job
+     * stays without runner and the next tick reads it again. A rate limit still stops the pass.
+     */
     private Optional<LogHead> logHead(ForgeJob job) {
-        return forge.getJobLogHead(job).flatMap(LogHead::parse);
+        try {
+            return forge.getJobLogHead(job).flatMap(LogHead::parse);
+        } catch (ForgeUnavailableException unreadable) {
+            LOG.log(System.Logger.Level.DEBUG, "Log head of job " + job.id() + " unreadable, retried next tick: "
+                    + unreadable.getMessage());
+            return Optional.empty();
+        }
     }
 
     private ForgeRun run(String org, String repo, long runId) {
