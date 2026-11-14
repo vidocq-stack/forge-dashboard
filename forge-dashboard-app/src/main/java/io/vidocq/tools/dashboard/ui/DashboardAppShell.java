@@ -10,8 +10,9 @@ import com.vaadin.flow.shared.ui.Transport;
  * Application shell, with server push.
  * <p>
  * WORKAROUND vidocq#65: long polling until Foy implements Jakarta WebSocket. With {@code WEBSOCKET_XHR} the client
- * does not fall back on its own: Chappe answers the upgrade with a 404 and the client retries the WebSocket every
- * 5 s for ever. Switch back to {@code WEBSOCKET_XHR} once Foy serves {@code /VAADIN/push} over WebSocket.
+ * does not fall back on its own: Atmosphere refuses the upgrade with a 501 ({@code X-Atmosphere-error: Websocket
+ * protocol not supported}) and the client retries the WebSocket every 5 s for ever. Switch back to
+ * {@code WEBSOCKET_XHR} once Foy serves {@code /VAADIN/push} over WebSocket.
  */
 @Push(value = PushMode.AUTOMATIC, transport = Transport.LONG_POLLING)
 public class DashboardAppShell implements AppShellConfigurator {
