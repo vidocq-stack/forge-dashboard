@@ -98,21 +98,25 @@ Mansart Data, Flyway, dev services. Ce qui casse est remonté aux sessions conce
 
 ### 5.1 Découpage
 
+**Un seul module Maven applicatif**, révisé après la reconnaissance du 2026-11-14. Le
+`vidocq-runtime-maven-plugin` ne branche les générateurs de code (repositories Mansart Data, clients Cyrano,
+servlets et filtres Foy) que dans le module qui le déclare. Un module `core` séparé serait laissé tel quel
+(`usage.adoc` §Multi-module), donc ses `@Repository` et `@RegisterRestClient` ne seraient pas générés. Le
+découpage se fait donc par paquets :
+
 ```
 forge-dashboard/
-├── pom.xml                      (parent, modelVersion 4.0.0, import BOM Vidocq + vaadin-bom)
-├── forge-dashboard-core/        (module io.vidocq.tools.dashboard.core)
-│   ├── forge/      clients Cyrano CodeFloe (Forgejo API v1) + DTO JSON-B
-│   ├── sonar/      client Cyrano Sonar + DTO
-│   ├── domain/     records immuables (Org, Repo, PullRequest, Runner, JobExecution, CommitStat…)
-│   ├── collect/    boucles de collecte, résolution runner↔job, parsing trailers
-│   ├── store/      repositories Jakarta Data (Mansart) + migrations Flyway (db/migration)
-│   └── live/       état courant en mémoire + bus de changements (écouteurs pour l'UI)
-└── forge-dashboard-app/         (module io.vidocq.tools.dashboard.app, vidocq.mainModule)
-    ├── auth/       filtre OIDC, servlet de callback, logout, garde de groupes
-    ├── ui/         vues Vaadin (@Route), AppShell (@Push), composants
-    ├── cdi/        Instantiator Vaadin adossé à Vauban
-    └── resources/  vidocq.properties
+├── pom.xml                      (agrégateur, modelVersion 4.0.0, sans plugin Vidocq)
+└── forge-dashboard-app/         (module JPMS io.vidocq.tools.dashboard, vidocq.mainModule)
+    └── io.vidocq.tools.dashboard
+        ├── domain/   records immuables et règles pures (classification commiters, état combiné, log head)
+        ├── forge/    ports ForgeApi + adaptateur Cyrano CodeFloe (Forgejo API v1) + DTO JSON-B
+        ├── sonar/    port SonarApi + adaptateur Cyrano Sonar + DTO
+        ├── store/    entités et repositories Mansart Data, requêtes d'agrégation JDBC, migrations Flyway
+        ├── collect/  boucles de collecte (fonctions pures d'avancement + orchestrateurs), planification
+        ├── live/     état courant en mémoire + bus de changements
+        ├── auth/     filtre OIDC, servlet de callback, logout, garde de groupes
+        └── ui/       AppShell (@Push), Instantiator CDI, layout, vues, panneaux
 ```
 
 L'ancien code (JAX-RS Cassini, HTMX, `static/index.html`) est supprimé.
@@ -362,8 +366,10 @@ Les variables sont lues via MP Config (Ravel). Les cadences de collecte sont aus
   - agrégation des états (main, PR) ;
   - calcul d'occupation à partir d'intervalles ;
   - planification et backoff.
-- **Clients** : contre un faux serveur HTTP local (`com.sun.net.httpserver`), alimenté par des réponses
-  réelles enregistrées et anonymisées.
+- **Clients** : la collecte dépend de ports Java (`ForgeApi`, `SonarApi`). Les tests utilisent des faux en
+  mémoire. Le mapping JSON des DTO est testé sur des réponses réelles enregistrées (fixtures). Les tests
+  sont patchés dans le module applicatif et ne peuvent pas utiliser `java.net.http` (`testing.adoc`) : pas
+  de faux serveur HTTP.
 - **Persistance** : sur PostgreSQL réel (dev services ou Testcontainers), avec les migrations Flyway
   appliquées.
 - **UI** : un test de fumée qui démarre l'appli et vérifie que `/` redirige vers CodeFloe sans session et
@@ -405,7 +411,8 @@ Les variables sont lues via MP Config (Ravel). Les cadences de collecte sont aus
 | Runner 1:N jobs, capacité observée ou surchargée, occupation en créneaux | choix de l'implémenteur (constaté en direct) |
 | Bot auteur avec trailer d'agent → attribué à l'auteur de la PR ; champs bruts conservés | choix de l'implémenteur |
 | URL de retour `localhost` pour le dev, aucun contournement de la connexion | choix de l'implémenteur |
-| Mansart Data (et non Noether), Flyway, Cyrano, deux modules Maven, `vidocq:package` d'abord | choix de l'implémenteur, annoncé sans objection |
+| Mansart Data (et non Noether), Flyway, Cyrano, `vidocq:package` d'abord | choix de l'implémenteur, annoncé sans objection |
+| Un seul module Maven applicatif (au lieu de deux), découpage par paquets | choix de l'implémenteur, après reconnaissance (le plugin ne génère que dans son module) |
 | Cadences, rétention, intervalles plutôt qu'échantillons, Commiters en 3e position de la bascule, groupes par défaut, jeton de service unique | choix de l'implémenteur |
 
 ## 7. Laissé au constructeur
