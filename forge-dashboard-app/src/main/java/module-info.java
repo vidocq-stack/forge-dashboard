@@ -31,9 +31,18 @@ module io.vidocq.tools.dashboard {
     requires flow.server;
     requires flow.html.components;
     requires vaadin.ordered.layout.flow;
+    requires vaadin.tabs.flow;
+    requires vaadin.button.flow;
+    requires vaadin.avatar.flow;
+    requires vaadin.menu.bar.flow;
+    requires vaadin.context.menu.flow;
+
+    // Vaadin takes the routes and components that are CDI beans from Vauban.
+    provides com.vaadin.flow.di.InstantiatorFactory with io.vidocq.tools.dashboard.ui.cdi.VaubanInstantiatorFactory;
 
     // Vaadin creates the routes by reflection.
     opens io.vidocq.tools.dashboard.ui;
+    opens io.vidocq.tools.dashboard.ui.cdi;
     opens io.vidocq.tools.dashboard.auth;
     // JSON-B (Champollion) binds the raw Forgejo records by reflection.
     opens io.vidocq.tools.dashboard.forge.cyrano;
