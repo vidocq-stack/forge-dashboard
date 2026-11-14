@@ -142,10 +142,6 @@ Chacun tombe quand le correctif est publié ; le code renvoie au ticket là où 
 - **Mode dev sans tests en continu** : `-Dvidocq.dev.continuousTesting=false`. Sous `vidocq:dev`, les tests
   partagent pour l'instant la base de dev et la vident. Correctif Vidocq en cours : les tests auront leurs
   propres dev services. En attendant, lancer `./mvnw verify` dans un autre terminal.
-- **Thème Lumo par un `<link>`** : Vaadin 25 n'applique aucun thème par défaut. `@StyleSheet(Lumo.STYLESHEET)`
-  ferait reconstruire le bundle frontend par Vite, alors que le projet utilise le bundle précompilé
-  `vaadin-prod-bundle`, sans npm. `DashboardAppShell` ajoute donc `lumo/lumo.css`, servi depuis le jar
-  `vaadin-lumo-theme`.
 
 ## Licence
 

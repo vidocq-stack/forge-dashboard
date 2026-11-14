@@ -1,29 +1,25 @@
 package io.vidocq.tools.dashboard.ui;
 
-import com.vaadin.flow.server.AppShellSettings;
+import com.vaadin.flow.component.dependency.StyleSheet;
 import com.vaadin.flow.theme.lumo.Lumo;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DashboardAppShellTest {
 
-    /** Vaadin 25 applies no theme by default: without Lumo the views lose every {@code --lumo-*} colour and font. */
+    /**
+     * Vaadin 25 applies no theme by default: without Lumo the views lose every {@code --lumo-*} colour and font. The
+     * shell loads it with {@code @StyleSheet}, which keeps the precompiled production bundle (no Vite rebuild).
+     */
     @Test
-    void shellLinksTheLumoStylesheet() {
-        List<String> links = new ArrayList<>();
-        AppShellSettings settings = new AppShellSettings() {
-            @Override
-            public void addLink(String rel, String href) {
-                links.add(rel + " " + href);
-            }
-        };
+    void shellLoadsTheLumoStylesheet() {
+        List<String> sheets = Arrays.stream(DashboardAppShell.class.getAnnotationsByType(StyleSheet.class))
+                .map(StyleSheet::value).toList();
 
-        new DashboardAppShell().configurePage(settings);
-
-        assertTrue(links.contains("stylesheet " + Lumo.STYLESHEET), "links: " + links);
+        assertTrue(sheets.contains(Lumo.STYLESHEET), "style sheets: " + sheets);
     }
 }
