@@ -22,7 +22,7 @@ import java.util.Optional;
 @ApplicationScoped
 public class OrgAdmin {
 
-    static final String ADMINS_ONLY = "Réservé aux administrateurs du dashboard.";
+    static final String ADMINS_ONLY = "Dashboard administrators only";
 
     private final ForgeApi forge;
     private final TrackedOrgRepository orgs;
@@ -41,11 +41,11 @@ public class OrgAdmin {
 
     public synchronized OrgAdminResult add(String org, DashboardUser by) {
         if (by == null || !by.admin()) {
-            return new OrgAdminResult.Rejected(ADMINS_ONLY);
+            return new OrgAdminResult.Rejected("orgs.adminsOnly", List.of());
         }
         String name = org == null ? "" : org.strip();
         if (name.isEmpty()) {
-            return new OrgAdminResult.Rejected("Indiquez le nom de l'org CodeFloe.");
+            return new OrgAdminResult.Rejected("orgs.nameMissing", List.of());
         }
         List<TrackedOrg> all;
         try (var stream = orgs.findAll()) {
@@ -53,18 +53,16 @@ public class OrgAdmin {
         }
         Optional<TrackedOrg> known = all.stream().filter(o -> o.getName().equalsIgnoreCase(name)).findFirst();
         if (known.isPresent() && Boolean.TRUE.equals(known.get().getActive())) {
-            return new OrgAdminResult.Rejected(known.get().getName() + " est déjà suivie.");
+            return new OrgAdminResult.Rejected("orgs.alreadyTracked", List.of(known.get().getName()));
         }
         boolean readable;
         try {
             readable = forge.canReadRunners(name);
         } catch (RuntimeException unreachable) {
-            return new OrgAdminResult.Rejected("CodeFloe ne répond pas, réessayez plus tard ("
-                    + unreachable.getMessage() + ").");
+            return new OrgAdminResult.Rejected("orgs.forgeUnreachable", List.of(String.valueOf(unreachable.getMessage())));
         }
         if (!readable) {
-            return new OrgAdminResult.Rejected("Le jeton de service n'a pas accès aux runners de " + name
-                    + " : l'org n'existe pas, ou son compte n'en est pas propriétaire.");
+            return new OrgAdminResult.Rejected("orgs.runnersUnreadable", List.of(name));
         }
         TrackedOrg tracked = known.orElseGet(() -> new TrackedOrg(name,
                 all.stream().map(TrackedOrg::getPosition).filter(Objects::nonNull).max(Integer::compare).orElse(-1) + 1,

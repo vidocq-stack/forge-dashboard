@@ -1,16 +1,10 @@
 package io.vidocq.tools.dashboard.ui;
 
-/** The three views of an org, toggled in the header. */
+/** The three views of an org, toggled in the header; each one's label is the text of {@link #key()}. */
 public enum ViewMode {
-    PROJECTS("Projets"), CI("CI"), COMMITTERS("Commiters");
+    PROJECTS, CI, COMMITTERS;
 
-    private final String label;
-
-    ViewMode(String label) {
-        this.label = label;
-    }
-
-    public String label() {
-        return label;
+    public String key() {
+        return "view." + name();
     }
 }

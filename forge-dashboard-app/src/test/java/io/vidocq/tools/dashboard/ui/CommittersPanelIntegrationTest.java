@@ -5,6 +5,7 @@ import com.vaadin.flow.component.html.Span;
 import io.vidocq.tools.dashboard.domain.CommitKind;
 import io.vidocq.tools.dashboard.store.CommitStat;
 import io.vidocq.tools.dashboard.store.CommitStatRepository;
+import io.vidocq.tools.dashboard.i18n.Messages;
 import io.vidocq.tools.dashboard.testing.InProcessApp;
 import org.junit.jupiter.api.Test;
 
@@ -12,6 +13,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Stream;
 
 import static io.vidocq.tools.dashboard.ui.ProjectsPanelIntegrationTest.visibleHeaders;
@@ -23,9 +25,18 @@ class CommittersPanelIntegrationTest {
 
     @Test
     void orgWithoutCommitsSaysSo() {
-        CommittersPanel panel = InProcessApp.bean(CommittersPanel.class).forOrg("Nobody", 30, days -> { });
+        CommittersPanel panel = TestUi.get(Locale.FRENCH,
+                () -> InProcessApp.bean(CommittersPanel.class).forOrg("Nobody", 30, days -> { }));
         assertTrue(descendants(panel).anyMatch(c -> c instanceof Span s
                 && s.getText().equals("Aucun commit sur 30 jours dans Nobody.")), "the empty state is shown");
+    }
+
+    @Test
+    void emptyStateInDutch() {
+        CommittersPanel panel = TestUi.get(Locale.forLanguageTag("nl"),
+                () -> InProcessApp.bean(CommittersPanel.class).forOrg("Nobody", 7, days -> { }));
+        assertTrue(descendants(panel).anyMatch(c -> c instanceof Span s
+                && s.getText().equals("Geen commits in 7 dagen in Nobody.")), "the empty state is shown");
     }
 
     /** On a phone: who, how many commits, what share; the lines, PRs and agents bar (and its legend) come back wider. */
@@ -35,8 +46,8 @@ class CommittersPanelIntegrationTest {
         Instant twoDaysAgo = InProcessApp.bean(Clock.class).instant().minus(Duration.ofDays(2));
         InProcessApp.bean(CommitStatRepository.class).save(commit("narrow1", twoDaysAgo));
 
-        CommittersPanel panel = InProcessApp.bean(CommittersPanel.class).narrow(true)
-                .forOrg("NarrowOrg", 30, days -> { });
+        CommittersPanel panel = TestUi.get(Locale.FRENCH, () -> InProcessApp.bean(CommittersPanel.class).narrow(true)
+                .forOrg("NarrowOrg", 30, days -> { }));
         assertEquals(List.of("Commiter", "Commits", "Part"), visibleHeaders(panel));
         assertTrue(descendants(panel).noneMatch(CommittersPanelIntegrationTest::isLegend), "no legend without the bar");
 
@@ -47,7 +58,8 @@ class CommittersPanelIntegrationTest {
     }
 
     private static boolean isLegend(Component c) {
-        return CommittersPanel.AGENT_SHARE_NOTE.equals(c.getElement().getAttribute("title"));
+        return Messages.forLocale(Locale.FRENCH).text("committers.agentShareNote")
+                .equals(c.getElement().getAttribute("title"));
     }
 
     private static CommitStat commit(String sha, Instant at) {

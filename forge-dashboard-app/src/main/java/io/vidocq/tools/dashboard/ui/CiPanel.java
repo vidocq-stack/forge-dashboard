@@ -28,6 +28,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Locale;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -41,23 +42,17 @@ public class CiPanel extends Div {
 
     private final Messages messages = Texts.current();
 
-    private static final Map<String, Duration> WINDOWS = new LinkedHashMap<>();
-
-    static {
-        WINDOWS.put("1 h", Duration.ofHours(1));
-        WINDOWS.put("24 h", Duration.ofHours(24));
-        WINDOWS.put("7 j", Duration.ofDays(7));
-    }
+    private static final List<Duration> WINDOWS = List.of(Duration.ofHours(1), Duration.ofHours(24), Duration.ofDays(7));
 
     private final LiveState live;
     private final ChangeBus bus;
     private final OccupancyService occupancy;
     private final Clock clock;
     private final Drawers drawers;
-    private final Map<String, Button> windowButtons = new LinkedHashMap<>();
+    private final Map<Duration, Button> windowButtons = new LinkedHashMap<>();
     private final Div cards = new Div();
     private final Div queue = new Div();
-    private String window = "24 h";
+    private Duration window = Duration.ofHours(24);
     private String org;
 
     @Inject
@@ -69,18 +64,18 @@ public class CiPanel extends Div {
         this.clock = clock;
         this.drawers = new Drawers(live, bus, jobs, runners, clock);
         setWidthFull();
-        HorizontalLayout windows = new HorizontalLayout(new Span("Occupation sur"));
+        HorizontalLayout windows = new HorizontalLayout(new Span(messages.text("ci.occupancyOver")));
         windows.setAlignItems(HorizontalLayout.Alignment.CENTER);
         windows.setSpacing(false);
         windows.getStyle().set("gap", "2px");
-        WINDOWS.keySet().forEach(label -> {
-            Button b = new Button(label, e -> {
-                window = label;
+        WINDOWS.forEach(span -> {
+            Button b = new Button(label(span), e -> {
+                window = span;
                 markWindow();
                 refresh();
             });
             b.addThemeVariants(ButtonVariant.LUMO_SMALL);
-            windowButtons.put(label, b);
+            windowButtons.put(span, b);
             windows.add(b);
         });
         markWindow();
@@ -97,32 +92,37 @@ public class CiPanel extends Div {
         return this;
     }
 
+    /** {@code 1 h}, {@code 24 h}, {@code 7 d}: hours up to a day, then days. */
+    private String label(Duration span) {
+        return span.toHours() <= 24 ? messages.text("duration.hours", span.toHours())
+                : messages.text("duration.days", span.toDays());
+    }
+
     private void markWindow() {
-        windowButtons.forEach((label, b) -> {
+        windowButtons.forEach((span, b) -> {
             b.removeThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_CONTRAST);
-            b.addThemeVariants(label.equals(window) ? ButtonVariant.LUMO_PRIMARY : ButtonVariant.LUMO_CONTRAST);
+            b.addThemeVariants(span.equals(window) ? ButtonVariant.LUMO_PRIMARY : ButtonVariant.LUMO_CONTRAST);
         });
     }
 
     private void refresh() {
-        CiBoard board = CiBoardModel.of(live.snapshot(org), occupancy.occupancy(org, WINDOWS.get(window)),
+        CiBoard board = CiBoardModel.of(live.snapshot(org), occupancy.occupancy(org, window),
                 occupancy.hourly(org));
         Instant now = clock.instant();
         cards.removeAll();
         if (board.runners().isEmpty()) {
-            cards.add(new Span("Aucun runner pour " + org + " pour l'instant : la collecte arrive, ou le jeton ne "
-                    + "lit pas les runners de cette org."));
+            cards.add(new Span(messages.text("ci.noRunners", org)));
         }
         board.runners().forEach(c -> cards.add(card(c, now)));
 
         queue.removeAll();
-        queue.add(Parts.section("File d'attente (" + board.waitingCount() + ")"));
+        queue.add(Parts.section(messages.text("ci.queue", board.waitingCount())));
         if (board.waiting().isEmpty()) {
-            queue.add(Parts.muted("Aucun job en attente."));
+            queue.add(Parts.muted(messages.text("ci.queueEmpty")));
         }
         board.waiting().forEach(j -> queue.add(Parts.line(target(j), Parts.link(j.jobName(), j.htmlUrl()),
-                Parts.muted(j.startedAt() == null ? "" : "en attente depuis "
-                        + Formats.duration(Duration.between(j.startedAt(), now), messages)))));
+                Parts.muted(j.startedAt() == null ? "" : messages.text("ci.waitingSince",
+                        Formats.duration(Duration.between(j.startedAt(), now), messages))))));
     }
 
     private Component card(RunnerCard c, Instant now) {
@@ -140,10 +140,11 @@ public class CiPanel extends Div {
             default -> "var(--lumo-secondary-text-color)";
         });
         card.add(Parts.line(name, status));
-        card.add(Parts.line(new Span("Charge " + c.load()),
-                Parts.muted("Occupation " + window + " : " + percent(c.occupancy()))));
-        Html spark = new Html("<span title=\"Occupation heure par heure, 24 h\" style=\"color:var(--lumo-primary-color)\">"
-                + Sparkline.svg(c.hourlyOccupancy(), 240, 28) + "</span>");
+        card.add(Parts.line(new Span(messages.text("ci.load", c.load())),
+                Parts.muted(messages.text("ci.occupancy", label(window), percent(c.occupancy())))));
+        Span spark = new Span(new Html(Sparkline.svg(c.hourlyOccupancy(), 240, 28)));
+        spark.getElement().setAttribute("title", messages.text("ci.hourly"));
+        spark.getStyle().set("color", "var(--lumo-primary-color)");
         card.add(spark);
         c.running().forEach(j -> card.add(Parts.line(target(j), Parts.muted(j.jobName() + (j.startedAt() == null ? ""
                 : " · " + Formats.duration(Duration.between(j.startedAt(), now), messages))))));

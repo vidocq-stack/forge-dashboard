@@ -27,7 +27,7 @@ class DashboardI18NProviderTest {
     void translatesThroughMessages() {
         I18NProvider provider = new VaubanInstantiator(null).getI18NProvider();
 
-        assertEquals(Messages.forLocale(Locale.GERMAN).text("test.apostrophe", "X"),
-                provider.getTranslation("test.apostrophe", Locale.GERMAN, "X"));
+        assertEquals(Messages.forLocale(Locale.GERMAN).text("ci.noRunners", "X"),
+                provider.getTranslation("ci.noRunners", Locale.GERMAN, "X"));
     }
 }

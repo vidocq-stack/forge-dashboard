@@ -61,19 +61,19 @@ public class ProjectsPanel extends Div {
         grid.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_ROW_STRIPES);
         grid.setAllRowsVisible(true);
         grid.setSelectionMode(Grid.SelectionMode.NONE);
-        grid.addComponentColumn(r -> Parts.link(r.repo(), r.htmlUrl())).setHeader("Repo")
+        grid.addComponentColumn(r -> Parts.link(r.repo(), r.htmlUrl())).setHeader(messages.text("projects.column.repo"))
                 .setAutoWidth(true).setFlexGrow(1);
-        grid.addComponentColumn(r -> Badges.dot(r.main())).setHeader("main").setAutoWidth(true).setFlexGrow(0)
+        grid.addComponentColumn(r -> Badges.dot(r.main(), messages)).setHeader(messages.text("projects.column.main")).setAutoWidth(true).setFlexGrow(0)
                 .setTextAlign(ColumnTextAlign.CENTER);
-        wideOnly.add(grid.addColumn(ProjectRow::loc).setHeader("LOC").setAutoWidth(true).setFlexGrow(0)
+        wideOnly.add(grid.addColumn(ProjectRow::loc).setHeader(messages.text("projects.column.loc")).setAutoWidth(true).setFlexGrow(0)
                 .setTextAlign(ColumnTextAlign.END));
-        wideOnly.add(grid.addColumn(ProjectRow::tests).setHeader("Tests").setAutoWidth(true).setFlexGrow(0)
+        wideOnly.add(grid.addColumn(ProjectRow::tests).setHeader(messages.text("projects.column.tests")).setAutoWidth(true).setFlexGrow(0)
                 .setTextAlign(ColumnTextAlign.END));
-        wideOnly.add(grid.addColumn(ProjectRow::coverage).setHeader("Couv.").setAutoWidth(true).setFlexGrow(0)
+        wideOnly.add(grid.addColumn(ProjectRow::coverage).setHeader(messages.text("projects.column.coverage")).setAutoWidth(true).setFlexGrow(0)
                 .setTextAlign(ColumnTextAlign.END));
-        grid.addComponentColumn(r -> Badges.gate(r.gate())).setHeader("Gate").setAutoWidth(true).setFlexGrow(0);
-        grid.addComponentColumn(this::pullCounter).setHeader("PR").setAutoWidth(true).setFlexGrow(0);
-        wideOnly.add(grid.addColumn(ProjectRow::lastCommit).setHeader("Dernier commit").setAutoWidth(true)
+        grid.addComponentColumn(r -> Badges.gate(r.gate())).setHeader(messages.text("projects.column.gate")).setAutoWidth(true).setFlexGrow(0);
+        grid.addComponentColumn(this::pullCounter).setHeader(messages.text("projects.column.pulls")).setAutoWidth(true).setFlexGrow(0);
+        wideOnly.add(grid.addColumn(ProjectRow::lastCommit).setHeader(messages.text("projects.column.lastCommit")).setAutoWidth(true)
                 .setFlexGrow(0));
         grid.setDetailsVisibleOnClick(false);
         grid.setItemDetailsRenderer(new ComponentRenderer<>(this::pullList));
@@ -104,7 +104,7 @@ public class ProjectsPanel extends Div {
         if (rows.isEmpty()) {
             grid.setVisible(false);
             if (getChildren().noneMatch(Span.class::isInstance)) {
-                addComponentAsFirst(new Span("Pas encore de projets pour " + org + " : la collecte arrive."));
+                addComponentAsFirst(new Span(messages.text("projects.empty", org)));
             }
         } else {
             grid.setVisible(true);
@@ -143,7 +143,7 @@ public class ProjectsPanel extends Div {
         Button open = Parts.action("#" + pr.number() + " " + pr.title(), () -> drawers.openPull(org, pr));
         Span author = new Span(pr.author());
         author.getStyle().set("color", "var(--lumo-secondary-text-color)");
-        HorizontalLayout line = new HorizontalLayout(Badges.dot(pr.state()), open, author);
+        HorizontalLayout line = new HorizontalLayout(Badges.dot(pr.state(), messages), open, author);
         line.setAlignItems(FlexComponent.Alignment.CENTER);
         return line;
     }

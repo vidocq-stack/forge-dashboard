@@ -38,7 +38,8 @@ class MessagesTest {
 
     @Test
     void apostropheAndArgumentRenderAsWritten() {
-        assertEquals("l'org Vidocq", Messages.forLocale(Locale.FRENCH).text("test.apostrophe", "Vidocq"));
+        assertEquals("Aucun runner pour Vidocq pour l'instant : la collecte arrive, ou le jeton ne lit pas les runners "
+                + "de cette org.", Messages.forLocale(Locale.FRENCH).text("ci.noRunners", "Vidocq"));
     }
 
     @Test

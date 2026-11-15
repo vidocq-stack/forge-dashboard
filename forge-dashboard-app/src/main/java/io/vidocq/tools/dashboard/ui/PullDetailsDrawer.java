@@ -65,11 +65,11 @@ public class PullDetailsDrawer extends Div {
 
     private void refresh() {
         removeAll();
-        add(Parts.drawerTop(repo + " #" + number, this::close));
+        add(Parts.drawerTop(repo + " #" + number, this::close, messages));
         Optional<PullView> pr = live.snapshot(org).repos().stream().filter(r -> r.name().equals(repo))
                 .flatMap(r -> r.pulls().stream()).filter(p -> p.number() == number).findFirst();
         if (pr.isEmpty()) {
-            add(new Span("Cette PR n'est plus ouverte."));
+            add(new Span(messages.text("pull.closed")));
             return;
         }
         var names = runners.findByOrg(org).stream()
@@ -78,20 +78,21 @@ public class PullDetailsDrawer extends Div {
                 jobs.findByOrgAndRepoAndPrNumberOrderByStartedAtDesc(org, repo, number), names, clock.instant(),
                 messages);
         add(new Div(new Span(d.title())));
-        add(Parts.line(Badges.dot(d.state()), new Span(Badges.label(d.state()) + " · par " + d.author()),
-                Parts.link("Ouvrir sur CodeFloe", d.htmlUrl())));
+        add(Parts.line(Badges.dot(d.state(), messages),
+                new Span(messages.text("pull.stateBy", Badges.label(d.state(), messages), d.author())),
+                Parts.link(messages.text("pull.openOnCodefloe"), d.htmlUrl())));
 
-        add(Parts.section("Contrôles CI"));
+        add(Parts.section(messages.text("pull.checks")));
         if (d.contexts().isEmpty()) {
-            add(Parts.muted("Aucun statut."));
+            add(Parts.muted(messages.text("pull.noStatus")));
         }
-        d.contexts().forEach(c -> add(Parts.line(Badges.dot(c.state()),
+        d.contexts().forEach(c -> add(Parts.line(Badges.dot(c.state(), messages),
                 c.targetUrl() == null ? new Span(c.context()) : Parts.link(c.context(), c.targetUrl()))));
-        add(Parts.line(new Span("Sonar :"), Badges.gate(d.sonarGate())));
+        add(Parts.line(new Span(messages.text("pull.sonar")), Badges.gate(d.sonarGate())));
 
-        add(Parts.section("Jobs du dernier run"));
+        add(Parts.section(messages.text("pull.lastRunJobs")));
         if (d.lastRunJobs().isEmpty()) {
-            add(Parts.muted("Aucun job vu par le dashboard."));
+            add(Parts.muted(messages.text("pull.noJobs")));
         }
         d.lastRunJobs().forEach(j -> add(jobLine(j)));
     }
@@ -100,7 +101,7 @@ public class PullDetailsDrawer extends Div {
         String at = org;
         Component runner = j.runnerId() == null ? new Span(j.runnerName())
                 : Parts.action(j.runnerName(), () -> openRunner.accept(at, j.runnerId()));
-        return Parts.line(Parts.link(j.jobName(), j.htmlUrl()), new Span("sur"), runner,
+        return Parts.line(Parts.link(j.jobName(), j.htmlUrl()), new Span(messages.text("pull.on")), runner,
                 Parts.muted(StatusLabel.of(j.status(), messages) + " · " + j.duration()));
     }
 }
