@@ -113,6 +113,9 @@ public class MainView extends VerticalLayout {
                 showContent();
             }
         });
+        // shrink to the left section and scroll, rather than slide under the badge (a flex item keeps its content
+        // width by default)
+        orgTabs.getStyle().set("min-width", "0");
         HorizontalLayout left = section(orgTabs);
         right = section(new FreshnessBadge(collector::health, clock, bus), userMenu());
         right.setJustifyContentMode(FlexComponent.JustifyContentMode.END);

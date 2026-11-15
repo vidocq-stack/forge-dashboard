@@ -73,6 +73,17 @@ class MainViewIntegrationTest {
         });
     }
 
+    /**
+     * The org tabs shrink to their share of the header and scroll, rather than slide under the freshness badge: on a
+     * phone, "aktualisiert vor 4 s" left them less room than "frais il y a 4 s".
+     */
+    @Test
+    void orgTabsShrinkInsteadOfOverflowingTheBadge() {
+        Tabs tabs = descendants(mainView()).filter(Tabs.class::isInstance).map(Tabs.class::cast).findFirst()
+                .orElseThrow();
+        assertEquals("0", tabs.getStyle().get("min-width"));
+    }
+
     /** Without a choice, the language Vaadin took from the browser; a regional variant gets its language. */
     @Test
     void browserLanguageWithoutAChoice() {
