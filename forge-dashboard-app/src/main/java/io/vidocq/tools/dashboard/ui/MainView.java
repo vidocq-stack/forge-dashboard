@@ -185,7 +185,8 @@ public class MainView extends VerticalLayout {
         onNarrow(toggleRow, "order", "1");
         onNarrow(toggleRow, "flex-basis", "100%");
         onNarrow(toggleRow, "justify-content", "center");
-        onNarrow(toggleRow, "padding-bottom", "var(--lumo-space-s)");
+        // a margin: a padding would sit inside the toggle's frame
+        onNarrow(toggleRow, "margin-bottom", "var(--lumo-space-s)");
         right.getStyle().set("flex", narrow ? "0 0 auto" : "1 1 0");
     }
 

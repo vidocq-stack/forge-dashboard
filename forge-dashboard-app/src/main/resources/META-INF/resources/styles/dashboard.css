@@ -36,15 +36,16 @@ vaadin-grid::part(error) {
   background: #fdf0f0;
 }
 
-vaadin-grid::part(error first-column-cell) {
+vaadin-grid::part(error first-column-cell),
+vaadin-grid::part(error details-cell) {
   box-shadow: inset 4px 0 #c81e1e;
 }
 
 /* Pills (Theme.PILL…): a Sonar gate, the PR counts. Tabular figures so the counts line up from row to row. */
 .dash-pill {
   display: inline-block;
-  min-width: 1.4em;
-  padding: 1px 6px;
+  min-width: 1.2em;
+  padding: 1px 4px;
   border: 1px solid transparent;
   border-radius: 4px;
   font-size: 12px;
@@ -78,8 +79,14 @@ vaadin-grid::part(error first-column-cell) {
 
 .dash-pills {
   display: inline-flex;
-  gap: 4px;
+  gap: 3px;
   align-items: center;
+}
+
+/* The PR counter button: no padding around its pills, so that the column fits a 390 px phone */
+vaadin-button:has(> .dash-pills) {
+  padding: 0 4px;
+  min-width: 0;
 }
 
 .dash-muted {

@@ -62,6 +62,14 @@ class BadgesTest {
         assertPill(pills(Badges.pulls(row(0, 0, 2), FR)).get(2), "2", "dash-pill-pending");
     }
 
+    /** A screen reader names the counter button by its content: the pills read as the counts, not « 1 1 0 ». */
+    @Test
+    void pullsReadAsTheirCounts() {
+        Span pills = Badges.pulls(row(1, 1, 0), FR);
+        assertEquals("img", pills.getElement().getAttribute("role"));
+        assertEquals("1 vertes, 1 rouges, 0 en cours", pills.getElement().getAttribute("aria-label"));
+    }
+
     /** A project without PR: three grey zeros, still pills (its counter button is disabled). */
     @Test
     void zeroPullsAreThreeZeroPills() {

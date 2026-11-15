@@ -42,8 +42,9 @@ final class Badges {
         Span pills = new Span(count(row.prGreen(), Theme.PILL_OK), count(row.prRed(), Theme.PILL_ERR),
                 count(row.prPending(), Theme.PILL_PENDING));
         pills.addClassName(Theme.PILLS);
-        pills.getElement().setAttribute("title",
-                m.text("projects.pullCounts", row.prGreen(), row.prRed(), row.prPending()));
+        String counts = m.text("projects.pullCounts", row.prGreen(), row.prRed(), row.prPending());
+        // the tooltip for the eye; for a screen reader, the counter button takes its name from this image's label
+        pills.getElement().setAttribute("title", counts).setAttribute("role", "img").setAttribute("aria-label", counts);
         return pills;
     }
 

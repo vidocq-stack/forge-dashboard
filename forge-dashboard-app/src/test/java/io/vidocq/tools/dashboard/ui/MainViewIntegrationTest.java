@@ -84,6 +84,22 @@ class MainViewIntegrationTest {
         assertEquals("0", tabs.getStyle().get("min-width"));
     }
 
+    /** On a phone the space under the views' toggle stays outside its frame: a margin, not a padding. */
+    @Test
+    void narrowToggleKeepsItsSpaceOutsideItsFrame() {
+        TestUi.run(Locale.FRENCH, () -> {
+            MainView view = mainView();
+            Component toggle = toggleRow(button(view, "Projets"));
+
+            view.narrow(true);
+            assertEquals("var(--lumo-space-s)", toggle.getElement().getStyle().get("margin-bottom"));
+            assertNull(toggle.getElement().getStyle().get("padding-bottom"), "a padding would sit inside the frame");
+
+            view.narrow(false);
+            assertNull(toggle.getElement().getStyle().get("margin-bottom"));
+        });
+    }
+
     /** The stylesheet rules the header (no inline border any more) and frames the view buttons. */
     @Test
     void headerAndViewToggleCarryTheThemeClasses() {
