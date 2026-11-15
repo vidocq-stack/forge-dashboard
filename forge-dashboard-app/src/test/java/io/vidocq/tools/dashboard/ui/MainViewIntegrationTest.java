@@ -122,12 +122,13 @@ class MainViewIntegrationTest {
     }
 
     @Test
-    void languageMenuOffersTheBrowserAndTheFourLanguages() {
+    void languageMenuOffersTheBrowserAndTheSevenLanguages() {
         TestUi.run(Locale.FRENCH, ALICE, () -> {
             List<MenuItem> items = languageItems(mainView());
-            assertEquals(List.of("Navigateur", "English", "Français", "Deutsch", "Nederlands"),
-                    items.stream().map(MenuItem::getText).toList());
-            assertEquals(List.of(true, false, false, false, false), items.stream().map(MenuItem::isChecked).toList(),
+            assertEquals(List.of("Navigateur", "English", "Deutsch", "Español", "Français", "Italiano", "Nederlands",
+                    "Polski"), items.stream().map(MenuItem::getText).toList());
+            assertEquals(List.of(true, false, false, false, false, false, false, false),
+                    items.stream().map(MenuItem::isChecked).toList(),
                     "no choice yet: the browser's");
         });
     }
@@ -136,7 +137,7 @@ class MainViewIntegrationTest {
     void choosingALanguageSavesItAndBrowserClearsIt() {
         TestUi.run(Locale.FRENCH, ALICE, () -> {
             List<MenuItem> items = languageItems(mainView());
-            click(items.get(3));
+            click(items.get(2));
             assertEquals("de", InProcessApp.bean(UserPrefs.class).load("alice").language());
 
             click(items.getFirst());

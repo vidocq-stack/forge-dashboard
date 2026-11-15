@@ -15,11 +15,11 @@ class DashboardI18NProviderTest {
 
     /** Vaadin picks the UI language among the provided ones, and falls back to the first: English. */
     @Test
-    void vaadinGetsTheFourLanguagesEnglishFirst() {
+    void vaadinGetsTheSevenLanguagesEnglishFirst() {
         I18NProvider provider = new VaubanInstantiator(null).getI18NProvider();
 
         assertInstanceOf(DashboardI18NProvider.class, provider);
-        assertEquals(List.of("en", "fr", "de", "nl"),
+        assertEquals(List.of("en", "de", "es", "fr", "it", "nl", "pl"),
                 provider.getProvidedLocales().stream().map(Locale::getLanguage).toList());
     }
 

@@ -23,7 +23,7 @@ Spec : `docs/superpowers/specs/` ; plan v2 : `docs/superpowers/plans/2026-11-14-
 - **Runner ↔ job** : Forgejo 17 n'expose pas le runner d'un job ; il est lu dans l'en-tête du log
   (`<html_url>/logs`, Range).
 - **Commiters** : humain = auteur git, agents = trailers `Co-Authored-By`.
-- **Langues** : fr, en (repli), de, nl ; textes dans `i18n/messages*.properties` lus par `i18n/Messages` (pas de
+- **Langues** : en (repli), de, es, fr, it, nl, pl ; textes dans `i18n/messages*.properties` lus par `i18n/Messages` (pas de
   `ResourceBundle`) ; langue du navigateur ou choix de l'avatar (`user_pref.language`) ; les vues prennent leur
   `Messages` à la construction (`ui/Texts.current()`), les modèles le reçoivent en paramètre.
 

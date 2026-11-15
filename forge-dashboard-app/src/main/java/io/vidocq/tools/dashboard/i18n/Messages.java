@@ -26,9 +26,12 @@ public final class Messages {
     /** The languages of the dashboard, English first: it is the fallback of any other language. */
     public static final List<Language> LANGUAGES = List.of(
             new Language("en", "English"),
-            new Language("fr", "Français"),
             new Language("de", "Deutsch"),
-            new Language("nl", "Nederlands"));
+            new Language("es", "Español"),
+            new Language("fr", "Français"),
+            new Language("it", "Italiano"),
+            new Language("nl", "Nederlands"),
+            new Language("pl", "Polski"));
 
     private static final String ENGLISH = "en";
 
