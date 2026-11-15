@@ -24,6 +24,19 @@ class FormatsTest {
         assertEquals("3 min 05 s", Formats.duration(Duration.ofSeconds(185), FR));
     }
 
+    /** The time left, rounded up: to the minute, or to 10 s under a minute; late, by how much. */
+    @Test
+    void etaLeftOrLate() {
+        assertEquals("62 % · reste ~3 min", Formats.eta(new JobEta(62, Duration.ofSeconds(150)), FR));
+        assertEquals("95 % · reste ~40 s", Formats.eta(new JobEta(95, Duration.ofSeconds(33)), FR));
+        assertEquals("99 % · reste ~10 s", Formats.eta(new JobEta(99, Duration.ZERO), FR));
+        assertEquals("+2 min sur l'habitude", Formats.eta(new JobEta(99, Duration.ofSeconds(-90)), FR));
+        assertEquals("10 % · reste ~1 h 05 min", Formats.eta(new JobEta(10, Duration.ofSeconds(3_841)), FR));
+        Messages en = Messages.forLocale(Locale.ENGLISH);
+        assertEquals("62% · ~3 min left", Formats.eta(new JobEta(62, Duration.ofSeconds(150)), en));
+        assertEquals("2 min over the usual", Formats.eta(new JobEta(99, Duration.ofSeconds(-90)), en));
+    }
+
     @Test
     void compactBoundaries() {
         assertEquals("9999", Formats.compact(9_999));

@@ -44,6 +44,23 @@ public final class Formats {
     }
 
     /** {@code 42 s}, {@code 3 min 05 s}, {@code 1 h 12 min}; a negative duration is 0 s. */
+    /** {@code 62 % · reste ~3 min}, or {@code +2 min sur l'habitude} once the job runs late. */
+    public static String eta(JobEta eta, Messages m) {
+        return eta.overrun() ? m.text("eta.over", roughly(eta.left().negated(), m))
+                : m.text("eta.left", eta.percent(), roughly(eta.left(), m));
+    }
+
+    /** Rounded up: to 10 s under a minute (10 s at least), then to the minute. */
+    private static String roughly(Duration d, Messages m) {
+        long s = Math.max(1, (d.toMillis() + 999) / 1_000);
+        if (s < 60) {
+            return m.text("duration.seconds", (s + 9) / 10 * 10);
+        }
+        long minutes = (s + 59) / 60;
+        return minutes < 60 ? m.text("duration.minutes", minutes)
+                : m.text("duration.hoursMinutes", minutes / 60, twoDigits(minutes % 60));
+    }
+
     public static String duration(Duration d, Messages m) {
         long s = Math.max(0, d.toSeconds());
         if (s < 60) {
