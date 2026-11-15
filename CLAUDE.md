@@ -13,7 +13,8 @@ Spec : `docs/superpowers/specs/` ; plan v2 : `docs/superpowers/plans/2026-11-14-
 
 - **Runtime** : Vidocq 0.4.0-SNAPSHOT — Vauban CDI Lite (build-time), Foy Servlet, Cyrano MP Rest Client,
   Ravel MP Config, Mansart Data + pool, Flyway, Cervantes MP JWT.
-- **UI** : Vaadin Flow 25 (mode production), push `LONG_POLLING` (WORKAROUND vidocq#65), beans CDI via
+- **UI** : Vaadin Flow 25 (mode production), push par WebSocket (`WEBSOCKET_XHR`, Jakarta WebSocket de Foy ;
+  en prod, « Websockets Support » activé sur le proxy host NPM), thème Lumo par `@StyleSheet`, beans CDI via
   `ui/cdi/VaubanInstantiator`.
 - **Connexion** : OIDC CodeFloe, code + PKCE, par `auth/OidcFilter` (en attendant Jakarta Security,
   vidocq#63) ; `id_token` vérifié par Cervantes ; accès et admin par groupes CodeFloe `org:team`.
@@ -69,7 +70,7 @@ Voir le tableau du README. L'essentiel : `FORGEJO_TOKEN`, `OIDC_CLIENT_ID`, `OID
 ```sh
 sdk env
 ./mvnw -ntp clean verify                                   # Docker requis (PostgreSQL des dev services)
-./mvnw -ntp -pl forge-dashboard-app clean vidocq:dev -Dvidocq.dev.hotReload=false -Dvidocq.dev.continuousTesting=false
+./mvnw -ntp -pl forge-dashboard-app clean vidocq:dev -Dvidocq.dev.hotReload=false   # tests en continu, base à part
 ./mvnw -ntp -U clean package -DskipTests && docker build -t forge-dashboard:dev .
 ```
 
