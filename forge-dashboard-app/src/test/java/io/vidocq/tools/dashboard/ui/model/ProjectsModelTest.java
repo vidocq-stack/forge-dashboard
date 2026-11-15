@@ -26,7 +26,11 @@ class ProjectsModelTest {
     }
 
     static PullView pull(String repo, int number, CiState state) {
-        return new PullView(repo, number, "PR " + number, "yblazart", "sha" + number, state, List.of(),
+        return pull(repo, number, state, "PR " + number);
+    }
+
+    static PullView pull(String repo, int number, CiState state, String title) {
+        return new PullView(repo, number, title, "yblazart", "sha" + number, state, List.of(),
                 GateStatus.NONE, "https://codefloe.com/Vidocq/" + repo + "/pulls/" + number, NOW);
     }
 
@@ -71,6 +75,44 @@ class ProjectsModelTest {
         List<ProjectRow> rows = rows(repo("alpha", CiState.SUCCESS, null, List.of()),
                 repo("zeta", CiState.FAILURE, null, List.of()), repo("Beta", CiState.PENDING, null, List.of()));
         assertEquals(List.of("zeta", "alpha", "Beta"), rows.stream().map(ProjectRow::repo).toList());
+    }
+
+    /** Errors first: a red main, then a red pull request, then a failed Sonar gate, whatever the coverage. */
+    @Test
+    void errorsComeFirstMainThenPullThenGate() {
+        List<ProjectRow> rows = rows(
+                repo("covered", CiState.SUCCESS, sonar(1_000L, 100L, 99.0, GateStatus.OK), List.of()),
+                repo("gate", CiState.SUCCESS, sonar(1_000L, 100L, 95.0, GateStatus.ERROR), List.of()),
+                repo("pull", CiState.SUCCESS, sonar(1_000L, 100L, 90.0, GateStatus.OK),
+                        List.of(pull("pull", 1, CiState.SUCCESS), pull("pull", 2, CiState.FAILURE))),
+                repo("main", CiState.FAILURE, sonar(1_000L, 100L, 10.0, GateStatus.OK), List.of()));
+        assertEquals(List.of("main", "pull", "gate", "covered"), rows.stream().map(ProjectRow::repo).toList());
+    }
+
+    /** A work in progress (title "WIP:" or "[WIP]", Forgejo's drafts) may fail: it does not lift its project. */
+    @Test
+    void failingWorkInProgressIsNotAnError() {
+        List<ProjectRow> rows = rows(
+                repo("erasmus", CiState.SUCCESS, sonar(1_000L, 100L, 50.0, GateStatus.OK),
+                        List.of(pull("erasmus", 1, CiState.FAILURE, "WIP: the TCK drives the plan"),
+                                pull("erasmus", 2, CiState.FAILURE, "[wip] pages"))),
+                repo("vauban", CiState.SUCCESS, sonar(1_000L, 100L, 90.0, GateStatus.OK), List.of()));
+        assertEquals(List.of("vauban", "erasmus"), rows.stream().map(ProjectRow::repo).toList());
+        assertEquals(2, rows.getLast().prRed(), "the PR column still shows them red");
+    }
+
+    /** Past the errors: the best covered first, then the most lines of code, then the most tests; no Sonar last. */
+    @Test
+    void thenHighestCoverageThenMostLocThenMostTests() {
+        List<ProjectRow> rows = rows(
+                repo("none", CiState.SUCCESS, null, List.of()),
+                repo("small", CiState.SUCCESS, sonar(1_000L, 900L, 90.0, GateStatus.OK), List.of()),
+                repo("low", CiState.SUCCESS, sonar(90_000L, 900L, 40.0, GateStatus.OK), List.of()),
+                repo("fewTests", CiState.SUCCESS, sonar(5_000L, 50L, 90.0, GateStatus.OK), List.of()),
+                repo("noCoverage", CiState.SUCCESS, sonar(9_000L, null, null, GateStatus.NONE), List.of()),
+                repo("moreTests", CiState.SUCCESS, sonar(5_000L, 80L, 90.0, GateStatus.OK), List.of()));
+        assertEquals(List.of("moreTests", "fewTests", "small", "low", "noCoverage", "none"),
+                rows.stream().map(ProjectRow::repo).toList());
     }
 
     @Test
