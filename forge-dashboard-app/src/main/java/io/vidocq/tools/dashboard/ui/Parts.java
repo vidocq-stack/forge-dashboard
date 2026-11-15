@@ -49,8 +49,16 @@ final class Parts {
 
     static Span muted(String text) {
         Span s = new Span(text);
-        s.getStyle().set("color", "var(--lumo-secondary-text-color)");
+        s.addClassName(Theme.MUTED);
         return s;
+    }
+
+    /** An empty framed group for buttons, one of them selected (Theme.TOGGLE); its label goes outside. */
+    static HorizontalLayout toggle() {
+        HorizontalLayout group = new HorizontalLayout();
+        group.addClassName(Theme.TOGGLE);
+        group.setSpacing(false);
+        return group;
     }
 
     /** A right-hand panel over the page, hidden until opened. */

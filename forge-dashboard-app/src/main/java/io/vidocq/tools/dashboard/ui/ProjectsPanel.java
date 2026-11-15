@@ -58,7 +58,9 @@ public class ProjectsPanel extends Div {
         this.drawers = new Drawers(live, bus, jobs, runners, clock);
         setWidthFull();
 
-        grid.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_ROW_STRIPES);
+        grid.addThemeVariants(GridVariant.LUMO_COMPACT);
+        // projects in error stand out in red; separators rather than stripes, which the red tint would clash with
+        grid.setPartNameGenerator(r -> r.error() ? Theme.ERROR_ROW : null);
         grid.setAllRowsVisible(true);
         grid.setSelectionMode(Grid.SelectionMode.NONE);
         grid.addComponentColumn(r -> Parts.link(r.repo(), r.htmlUrl())).setHeader(messages.text("projects.column.repo"))
@@ -113,7 +115,7 @@ public class ProjectsPanel extends Div {
     }
 
     private Component pullCounter(ProjectRow row) {
-        Button counter = new Button(row.pullCounts(), e -> {
+        Button counter = new Button(Badges.pulls(row, messages), e -> {
             boolean open = !grid.isDetailsVisible(row);
             grid.setDetailsVisible(row, open);
             if (open) {
@@ -142,7 +144,7 @@ public class ProjectsPanel extends Div {
     private Component pullLine(PullView pr) {
         Button open = Parts.action("#" + pr.number() + " " + pr.title(), () -> drawers.openPull(org, pr));
         Span author = new Span(pr.author());
-        author.getStyle().set("color", "var(--lumo-secondary-text-color)");
+        author.addClassName(Theme.MUTED);
         HorizontalLayout line = new HorizontalLayout(Badges.dot(pr.state(), messages), open, author);
         line.setAlignItems(FlexComponent.Alignment.CENTER);
         return line;

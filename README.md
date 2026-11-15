@@ -36,7 +36,9 @@ de l'anglais. Pour ajouter une langue : son fichier, et son entrée dans `Messag
 
 - **Runtime** : [Vidocq](https://codefloe.com/Vidocq) 0.4.0-SNAPSHOT (Vauban CDI Lite à la compilation,
   Foy Servlet, Cyrano MP Rest Client, Ravel MP Config, Mansart Data + pool, Flyway, Cervantes MP JWT).
-- **UI** : Vaadin Flow 25, mode production, push serveur (voir « Contournements »).
+- **UI** : Vaadin Flow 25, mode production, push serveur (voir « Contournements »). Thème Lumo, puis
+  `styles/dashboard.css` (`src/main/resources/META-INF/resources/`) : clair, très contrasté, pastilles et
+  sélecteurs encadrés.
 - **Connexion** : OpenID Connect avec CodeFloe (code + PKCE). L'`id_token` est vérifié par Cervantes. Les
   groupes CodeFloe (`org:team`) filtrent l'accès et donnent les droits d'administration.
 - **Données** : collecte périodique de l'API CodeFloe (Forgejo 17) et de Sonar, stockée dans PostgreSQL.

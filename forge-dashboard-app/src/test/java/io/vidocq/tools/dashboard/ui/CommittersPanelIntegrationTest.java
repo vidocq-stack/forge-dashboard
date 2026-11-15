@@ -1,6 +1,7 @@
 package io.vidocq.tools.dashboard.ui;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Span;
 import io.vidocq.tools.dashboard.domain.CommitKind;
 import io.vidocq.tools.dashboard.store.CommitStat;
@@ -55,6 +56,22 @@ class CommittersPanelIntegrationTest {
         assertEquals(List.of("Commiter", "Commits", "Part", "Lignes", "PR ouvertes / mergées", "Avec agents"),
                 visibleHeaders(panel));
         assertTrue(descendants(panel).anyMatch(CommittersPanelIntegrationTest::isLegend), "the legend is back");
+    }
+
+    /** 7 j, 30 j, 90 j: a framed group of their own, the label and the all-orgs box outside the frame. */
+    @Test
+    void periodButtonsAreAToggle() {
+        CommittersPanel panel = TestUi.get(Locale.FRENCH,
+                () -> InProcessApp.bean(CommittersPanel.class).forOrg("Nobody", 30, days -> { }));
+        Messages fr = Messages.forLocale(Locale.FRENCH);
+        List<String> labels = CommittersPanel.PERIODS.stream().map(d -> fr.text("duration.days", d)).toList();
+        List<Component> parents = descendants(panel)
+                .filter(c -> c instanceof Button b && labels.contains(b.getText()))
+                .map(b -> b.getParent().orElseThrow()).distinct().toList();
+        assertEquals(1, parents.size(), "one group for the three buttons");
+        Component group = parents.getFirst();
+        assertTrue(group.getElement().getClassList().contains("dash-toggle"));
+        assertEquals(CommittersPanel.PERIODS.size(), group.getChildren().count(), "only the buttons in the frame");
     }
 
     private static boolean isLegend(Component c) {
