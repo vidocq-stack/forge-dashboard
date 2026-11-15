@@ -3,6 +3,7 @@ package io.vidocq.tools.dashboard.auth;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 
@@ -31,7 +32,7 @@ public final class CallbackHandler {
         }
         String error = query.get("error");
         if (error != null) {
-            return new CallbackResult.Denied("CodeFloe a refusé : " + abbreviate(error));
+            return new CallbackResult.Denied("auth.denied.byCodefloe", List.of(abbreviate(error)));
         }
         if (!same(query.get("state"), saved.state())) {
             return new CallbackResult.Restart();
@@ -45,22 +46,22 @@ public final class CallbackHandler {
             response = tokens.exchange(code, saved.verifier(), settings.redirectUri());
         } catch (RuntimeException e) {
             LOG.log(System.Logger.Level.WARNING, "CodeFloe code exchange failed: " + e.getMessage());
-            return new CallbackResult.Denied("L'échange avec CodeFloe a échoué, réessayez dans un instant.");
+            return new CallbackResult.Denied("auth.denied.exchangeFailed", List.of());
         }
         VerifiedIdentity id;
         try {
             id = verifier.verify(response.idToken());
         } catch (RuntimeException e) {
             LOG.log(System.Logger.Level.WARNING, "CodeFloe id_token rejected: " + e.getMessage());
-            return new CallbackResult.Denied("Le jeton d'identité de CodeFloe est invalide.");
+            return new CallbackResult.Denied("auth.denied.invalidToken", List.of());
         }
         if (!same(id.nonce(), saved.nonce())) {
-            return new CallbackResult.Denied("Le jeton d'identité de CodeFloe ne correspond pas à cette connexion.");
+            return new CallbackResult.Denied("auth.denied.tokenMismatch", List.of());
         }
         if (!GroupGuard.allowed(id.groups(), settings.allowedGroups())) {
             LOG.log(System.Logger.Level.INFO, "Login refused for " + id.login() + ": not in " + settings.allowedGroups());
-            return new CallbackResult.Denied("Accès réservé aux groupes CodeFloe "
-                    + String.join(", ", new TreeSet<>(settings.allowedGroups())) + ".");
+            return new CallbackResult.Denied("auth.denied.groups",
+                    List.of(String.join(", ", new TreeSet<>(settings.allowedGroups()))));
         }
         boolean admin = !Collections.disjoint(id.groups(), settings.adminGroups());
         String name = id.name() == null || id.name().isBlank() ? id.login() : id.name();

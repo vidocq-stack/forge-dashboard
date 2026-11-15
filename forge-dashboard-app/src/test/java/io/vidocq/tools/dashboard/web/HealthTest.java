@@ -71,7 +71,7 @@ class HealthTest {
 
     @Test
     void callbackWithoutCookieExplainsInsteadOfLooping(VidocqApplication app) {
-        var r = app.get("/oauth2/callback?code=x&state=y");
+        var r = app.get("/oauth2/callback?code=x&state=y", Map.of("Accept-Language", "fr"));
         assertEquals(400, r.status(), app.log());
         assertTrue(r.body().contains("cookie"), r.body());
     }
@@ -80,7 +80,22 @@ class HealthTest {
     void logoutShowsAReconnectLink(VidocqApplication app) {
         var r = app.get("/oauth2/logout");
         assertEquals(200, r.status(), app.log());
-        assertTrue(r.body().contains("Déconnecté"), r.body());
-        assertTrue(r.body().contains("Se reconnecter"), r.body());
+        assertTrue(r.body().contains("Signed out"), r.body());
+        assertTrue(r.body().contains("Sign in again"), r.body());
+    }
+
+    @Test
+    void logoutFollowsTheBrowserLanguage(VidocqApplication app) {
+        var r = app.get("/oauth2/logout", Map.of("Accept-Language", "de-CH,de;q=0.9,en;q=0.5"));
+        assertEquals(200, r.status(), app.log());
+        assertTrue(r.body().contains("<html lang=\"de\">"), r.body());
+        assertTrue(r.body().contains("Abgemeldet"), r.body());
+    }
+
+    @Test
+    void logoutWithAMalformedLanguageHeaderIsEnglish(VidocqApplication app) {
+        var r = app.get("/oauth2/logout", Map.of("Accept-Language", "*;q=abc"));
+        assertEquals(200, r.status(), app.log());
+        assertTrue(r.body().contains("Signed out"), r.body());
     }
 }

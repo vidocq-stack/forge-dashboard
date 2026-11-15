@@ -1,5 +1,6 @@
 package io.vidocq.tools.dashboard.auth;
 
+import io.vidocq.tools.dashboard.i18n.Messages;
 import jakarta.inject.Inject;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -32,6 +33,8 @@ public class CallbackServlet extends HttpServlet {
                 query.put(name, values[0]);
             }
         });
+        // no user yet: the browser's language
+        Messages messages = Messages.forAcceptLanguage(request.getHeader("Accept-Language"));
         switch (handler.handle(query, saved)) {
             case CallbackResult.Success success -> {
                 session.removeAttribute(LoginState.ATTR);
@@ -43,13 +46,13 @@ public class CallbackServlet extends HttpServlet {
                 if (session != null) {
                     session.removeAttribute(LoginState.ATTR);
                 }
-                page(response, HttpServletResponse.SC_FORBIDDEN, ForbiddenPage.html(denied.reason()));
+                page(response, HttpServletResponse.SC_FORBIDDEN,
+                        ForbiddenPage.html(messages, messages.text(denied.key(), denied.args().toArray())));
             }
             case CallbackResult.Restart _ -> {
                 if (request.getRequestedSessionId() == null) {
-                    page(response, HttpServletResponse.SC_BAD_REQUEST, ForbiddenPage.html(
-                            "Le navigateur n'a pas renvoyé le cookie de session : autorisez les cookies pour ce site,"
-                                    + " et passez par son adresse HTTPS."));
+                    page(response, HttpServletResponse.SC_BAD_REQUEST,
+                            ForbiddenPage.html(messages, messages.text("auth.cookieMissing")));
                 } else {
                     redirect(response, request.getContextPath() + "/");
                 }
