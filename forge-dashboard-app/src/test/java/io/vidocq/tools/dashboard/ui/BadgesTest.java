@@ -58,7 +58,7 @@ class BadgesTest {
         assertPill(each.get(0), "1", "dash-pill-ok");
         assertPill(each.get(1), "1", "dash-pill-err");
         assertPill(each.get(2), "0", "dash-pill-zero");
-        assertEquals("1 vertes, 1 rouges, 0 en cours", pills.getElement().getAttribute("title"));
+        assertEquals("1 verte, 1 rouge, 0 en cours", pills.getElement().getAttribute("title"));
         assertPill(pills(Badges.pulls(row(0, 0, 2), FR)).get(2), "2", "dash-pill-pending");
     }
 
@@ -67,7 +67,22 @@ class BadgesTest {
     void pullsReadAsTheirCounts() {
         Span pills = Badges.pulls(row(1, 1, 0), FR);
         assertEquals("img", pills.getElement().getAttribute("role"));
-        assertEquals("1 vertes, 1 rouges, 0 en cours", pills.getElement().getAttribute("aria-label"));
+        assertEquals("1 verte, 1 rouge, 0 en cours", pills.getElement().getAttribute("aria-label"));
+    }
+
+    /** « 1 verte », « 2 vertes »: the counts agree in number where the language says so. */
+    @Test
+    void pullCountsAgreeInNumber() {
+        assertEquals("2 vertes, 3 rouges, 0 en cours", title(row(2, 3, 0), FR));
+        assertEquals("0 verte, 1 rouge, 4 en cours", title(row(0, 1, 4), FR));
+        assertEquals("1 verde, 1 roja, 0 en curso", title(row(1, 1, 0), Messages.forLocale(Locale.of("es"))));
+        assertEquals("0 verdes, 2 rojas, 0 en curso", title(row(0, 2, 0), Messages.forLocale(Locale.of("es"))));
+        assertEquals("1 verde, 1 rossa, 0 in corso", title(row(1, 1, 0), Messages.forLocale(Locale.ITALIAN)));
+        assertEquals("1 green, 1 red, 0 running", title(row(1, 1, 0), Messages.forLocale(Locale.ENGLISH)));
+    }
+
+    private static String title(ProjectRow row, Messages m) {
+        return Badges.pulls(row, m).getElement().getAttribute("title");
     }
 
     /** A project without PR: three grey zeros, still pills (its counter button is disabled). */
