@@ -7,6 +7,7 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import io.vidocq.tools.dashboard.i18n.Messages;
 import io.vidocq.tools.dashboard.collect.OccupancyService;
 import io.vidocq.tools.dashboard.domain.Formats;
 import io.vidocq.tools.dashboard.live.ChangeBus;
@@ -37,6 +38,8 @@ import java.util.Optional;
  */
 @Dependent
 public class CiPanel extends Div {
+
+    private final Messages messages = Texts.current();
 
     private static final Map<String, Duration> WINDOWS = new LinkedHashMap<>();
 
@@ -119,7 +122,7 @@ public class CiPanel extends Div {
         }
         board.waiting().forEach(j -> queue.add(Parts.line(target(j), Parts.link(j.jobName(), j.htmlUrl()),
                 Parts.muted(j.startedAt() == null ? "" : "en attente depuis "
-                        + Formats.duration(Duration.between(j.startedAt(), now))))));
+                        + Formats.duration(Duration.between(j.startedAt(), now), messages)))));
     }
 
     private Component card(RunnerCard c, Instant now) {
@@ -130,7 +133,7 @@ public class CiPanel extends Div {
                 .set("opacity", c.offline() ? "0.6" : "1");
         Button name = Parts.action(c.name(), () -> drawers.openRunner(org, c.runnerId()));
         name.getStyle().set("font-weight", "600");
-        Span status = new Span(c.label());
+        Span status = new Span(c.label(messages));
         status.getStyle().set("color", switch (c.status() == null ? "" : c.status()) {
             case "active" -> "var(--lumo-success-text-color)";
             case "offline" -> "var(--lumo-error-text-color)";
@@ -143,7 +146,7 @@ public class CiPanel extends Div {
                 + Sparkline.svg(c.hourlyOccupancy(), 240, 28) + "</span>");
         card.add(spark);
         c.running().forEach(j -> card.add(Parts.line(target(j), Parts.muted(j.jobName() + (j.startedAt() == null ? ""
-                : " · " + Formats.duration(Duration.between(j.startedAt(), now)))))));
+                : " · " + Formats.duration(Duration.between(j.startedAt(), now), messages))))));
         return card;
     }
 

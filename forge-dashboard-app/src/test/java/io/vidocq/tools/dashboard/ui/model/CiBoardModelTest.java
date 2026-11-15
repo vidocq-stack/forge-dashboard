@@ -1,6 +1,7 @@
 package io.vidocq.tools.dashboard.ui.model;
 
 import io.vidocq.tools.dashboard.domain.Occupancy;
+import io.vidocq.tools.dashboard.i18n.Messages;
 import io.vidocq.tools.dashboard.live.JobView;
 import io.vidocq.tools.dashboard.live.OrgSnapshot;
 import io.vidocq.tools.dashboard.live.RunnerView;
@@ -9,11 +10,14 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class CiBoardModelTest {
+
+    private static final Messages FR = Messages.forLocale(Locale.FRENCH);
 
     private static final Instant NOW = Instant.parse("2026-11-14T12:00:00Z");
 
@@ -43,7 +47,7 @@ class CiBoardModelTest {
         assertEquals(3, card.running().size());
         assertEquals(0.42, card.occupancy());
         assertEquals(hours, card.hourlyOccupancy());
-        assertEquals("● actif", card.label());
+        assertEquals("● actif", card.label(FR));
     }
 
     @Test
@@ -52,7 +56,7 @@ class CiBoardModelTest {
                 .runners().getFirst();
         assertEquals(0.0, card.occupancy());
         assertEquals(Collections.nCopies(24, 0.0), card.hourlyOccupancy());
-        assertEquals("○ inactif", card.label());
+        assertEquals("○ inactif", card.label(FR));
     }
 
     @Test
@@ -68,6 +72,14 @@ class CiBoardModelTest {
         CiBoard b = board(List.of(runner(1, "alpha", "offline", 1), runner(2, "Charlie", "idle", 1),
                 runner(3, "bravo", "active", 2)), List.of(), Map.of(), Map.of());
         assertEquals(List.of("bravo", "Charlie", "alpha"), b.runners().stream().map(RunnerCard::name).toList());
-        assertEquals("✕ hors ligne", b.runners().getLast().label());
+        assertEquals("✕ hors ligne", b.runners().getLast().label(FR));
+    }
+
+    @Test
+    void runnerStatesInEnglish() {
+        Messages en = Messages.forLocale(Locale.ENGLISH);
+        assertEquals("○ idle", RunnerCard.label("idle", en));
+        assertEquals("✕ offline", RunnerCard.label("offline", en));
+        assertEquals("draining", RunnerCard.label("draining", en));
     }
 }

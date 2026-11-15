@@ -12,6 +12,7 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import io.vidocq.tools.dashboard.i18n.Messages;
 import io.vidocq.tools.dashboard.live.ChangeBus;
 import io.vidocq.tools.dashboard.live.ChangeEvent;
 import io.vidocq.tools.dashboard.live.LiveState;
@@ -36,6 +37,8 @@ import java.util.Set;
  */
 @Dependent
 public class ProjectsPanel extends Div {
+
+    private final Messages messages = Texts.current();
 
     private final LiveState live;
     private final ChangeBus bus;
@@ -95,7 +98,7 @@ public class ProjectsPanel extends Div {
     }
 
     private void refresh() {
-        List<ProjectRow> rows = ProjectsModel.rows(live.snapshot(org), clock.instant());
+        List<ProjectRow> rows = ProjectsModel.rows(live.snapshot(org), clock.instant(), messages);
         grid.setItems(rows);
         rows.stream().filter(r -> unfolded.contains(r.repo())).forEach(r -> grid.setDetailsVisible(r, true));
         if (rows.isEmpty()) {

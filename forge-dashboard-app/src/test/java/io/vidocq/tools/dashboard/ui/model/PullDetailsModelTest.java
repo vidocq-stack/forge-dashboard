@@ -2,6 +2,7 @@ package io.vidocq.tools.dashboard.ui.model;
 
 import io.vidocq.tools.dashboard.domain.CiState;
 import io.vidocq.tools.dashboard.forge.StatusContext;
+import io.vidocq.tools.dashboard.i18n.Messages;
 import io.vidocq.tools.dashboard.live.PullView;
 import io.vidocq.tools.dashboard.sonar.GateStatus;
 import io.vidocq.tools.dashboard.store.JobExecution;
@@ -9,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -16,6 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class PullDetailsModelTest {
 
     private static final Instant NOW = Instant.parse("2026-11-14T12:00:00Z");
+    private static final Messages FR = Messages.forLocale(Locale.FRENCH);
     private static final PullView PR = new PullView("vauban", 298, "feat: proxies", "yblazart", "sha", CiState.PENDING,
             List.of(new StatusContext("build / build (pull_request)", CiState.PENDING, "https://ci/1")),
             GateStatus.OK, "https://codefloe.com/Vidocq/vauban/pulls/298", NOW);
@@ -40,7 +43,7 @@ class PullDetailsModelTest {
                 job(11, 7, "sonar", null, "running", NOW.minusSeconds(30), null),
                 job(10, 7, "build", 1219L, "success", NOW.minusSeconds(200), NOW.minusSeconds(80)));
 
-        PullDetails d = PullDetailsModel.of(PR, jobs, Map.of(1219L, "vidocq-runner-1"), NOW);
+        PullDetails d = PullDetailsModel.of(PR, jobs, Map.of(1219L, "vidocq-runner-1"), NOW, FR);
 
         assertEquals("feat: proxies", d.title());
         assertEquals("yblazart", d.author());
@@ -61,7 +64,7 @@ class PullDetailsModelTest {
                 job(21, 8, "build", 1219L, "running", NOW.minusSeconds(10), null),
                 job(10, 7, "build", 1219L, "failure", NOW.minusSeconds(900), NOW.minusSeconds(800)));
 
-        PullDetails d = PullDetailsModel.of(PR, jobs, Map.of(), NOW);
+        PullDetails d = PullDetailsModel.of(PR, jobs, Map.of(), NOW, FR);
 
         assertEquals(1, d.lastRunJobs().size());
         assertEquals("?", d.lastRunJobs().getFirst().runnerName());
@@ -70,6 +73,6 @@ class PullDetailsModelTest {
 
     @Test
     void noJobYetGivesAnEmptyList() {
-        assertEquals(List.of(), PullDetailsModel.of(PR, List.of(), Map.of(), NOW).lastRunJobs());
+        assertEquals(List.of(), PullDetailsModel.of(PR, List.of(), Map.of(), NOW, FR).lastRunJobs());
     }
 }

@@ -3,6 +3,7 @@ package io.vidocq.tools.dashboard.ui;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
+import io.vidocq.tools.dashboard.i18n.Messages;
 import io.vidocq.tools.dashboard.domain.Formats;
 import io.vidocq.tools.dashboard.forge.ForgeLinks;
 import io.vidocq.tools.dashboard.store.CommitStat;
@@ -19,6 +20,8 @@ import java.util.List;
  * agents and the Claude session when the trailers name them.
  */
 public class CommitterDetailsDrawer extends Div {
+
+    private final Messages messages = Texts.current();
 
     static final int MAX = 50;
 
@@ -56,7 +59,7 @@ public class CommitterDetailsDrawer extends Div {
     private Component line(CommitStat c, Instant now) {
         String title = c.getMessage() == null ? c.getSha() : c.getMessage().lines().findFirst().orElse(c.getSha());
         List<Component> parts = new ArrayList<>(List.of(
-                Parts.muted(Formats.relative(c.getAuthoredAt(), now)),
+                Parts.muted(Formats.relative(c.getAuthoredAt(), now, messages)),
                 new Span(c.getRepo()),
                 Parts.link(title, links.repo(c.getOrg(), c.getRepo()) + "/commit/" + c.getSha())));
         if (c.getAgentFamilies() != null) {

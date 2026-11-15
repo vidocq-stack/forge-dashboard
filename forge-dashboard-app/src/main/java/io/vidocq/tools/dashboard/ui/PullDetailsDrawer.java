@@ -3,6 +3,7 @@ package io.vidocq.tools.dashboard.ui;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
+import io.vidocq.tools.dashboard.i18n.Messages;
 import io.vidocq.tools.dashboard.live.ChangeBus;
 import io.vidocq.tools.dashboard.live.ChangeEvent;
 import io.vidocq.tools.dashboard.live.LiveState;
@@ -13,6 +14,7 @@ import io.vidocq.tools.dashboard.store.RunnerRowRepository;
 import io.vidocq.tools.dashboard.ui.model.PullDetails;
 import io.vidocq.tools.dashboard.ui.model.PullDetailsModel;
 import io.vidocq.tools.dashboard.ui.model.PullJobLine;
+import io.vidocq.tools.dashboard.ui.model.StatusLabel;
 
 import java.time.Clock;
 import java.util.Optional;
@@ -24,6 +26,8 @@ import java.util.stream.Collectors;
  * each, a known runner opening its own drawer. It follows the PR while open (PR and runner changes of the org).
  */
 public class PullDetailsDrawer extends Div {
+
+    private final Messages messages = Texts.current();
 
     private final LiveState live;
     private final JobExecutionRepository jobs;
@@ -71,7 +75,8 @@ public class PullDetailsDrawer extends Div {
         var names = runners.findByOrg(org).stream()
                 .collect(Collectors.toMap(RunnerRow::getId, RunnerRow::getName, (a, b) -> a));
         PullDetails d = PullDetailsModel.of(pr.get(),
-                jobs.findByOrgAndRepoAndPrNumberOrderByStartedAtDesc(org, repo, number), names, clock.instant());
+                jobs.findByOrgAndRepoAndPrNumberOrderByStartedAtDesc(org, repo, number), names, clock.instant(),
+                messages);
         add(new Div(new Span(d.title())));
         add(Parts.line(Badges.dot(d.state()), new Span(Badges.label(d.state()) + " · par " + d.author()),
                 Parts.link("Ouvrir sur CodeFloe", d.htmlUrl())));
@@ -96,6 +101,6 @@ public class PullDetailsDrawer extends Div {
         Component runner = j.runnerId() == null ? new Span(j.runnerName())
                 : Parts.action(j.runnerName(), () -> openRunner.accept(at, j.runnerId()));
         return Parts.line(Parts.link(j.jobName(), j.htmlUrl()), new Span("sur"), runner,
-                Parts.muted(j.status() + " · " + j.duration()));
+                Parts.muted(StatusLabel.of(j.status(), messages) + " · " + j.duration()));
     }
 }
