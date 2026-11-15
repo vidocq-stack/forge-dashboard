@@ -20,6 +20,7 @@ import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.VaadinRequest;
 import com.vaadin.flow.shared.Registration;
 import io.vidocq.tools.dashboard.auth.DashboardUser;
 import io.vidocq.tools.dashboard.collect.CollectorScheduler;
@@ -92,6 +93,10 @@ public class MainView extends VerticalLayout {
         // before any text: the panels take the language of the UI when they are built
         if (ui != null && current.language() != null) {
             ui.setLocale(Locale.forLanguageTag(current.language()));
+        } else if (ui != null && VaadinRequest.getCurrent() != null) {
+            // Vaadin prefers an exact match anywhere in the browser's list (fr-CA, en-US, en → en); the dashboard
+            // takes the first language it has, by weight, as the sign-in pages do
+            ui.setLocale(Messages.forAcceptLanguage(VaadinRequest.getCurrent().getHeader("Accept-Language")).locale());
         }
         this.messages = Texts.current();
 

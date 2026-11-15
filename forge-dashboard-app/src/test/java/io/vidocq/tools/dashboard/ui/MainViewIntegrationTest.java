@@ -95,6 +95,19 @@ class MainViewIntegrationTest {
         });
     }
 
+    /**
+     * Vaadin takes an exact match anywhere in the browser's list before a language match: for this Firefox list it
+     * would pick English. The dashboard takes the first language it has, by weight, as the sign-in pages do.
+     */
+    @Test
+    void firstBrowserLanguageWinsOverAnExactMatchFurtherDown() {
+        TestUi.get(Locale.ENGLISH, ALICE, "fr-CA,en-US;q=0.7,en;q=0.3", () -> {
+            MainView view = mainView();
+            assertEquals("fr", UI.getCurrent().getLocale().getLanguage());
+            return button(view, "Projets");
+        });
+    }
+
     @Test
     void savedLanguageWinsOverTheBrowser() {
         InProcessApp.bean(UserPrefs.class).save(UserPreferences.defaults("alice").withLanguage("de"));

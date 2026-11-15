@@ -18,8 +18,9 @@ les commiters. Le reste revient en tournant le téléphone (ou sur un écran plu
 
 ## Langues
 
-L'interface existe en français, anglais, allemand et néerlandais. Elle prend la langue du navigateur, la plus
-proche des quatre (`de-CH` donne l'allemand), et l'anglais pour toute autre langue. Chacun peut en choisir une dans
+L'interface existe en français, anglais, allemand et néerlandais. Elle prend la première des quatre dans la
+liste du navigateur, variantes régionales comprises (`de-CH` donne l'allemand, `fr-CA,en-US` le français), et
+l'anglais si aucune n'y figure. Chacun peut en choisir une dans
 le menu de son avatar (« Langue ») : le choix est mémorisé, « Navigateur » revient à la langue du navigateur. Les
 pages de connexion et de déconnexion suivent la langue du navigateur. Les données restent telles que CodeFloe les
 donne : noms d'org, de repo et de runner, titres de PR, auteurs, familles d'agents.
