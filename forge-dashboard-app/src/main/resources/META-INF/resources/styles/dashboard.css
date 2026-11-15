@@ -15,3 +15,27 @@
   --lumo-warning-color: #b45309;
   --dash-border: #c9ced6;
 }
+
+/* Grids: header row in small bold capitals on grey, ruled from the body; body rows separated by a firm line. */
+vaadin-grid::part(header-cell) {
+  background: #e9ecf1;
+  color: #0b0f14;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1.5px solid #0b0f14;
+}
+
+vaadin-grid::part(body-cell) {
+  border-top-color: var(--dash-border);
+}
+
+/* Projects in error (Theme.ERROR_ROW): a red tint and a red edge on the left. */
+vaadin-grid::part(error) {
+  background: #fdf0f0;
+}
+
+vaadin-grid::part(error first-column-cell) {
+  box-shadow: inset 4px 0 #c81e1e;
+}

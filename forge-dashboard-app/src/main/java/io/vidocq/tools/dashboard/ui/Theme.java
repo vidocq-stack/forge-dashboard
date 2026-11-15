@@ -14,8 +14,11 @@ final class Theme {
     /** The CSS classes the views use. */
     static final List<String> CLASSES = List.of();
 
+    /** Cells of a projects grid row in error (red main, red pull request, failed gate). */
+    static final String ERROR_ROW = "error";
+
     /** The grid parts the views set. */
-    static final List<String> PARTS = List.of();
+    static final List<String> PARTS = List.of(ERROR_ROW);
 
     private Theme() {
     }

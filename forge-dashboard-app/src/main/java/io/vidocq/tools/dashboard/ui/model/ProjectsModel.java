@@ -66,7 +66,7 @@ public final class ProjectsModel {
                 s == null || s.gate() == null ? GateStatus.NONE : s.gate(),
                 green, red, r.pulls().size() - green - red,
                 r.lastCommitAt() == null ? DASH : Formats.relative(r.lastCommitAt(), now, m),
-                r.htmlUrl());
+                r.htmlUrl(), severity(r) < 3);
     }
 
     private static int count(List<PullView> pulls, CiState state) {

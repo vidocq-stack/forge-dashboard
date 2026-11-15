@@ -49,7 +49,7 @@ class ProjectsModelTest {
                 List.of(pull("vauban", 1, CiState.SUCCESS), pull("vauban", 2, CiState.PENDING)))).getFirst();
 
         assertEquals(new ProjectRow("vauban", CiState.SUCCESS, "41.8k", "2077", "86.9%", GateStatus.OK, 1, 0, 1,
-                "il y a 2 h", "https://codefloe.com/Vidocq/vauban"), row);
+                "il y a 2 h", "https://codefloe.com/Vidocq/vauban", false), row);
     }
 
     @Test
@@ -113,6 +113,19 @@ class ProjectsModelTest {
                 repo("moreTests", CiState.SUCCESS, sonar(5_000L, 80L, 90.0, GateStatus.OK), List.of()));
         assertEquals(List.of("moreTests", "fewTests", "small", "low", "noCoverage", "none"),
                 rows.stream().map(ProjectRow::repo).toList());
+    }
+
+    /** The rows the grid marks in red are the ones the sort puts first, for the same reasons. */
+    @Test
+    void errorRowsAreTheOnesSortedFirst() {
+        List<ProjectRow> rows = rows(
+                repo("main", CiState.FAILURE, null, List.of()),
+                repo("pull", CiState.SUCCESS, null, List.of(pull("pull", 1, CiState.FAILURE))),
+                repo("gate", CiState.SUCCESS, sonar(1_000L, 100L, 90.0, GateStatus.ERROR), List.of()),
+                repo("draft", CiState.SUCCESS, null, List.of(pull("draft", 2, CiState.FAILURE, "WIP: x"))),
+                repo("healthy", CiState.SUCCESS, sonar(1_000L, 100L, 90.0, GateStatus.OK), List.of()));
+        assertEquals(List.of("main:true", "pull:true", "gate:true", "healthy:false", "draft:false"),
+                rows.stream().map(r -> r.repo() + ":" + r.error()).toList());
     }
 
     @Test

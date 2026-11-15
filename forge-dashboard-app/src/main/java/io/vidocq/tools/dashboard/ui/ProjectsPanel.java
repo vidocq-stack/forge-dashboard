@@ -58,7 +58,9 @@ public class ProjectsPanel extends Div {
         this.drawers = new Drawers(live, bus, jobs, runners, clock);
         setWidthFull();
 
-        grid.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_ROW_STRIPES);
+        grid.addThemeVariants(GridVariant.LUMO_COMPACT);
+        // projects in error stand out in red; separators rather than stripes, which the red tint would clash with
+        grid.setPartNameGenerator(r -> r.error() ? Theme.ERROR_ROW : null);
         grid.setAllRowsVisible(true);
         grid.setSelectionMode(Grid.SelectionMode.NONE);
         grid.addComponentColumn(r -> Parts.link(r.repo(), r.htmlUrl())).setHeader(messages.text("projects.column.repo"))
