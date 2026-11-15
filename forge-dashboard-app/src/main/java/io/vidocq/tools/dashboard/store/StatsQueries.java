@@ -2,7 +2,9 @@ package io.vidocq.tools.dashboard.store;
 
 import io.vidocq.tools.dashboard.domain.CommitKind;
 import io.vidocq.tools.dashboard.domain.Interval;
+import io.vidocq.tools.dashboard.domain.JobKey;
 import io.vidocq.tools.dashboard.domain.StatusSpan;
+import io.vidocq.tools.dashboard.domain.UsualDurations;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
@@ -12,11 +14,14 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -30,6 +35,19 @@ public class StatsQueries {
             SELECT runner_id, started_at, stopped_at FROM job_execution
              WHERE org = ? AND runner_id IS NOT NULL AND started_at < ? AND (stopped_at IS NULL OR stopped_at > ?)
              ORDER BY runner_id, started_at""";
+
+    /**
+     * The last successful runs of each job of an org over 30 days, at most {@code ?} per job. The window keeps the
+     * query on the (org, stopped_at) index: the runners loop asks every 15 s.
+     */
+    private static final String LAST_SUCCESSES = """
+            SELECT repo, job_name, round(extract(epoch FROM stopped_at - started_at) * 1000) FROM (
+                SELECT repo, job_name, started_at, stopped_at,
+                       row_number() OVER (PARTITION BY repo, job_name ORDER BY stopped_at DESC) AS recent
+                  FROM job_execution
+                 WHERE org = ? AND stopped_at > now() - interval '30 days' AND status = 'success'
+                   AND job_name IS NOT NULL) runs
+             WHERE recent <= ?""";
 
     private static final String STATUS_CHANGES = """
             SELECT runner_id, status, changed_at FROM (
@@ -75,6 +93,17 @@ public class StatsQueries {
      * The jobs of {@code org} with a known runner that overlap {@code [from, to)}, unclipped: the caller clips them to
      * its window. A job still running has a null stop.
      */
+    /** Each job of the org with enough successful runs, and its usual duration (see {@link UsualDurations}). */
+    public Map<JobKey, Duration> usualDurations(String org) {
+        Map<JobKey, List<Duration>> runs = new HashMap<>();
+        query(LAST_SUCCESSES, List.of(org, UsualDurations.LAST_RUNS), rs -> runs
+                .computeIfAbsent(new JobKey(rs.getString(1), rs.getString(2)), k -> new ArrayList<>())
+                .add(Duration.ofMillis(rs.getLong(3))));
+        Map<JobKey, Duration> usual = new HashMap<>();
+        runs.forEach((job, durations) -> UsualDurations.median(durations).ifPresent(d -> usual.put(job, d)));
+        return usual;
+    }
+
     public List<Interval> jobIntervals(String org, Instant from, Instant to) {
         return query(JOB_INTERVALS, List.of(org, at(to), at(from)),
                 rs -> new Interval(rs.getLong(1), instant(rs, 2), instant(rs, 3)));
