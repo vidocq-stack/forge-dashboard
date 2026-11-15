@@ -18,19 +18,19 @@ les commiters. Le reste revient en tournant le téléphone (ou sur un écran plu
 
 ## Langues
 
-L'interface existe en français, anglais, allemand et néerlandais. Elle prend la première des quatre dans la
-liste du navigateur, variantes régionales comprises (`de-CH` donne l'allemand, `fr-CA,en-US` le français), et
-l'anglais si aucune n'y figure. Chacun peut en choisir une dans
-le menu de son avatar (« Langue ») : le choix est mémorisé, « Navigateur » revient à la langue du navigateur. Les
-pages de connexion et de déconnexion suivent la langue du navigateur. Les données restent telles que CodeFloe les
-donne : noms d'org, de repo et de runner, titres de PR, auteurs, familles d'agents.
+L'interface existe en français, anglais, allemand, espagnol, italien, néerlandais et polonais. Elle prend la première
+de ces langues dans la liste du navigateur, variantes régionales comprises (`de-CH` donne l'allemand, `fr-CA,en-US` le
+français), et l'anglais si aucune n'y figure. Chacun peut en choisir une dans le menu de son avatar (« Langue ») : le
+choix est mémorisé, « Navigateur » revient à la langue du navigateur. Les pages de connexion et de déconnexion suivent
+la langue du navigateur. Les données restent telles que CodeFloe les donne : noms d'org, de repo et de runner, titres
+de PR, auteurs, familles d'agents.
 
-Les textes sont dans `forge-dashboard-app/src/main/resources/i18n/` : `messages.properties` (anglais, le repli),
-`messages_fr.properties`, `messages_de.properties` et `messages_nl.properties`, en UTF-8, au format `MessageFormat`
-(`{0}` pour une valeur, les apostrophes écrites telles quelles). Les traductions anglaise, allemande et néerlandaise
-ont été écrites par Claude : corrections bienvenues de la part de locuteurs natifs, par une PR qui ne touche qu'au
-fichier de leur langue. Un test vérifie que les quatre fichiers ont les mêmes clés et les mêmes paramètres. Pour
-ajouter une langue : son fichier, et son entrée dans `Messages.LANGUAGES` (`i18n/Messages.java`).
+Les textes sont dans `forge-dashboard-app/src/main/resources/i18n/` : `messages.properties` (anglais, le repli), puis
+un fichier `messages_<langue>.properties` par langue (`de`, `es`, `fr`, `it`, `nl`, `pl`), en UTF-8, au format
+`MessageFormat` (`{0}` pour une valeur, les apostrophes écrites telles quelles). Toutes les traductions sauf le
+français ont été écrites par Claude : corrections bienvenues de la part de locuteurs natifs, par une PR qui ne touche
+qu'au fichier de leur langue. Un test vérifie que chaque langue de `Messages.LANGUAGES` a les clés et les paramètres
+de l'anglais. Pour ajouter une langue : son fichier, et son entrée dans `Messages.LANGUAGES` (`i18n/Messages.java`).
 
 ## Stack
 
