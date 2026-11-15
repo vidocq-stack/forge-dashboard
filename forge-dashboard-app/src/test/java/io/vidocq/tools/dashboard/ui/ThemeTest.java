@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -45,7 +46,9 @@ class ThemeTest {
     @Test
     void everyThemeClassAndPartIsStyled() {
         String css = css();
-        Theme.CLASSES.forEach(name -> assertTrue(css.contains("." + name), "no rule for ." + name));
+        // ".dash-pill" must have its own rule, not only be the start of ".dash-pill-ok"
+        Theme.CLASSES.forEach(name -> assertTrue(Pattern.compile("\\." + Pattern.quote(name) + "(?![\\w-])")
+                .matcher(css).find(), "no rule for ." + name));
         Theme.PARTS.forEach(name -> assertTrue(css.contains("::part(" + name), "no rule for ::part(" + name + ")"));
     }
 }

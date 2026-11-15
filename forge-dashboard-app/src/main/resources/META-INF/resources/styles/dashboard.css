@@ -39,3 +39,49 @@ vaadin-grid::part(error) {
 vaadin-grid::part(error first-column-cell) {
   box-shadow: inset 4px 0 #c81e1e;
 }
+
+/* Pills (Theme.PILL…): a Sonar gate, the PR counts. Tabular figures so the counts line up from row to row. */
+.dash-pill {
+  display: inline-block;
+  min-width: 1.4em;
+  padding: 1px 6px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.dash-pill-ok {
+  background: #dcf5e5;
+  color: #065f2e;
+  border-color: #0a7a3d;
+}
+
+.dash-pill-err {
+  background: #c81e1e;
+  color: #ffffff;
+}
+
+.dash-pill-warn,
+.dash-pill-pending {
+  background: #fdecc8;
+  color: #7a3a00;
+}
+
+.dash-pill-zero {
+  background: #eef0f3;
+  color: #8a929e;
+}
+
+.dash-pills {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.dash-muted {
+  color: var(--lumo-secondary-text-color);
+}

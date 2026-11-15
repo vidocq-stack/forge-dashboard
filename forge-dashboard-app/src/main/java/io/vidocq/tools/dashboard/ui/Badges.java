@@ -4,8 +4,9 @@ import com.vaadin.flow.component.html.Span;
 import io.vidocq.tools.dashboard.i18n.Messages;
 import io.vidocq.tools.dashboard.domain.CiState;
 import io.vidocq.tools.dashboard.sonar.GateStatus;
+import io.vidocq.tools.dashboard.ui.model.ProjectRow;
 
-/** The small coloured marks of the panels: a CI state dot, a Sonar gate label. */
+/** The small coloured marks of the panels: a CI state dot, a Sonar gate pill, the PR count pills. */
 final class Badges {
 
     private static final String GREEN = "var(--lumo-success-color)";
@@ -36,15 +37,36 @@ final class Badges {
         return m.text("badge." + (state == null ? CiState.NONE : state).name());
     }
 
+    /** The PR column: green, red and running counts, one pill each (a zero in grey), spelled out in the tooltip. */
+    static Span pulls(ProjectRow row, Messages m) {
+        Span pills = new Span(count(row.prGreen(), Theme.PILL_OK), count(row.prRed(), Theme.PILL_ERR),
+                count(row.prPending(), Theme.PILL_PENDING));
+        pills.addClassName(Theme.PILLS);
+        pills.getElement().setAttribute("title",
+                m.text("projects.pullCounts", row.prGreen(), row.prRed(), row.prPending()));
+        return pills;
+    }
+
+    private static Span count(int n, String kind) {
+        Span pill = new Span(String.valueOf(n));
+        pill.addClassNames(Theme.PILL, n == 0 ? Theme.PILL_ZERO : kind);
+        return pill;
+    }
+
+    /** A Sonar quality gate as a pill: OK green, ERROR red, WARN orange; « — » without a gate. */
     static Span gate(GateStatus gate) {
         GateStatus g = gate == null ? GateStatus.NONE : gate;
-        Span span = new Span(g == GateStatus.NONE ? "—" : g.name());
-        span.getStyle().set("font-weight", g == GateStatus.NONE ? "normal" : "600").set("color", switch (g) {
-            case OK -> GREEN;
-            case ERROR -> RED;
-            case WARN -> ORANGE;
-            case NONE -> "var(--lumo-secondary-text-color)";
+        if (g == GateStatus.NONE) {
+            Span none = new Span("—");
+            none.addClassName(Theme.MUTED);
+            return none;
+        }
+        Span pill = new Span(g.name());
+        pill.addClassNames(Theme.PILL, switch (g) {
+            case OK -> Theme.PILL_OK;
+            case ERROR -> Theme.PILL_ERR;
+            default -> Theme.PILL_WARN;
         });
-        return span;
+        return pill;
     }
 }

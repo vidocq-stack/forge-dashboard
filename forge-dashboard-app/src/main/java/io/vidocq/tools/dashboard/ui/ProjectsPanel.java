@@ -115,7 +115,7 @@ public class ProjectsPanel extends Div {
     }
 
     private Component pullCounter(ProjectRow row) {
-        Button counter = new Button(row.pullCounts(), e -> {
+        Button counter = new Button(Badges.pulls(row, messages), e -> {
             boolean open = !grid.isDetailsVisible(row);
             grid.setDetailsVisible(row, open);
             if (open) {
