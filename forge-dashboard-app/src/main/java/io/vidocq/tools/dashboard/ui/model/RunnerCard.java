@@ -1,5 +1,6 @@
 package io.vidocq.tools.dashboard.ui.model;
 
+import io.vidocq.tools.dashboard.i18n.Messages;
 import io.vidocq.tools.dashboard.live.JobView;
 
 import java.util.List;
@@ -16,16 +17,14 @@ public record RunnerCard(long runnerId, String name, String status, String load,
         hourlyOccupancy = List.copyOf(hourlyOccupancy);
     }
 
-    /** {@code ● actif}, {@code ○ inactif}, {@code ✕ hors ligne}, else the CodeFloe status as is. */
-    public String label() {
-        return label(status);
+    /** {@code ● active}, {@code ○ idle}, {@code ✕ offline} in the given language, else the CodeFloe status as is. */
+    public String label(Messages m) {
+        return label(status, m);
     }
 
-    public static String label(String status) {
+    public static String label(String status, Messages m) {
         return switch (status == null ? "" : status) {
-            case "active" -> "● actif";
-            case "idle" -> "○ inactif";
-            case "offline" -> "✕ hors ligne";
+            case "active", "idle", "offline" -> m.text("runner.state." + status);
             default -> status;
         };
     }

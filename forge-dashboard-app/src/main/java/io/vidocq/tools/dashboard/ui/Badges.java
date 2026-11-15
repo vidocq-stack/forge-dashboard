@@ -1,6 +1,7 @@
 package io.vidocq.tools.dashboard.ui;
 
 import com.vaadin.flow.component.html.Span;
+import io.vidocq.tools.dashboard.i18n.Messages;
 import io.vidocq.tools.dashboard.domain.CiState;
 import io.vidocq.tools.dashboard.sonar.GateStatus;
 
@@ -15,10 +16,10 @@ final class Badges {
     private Badges() {
     }
 
-    static Span dot(CiState state) {
+    static Span dot(CiState state, Messages m) {
         Span dot = new Span("●");
         dot.getStyle().set("color", color(state)).set("font-size", "1.1em").set("line-height", "1");
-        dot.getElement().setAttribute("title", label(state));
+        dot.getElement().setAttribute("title", label(state, m));
         return dot;
     }
 
@@ -31,13 +32,8 @@ final class Badges {
         };
     }
 
-    static String label(CiState state) {
-        return switch (state == null ? CiState.NONE : state) {
-            case SUCCESS -> "vert";
-            case FAILURE -> "rouge";
-            case PENDING -> "en cours";
-            case NONE -> "aucun statut";
-        };
+    static String label(CiState state, Messages m) {
+        return m.text("badge." + (state == null ? CiState.NONE : state).name());
     }
 
     static Span gate(GateStatus gate) {

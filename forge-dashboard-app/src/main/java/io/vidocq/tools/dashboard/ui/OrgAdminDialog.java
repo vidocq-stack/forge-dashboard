@@ -10,6 +10,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import io.vidocq.tools.dashboard.auth.DashboardUser;
 import io.vidocq.tools.dashboard.collect.OrgAdmin;
 import io.vidocq.tools.dashboard.collect.OrgAdminResult;
+import io.vidocq.tools.dashboard.i18n.Messages;
 
 import java.util.function.Consumer;
 
@@ -17,14 +18,15 @@ import java.util.function.Consumer;
 final class OrgAdminDialog extends Dialog {
 
     OrgAdminDialog(OrgAdmin admin, DashboardUser user, Consumer<String> onAdded) {
-        setHeaderTitle("Suivre une org CodeFloe");
-        TextField name = new TextField("Nom de l'org");
+        Messages messages = Texts.current();
+        setHeaderTitle(messages.text("orgs.dialogTitle"));
+        TextField name = new TextField(messages.text("orgs.name"));
         name.setPlaceholder("AkoyoGames");
         name.setWidthFull();
         name.setAutofocus(true);
         Span refused = new Span();
         refused.getStyle().set("color", "var(--lumo-error-text-color)").set("font-size", "var(--lumo-font-size-s)");
-        Span hint = new Span("Le jeton de service doit pouvoir lire les runners de l'org.");
+        Span hint = new Span(messages.text("orgs.hint"));
         hint.getStyle().set("color", "var(--lumo-secondary-text-color)").set("font-size", "var(--lumo-font-size-s)");
         VerticalLayout body = new VerticalLayout(name, hint, refused);
         body.setPadding(false);
@@ -33,17 +35,17 @@ final class OrgAdminDialog extends Dialog {
         body.setMaxWidth("100%");
         add(body);
 
-        Button add = new Button("Ajouter", e -> {
+        Button add = new Button(messages.text("orgs.add"), e -> {
             switch (admin.add(name.getValue(), user)) {
                 case OrgAdminResult.Added added -> {
                     close();
                     onAdded.accept(added.org());
                 }
-                case OrgAdminResult.Rejected rejected -> refused.setText(rejected.reason());
+                case OrgAdminResult.Rejected rejected -> refused.setText(messages.text(rejected.key(), rejected.args().toArray()));
             }
         });
         add.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         add.addClickShortcut(Key.ENTER);
-        getFooter().add(new Button("Annuler", e -> close()), add);
+        getFooter().add(new Button(messages.text("orgs.cancel"), e -> close()), add);
     }
 }

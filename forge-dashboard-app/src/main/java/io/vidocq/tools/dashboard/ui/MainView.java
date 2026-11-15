@@ -6,6 +6,8 @@ import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.contextmenu.ContextMenu;
+import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.contextmenu.SubMenu;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.menubar.MenuBar;
@@ -18,11 +20,13 @@ import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.VaadinRequest;
 import com.vaadin.flow.shared.Registration;
 import io.vidocq.tools.dashboard.auth.DashboardUser;
 import io.vidocq.tools.dashboard.collect.CollectorScheduler;
 import io.vidocq.tools.dashboard.collect.OrgAdmin;
 import io.vidocq.tools.dashboard.collect.OrgRegistry;
+import io.vidocq.tools.dashboard.i18n.Messages;
 import io.vidocq.tools.dashboard.live.ChangeBus;
 import io.vidocq.tools.dashboard.live.ChangeEvent;
 import io.vidocq.tools.dashboard.ui.model.Screen;
@@ -34,14 +38,17 @@ import java.time.Clock;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
- * The dashboard: one tab per tracked org, the toggle {@code Projets | CI | Commiters} in the middle of the header,
+ * The dashboard: one tab per tracked org, the toggle {@code Projects | CI | Committers} in the middle of the header,
  * the freshness badge and the user menu on the right, and the panel of the current view for the current org below.
- * The view, the period and the org tab come back from the user's preferences; each change is saved. On a phone
- * ({@link Screen#narrow}) the toggle takes its own row and the tables keep their essential columns.
+ * The view, the period, the org tab and the language come back from the user's preferences; each change is saved. The
+ * language is the browser's (Vaadin picks it among the dashboard's) unless the user chose one in the avatar menu. On a
+ * phone ({@link Screen#narrow}) the toggle takes its own row and the tables keep their essential columns.
  */
 @Route("")
 @PageTitle("forge-dashboard")
@@ -55,6 +62,7 @@ public class MainView extends VerticalLayout {
     private final Instance<CiPanel> ci;
     private final Instance<CommittersPanel> committers;
     private final Optional<DashboardUser> user;
+    private final Messages messages;
     private final Tabs orgTabs = new Tabs();
     private final Map<Tab, String> tabOrgs = new LinkedHashMap<>();
     private final Tab addOrg = new Tab("+");
@@ -81,12 +89,22 @@ public class MainView extends VerticalLayout {
         this.committers = committers;
         this.user = CurrentUser.get();
         this.current = user.map(u -> prefs.load(u.login())).orElseGet(() -> UserPreferences.defaults("?"));
+        UI ui = UI.getCurrent();
+        // before any text: the panels take the language of the UI when they are built
+        if (ui != null && current.language() != null) {
+            ui.setLocale(Locale.forLanguageTag(current.language()));
+        } else if (ui != null && VaadinRequest.getCurrent() != null) {
+            // Vaadin prefers an exact match anywhere in the browser's list (fr-CA, en-US, en → en); the dashboard
+            // takes the first language it has, by weight, as the sign-in pages do
+            ui.setLocale(Messages.forAcceptLanguage(VaadinRequest.getCurrent().getHeader("Accept-Language")).locale());
+        }
+        this.messages = Texts.current();
 
         setSizeFull();
         setPadding(false);
         setSpacing(false);
 
-        addOrg.getElement().setAttribute("title", "Suivre une autre org");
+        addOrg.getElement().setAttribute("title", messages.text("header.followOrg"));
         orgTabs.addSelectedChangeListener(e -> {
             if (!e.isFromClient()) {
                 return;
@@ -100,6 +118,9 @@ public class MainView extends VerticalLayout {
                 showContent();
             }
         });
+        // shrink to the left section and scroll, rather than slide under the badge (a flex item keeps its content
+        // width by default)
+        orgTabs.getStyle().set("min-width", "0");
         HorizontalLayout left = section(orgTabs);
         right = section(new FreshnessBadge(collector::health, clock, bus), userMenu());
         right.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
@@ -114,12 +135,13 @@ public class MainView extends VerticalLayout {
         add(header, content);
         setFlexGrow(1, content);
 
-        UI ui = UI.getCurrent();
         narrow = ui != null && Screen.narrow(windowWidth(ui));
         layout();
         refreshTabs();
         LiveBinding.bind(this, bus, e -> e instanceof ChangeEvent.OrgsChanged, this::refreshTabs);
         addAttachListener(e -> {
+            // the page came with the browser's language (DashboardI18NProvider); the user's choice may differ
+            e.getUI().getPage().executeJs("document.documentElement.lang = $0", messages.locale().toLanguageTag());
             narrow(Screen.narrow(windowWidth(e.getUI())));
             resize = e.getUI().getPage().addBrowserWindowResizeListener(r -> narrow(Screen.narrow(r.getWidth())));
         });
@@ -188,7 +210,7 @@ public class MainView extends VerticalLayout {
         group.setSpacing(false);
         group.getStyle().set("gap", "2px");
         for (ViewMode mode : ViewMode.values()) {
-            Button button = new Button(mode.label(), e -> {
+            Button button = new Button(messages.text(mode.key()), e -> {
                 save(current.withView(mode));
                 markToggle();
                 showContent();
@@ -213,9 +235,22 @@ public class MainView extends VerticalLayout {
         Avatar avatar = new Avatar(user.map(DashboardUser::name).orElse("?"));
         user.map(DashboardUser::pictureUrl).ifPresent(avatar::setImage);
         avatar.getElement().setAttribute("title", user.map(DashboardUser::login).orElse(""));
-        menu.addItem(avatar).getSubMenu()
-                .addItem("Se déconnecter", e -> UI.getCurrent().getPage().setLocation("/oauth2/logout"));
+        SubMenu items = menu.addItem(avatar).getSubMenu();
+        SubMenu languages = items.addItem(messages.text("header.language")).getSubMenu();
+        languageItem(languages, messages.text("header.language.browser"), null);
+        Messages.LANGUAGES.forEach(l -> languageItem(languages, l.name(), l.tag()));
+        items.addItem(messages.text("header.signOut"), e -> UI.getCurrent().getPage().setLocation("/oauth2/logout"));
         return menu;
+    }
+
+    /** A language of the menu, checked when it is the user's choice ({@code null}: the browser's); reloads in it. */
+    private void languageItem(SubMenu languages, String text, String tag) {
+        MenuItem item = languages.addItem(text, e -> {
+            save(current.withLanguage(tag));
+            UI.getCurrent().getPage().reload();
+        });
+        item.setCheckable(true);
+        item.setChecked(Objects.equals(tag, current.language()));
     }
 
     /** The org tabs from the registry; the selected org stays when it is still tracked, else the saved one or the first. */
@@ -234,8 +269,8 @@ public class MainView extends VerticalLayout {
                 orgTabs.setSelectedTab(tab);
             }
             if (isAdmin) {
-                tab.getElement().setAttribute("title", "Clic droit : ne plus suivre " + name);
-                new ContextMenu(tab).addItem("Ne plus suivre " + name, e -> orgRemoved(name));
+                tab.getElement().setAttribute("title", messages.text("header.unfollowHint", name));
+                new ContextMenu(tab).addItem(messages.text("header.unfollow", name), e -> orgRemoved(name));
             }
         }
         if (isAdmin) {
@@ -250,7 +285,7 @@ public class MainView extends VerticalLayout {
         content.removeAll();
         shown = null;
         if (org == null) {
-            content.add(new Span("Aucune organisation suivie."));
+            content.add(new Span(messages.text("header.noOrg")));
             return;
         }
         shown = switch (current.view()) {

@@ -11,6 +11,7 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import io.vidocq.tools.dashboard.i18n.Messages;
 import io.vidocq.tools.dashboard.domain.Formats;
 import io.vidocq.tools.dashboard.forge.ForgeLinks;
 import io.vidocq.tools.dashboard.live.ChangeBus;
@@ -46,19 +47,19 @@ import java.util.stream.Stream;
 public class CommittersPanel extends Div {
 
     static final List<Integer> PERIODS = List.of(7, 30, 90);
-    static final String AGENT_SHARE_NOTE = "Part des agents = minimum (commits sans trailer comptés comme humains)";
     private static final Map<String, String> COLOURS = Map.of(
             CommitterRow.ALONE, "var(--lumo-contrast-40pct)",
             "Claude Opus", "#d97757", "Claude Sonnet", "#e8a33d", "Claude Fable", "#9c5b2e",
             "Claude Haiku", "#f0c38e", "Claude", "#c08457", "Codex", "#10a37f", "Copilot", "#6e40c9",
             "Gemini", "#4285f4", "Mistral Vibe", "#c0392b");
 
+    private final Messages messages = Texts.current();
     private final StatsQueries stats;
     private final ChangeBus bus;
     private final Clock clock;
     private final CommitterDetailsDrawer drawer;
     private final Map<Integer, Button> periodButtons = new LinkedHashMap<>();
-    private final Checkbox allOrgs = new Checkbox("Toutes les orgs");
+    private final Checkbox allOrgs = new Checkbox(messages.text("committers.allOrgs"));
     private final Div body = new Div();
     private String org;
     private int periodDays;
@@ -73,12 +74,12 @@ public class CommittersPanel extends Div {
         this.clock = clock;
         this.drawer = new CommitterDetailsDrawer(commits, links, clock);
         setWidthFull();
-        HorizontalLayout controls = new HorizontalLayout(new Span("Période"));
+        HorizontalLayout controls = new HorizontalLayout(new Span(messages.text("committers.period")));
         controls.setAlignItems(FlexComponent.Alignment.CENTER);
         controls.getStyle().set("gap", "2px").set("flex-wrap", "wrap");
         controls.setSpacing(false);
         for (int days : PERIODS) {
-            Button b = new Button(days + " j", e -> {
+            Button b = new Button(messages.text("duration.days", days), e -> {
                 periodDays = days;
                 savePeriod.accept(days);
                 markPeriod();
@@ -132,19 +133,19 @@ public class CommittersPanel extends Div {
                 .mapToLong(CommitterRow::commits).sum();
         body.removeAll();
         if (total == 0) {
-            body.add(new Span("Aucun commit sur " + periodDays + " jours"
-                    + scope.map(o -> " dans " + o).orElse("") + "."));
+            body.add(new Span(scope.map(o -> messages.text("committers.empty", periodDays, o))
+                    .orElseGet(() -> messages.text("committers.emptyAllOrgs", periodDays))));
             return;
         }
-        body.add(Parts.section("Humains"), grid(view.humans(), total, true));
+        body.add(Parts.section(messages.text("committers.humans")), grid(view.humans(), total, true));
         if (!narrow) {
             body.add(legend(view.humans()));
         }
         if (view.unattributed() != null) {
-            body.add(Parts.muted(view.unattributed().commits() + " commits d'agents sans auteur retrouvé (pas de PR)."));
+            body.add(Parts.muted(messages.text("committers.unattributed", view.unattributed().commits())));
         }
         if (!view.automation().isEmpty()) {
-            body.add(Parts.section("Automatisation"), grid(view.automation(), total, false));
+            body.add(Parts.section(messages.text("committers.automation")), grid(view.automation(), total, false));
         }
     }
 
@@ -157,18 +158,18 @@ public class CommittersPanel extends Div {
                         ? Parts.action(r.humanKey(), () -> drawer.open(r.humanKey(), allOrgs.getValue() ? null : org,
                         periodDays))
                         : new Span(r.humanKey()))
-                .setHeader(people ? "Commiter" : "Compte").setAutoWidth(true).setFlexGrow(1);
-        grid.addColumn(r -> Long.toString(r.commits())).setHeader("Commits").setAutoWidth(true).setFlexGrow(0)
+                .setHeader(messages.text(people ? "committers.column.committer" : "committers.column.account")).setAutoWidth(true).setFlexGrow(1);
+        grid.addColumn(r -> Long.toString(r.commits())).setHeader(messages.text("committers.column.commits")).setAutoWidth(true).setFlexGrow(0)
                 .setTextAlign(ColumnTextAlign.END);
-        grid.addColumn(r -> percent(r.commits(), total)).setHeader("Part").setAutoWidth(true).setFlexGrow(0)
+        grid.addColumn(r -> percent(r.commits(), total)).setHeader(messages.text("committers.column.share")).setAutoWidth(true).setFlexGrow(0)
                 .setTextAlign(ColumnTextAlign.END);
         if (!narrow) {
             grid.addColumn(r -> "+" + Formats.compact(r.additions()) + " / −" + Formats.compact(r.deletions()))
-                    .setHeader("Lignes").setAutoWidth(true).setFlexGrow(0);
+                    .setHeader(messages.text("committers.column.lines")).setAutoWidth(true).setFlexGrow(0);
             if (people) {
-                grid.addColumn(r -> r.prsOpened() + " / " + r.prsMerged()).setHeader("PR ouvertes / mergées")
+                grid.addColumn(r -> r.prsOpened() + " / " + r.prsMerged()).setHeader(messages.text("committers.column.pulls"))
                         .setAutoWidth(true).setFlexGrow(0);
-                grid.addComponentColumn(CommittersPanel::bar).setHeader("Avec agents").setWidth("14rem")
+                grid.addComponentColumn(this::bar).setHeader(messages.text("committers.column.agents")).setWidth("14rem")
                         .setFlexGrow(0);
             }
         }
@@ -177,7 +178,7 @@ public class CommittersPanel extends Div {
     }
 
     /** One segment per part, its width the share of the part; several agents on a commit count in each. */
-    static Component bar(CommitterRow r) {
+    private Component bar(CommitterRow r) {
         long scale = Math.max(r.commits(), r.breakdownTotal());
         Div bar = new Div();
         bar.getStyle().set("display", "flex").set("width", "12rem").set("height", "0.8rem")
@@ -189,15 +190,15 @@ public class CommittersPanel extends Div {
                     .set("background", colour(part));
             bar.add(segment);
         });
-        String parts = r.breakdown().entrySet().stream().map(e -> e.getKey() + " " + e.getValue())
+        String parts = r.breakdown().entrySet().stream().map(e -> part(e.getKey()) + " " + e.getValue())
                 .collect(Collectors.joining(" · "));
         String note = r.breakdownTotal() > r.commits()
-                ? "\nDes commits ont plusieurs agents : chacun compte dans chaque famille." : "";
-        bar.getElement().setAttribute("title", parts + note + "\n" + AGENT_SHARE_NOTE);
+                ? "\n" + messages.text("committers.multipleAgents") : "";
+        bar.getElement().setAttribute("title", parts + note + "\n" + messages.text("committers.agentShareNote"));
         return bar;
     }
 
-    private static Component legend(List<CommitterRow> rows) {
+    private Component legend(List<CommitterRow> rows) {
         Set<String> parts = new LinkedHashSet<>();
         rows.forEach(r -> parts.addAll(r.breakdown().keySet()));
         HorizontalLayout legend = new HorizontalLayout();
@@ -207,10 +208,15 @@ public class CommittersPanel extends Div {
         parts.forEach(p -> {
             Span swatch = new Span("■");
             swatch.getStyle().set("color", colour(p));
-            legend.add(new Span(swatch, new Span(" " + p)));
+            legend.add(new Span(swatch, new Span(" " + part(p))));
         });
-        legend.getElement().setAttribute("title", AGENT_SHARE_NOTE);
+        legend.getElement().setAttribute("title", messages.text("committers.agentShareNote"));
         return legend;
+    }
+
+    /** A part of the commits as shown: an agent family as is, the commits without agent in the user's language. */
+    private String part(String key) {
+        return CommitterRow.ALONE.equals(key) ? messages.text("committers.alone") : key;
     }
 
     static String colour(String part) {

@@ -3,6 +3,7 @@ package io.vidocq.tools.dashboard.ui;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
+import io.vidocq.tools.dashboard.i18n.Messages;
 import io.vidocq.tools.dashboard.live.ChangeBus;
 import io.vidocq.tools.dashboard.live.ChangeEvent;
 import io.vidocq.tools.dashboard.live.LiveState;
@@ -13,6 +14,7 @@ import io.vidocq.tools.dashboard.store.RunnerRowRepository;
 import io.vidocq.tools.dashboard.ui.model.PullDetails;
 import io.vidocq.tools.dashboard.ui.model.PullDetailsModel;
 import io.vidocq.tools.dashboard.ui.model.PullJobLine;
+import io.vidocq.tools.dashboard.ui.model.StatusLabel;
 
 import java.time.Clock;
 import java.util.Optional;
@@ -24,6 +26,8 @@ import java.util.stream.Collectors;
  * each, a known runner opening its own drawer. It follows the PR while open (PR and runner changes of the org).
  */
 public class PullDetailsDrawer extends Div {
+
+    private final Messages messages = Texts.current();
 
     private final LiveState live;
     private final JobExecutionRepository jobs;
@@ -61,32 +65,34 @@ public class PullDetailsDrawer extends Div {
 
     private void refresh() {
         removeAll();
-        add(Parts.drawerTop(repo + " #" + number, this::close));
+        add(Parts.drawerTop(repo + " #" + number, this::close, messages));
         Optional<PullView> pr = live.snapshot(org).repos().stream().filter(r -> r.name().equals(repo))
                 .flatMap(r -> r.pulls().stream()).filter(p -> p.number() == number).findFirst();
         if (pr.isEmpty()) {
-            add(new Span("Cette PR n'est plus ouverte."));
+            add(new Span(messages.text("pull.closed")));
             return;
         }
         var names = runners.findByOrg(org).stream()
                 .collect(Collectors.toMap(RunnerRow::getId, RunnerRow::getName, (a, b) -> a));
         PullDetails d = PullDetailsModel.of(pr.get(),
-                jobs.findByOrgAndRepoAndPrNumberOrderByStartedAtDesc(org, repo, number), names, clock.instant());
+                jobs.findByOrgAndRepoAndPrNumberOrderByStartedAtDesc(org, repo, number), names, clock.instant(),
+                messages);
         add(new Div(new Span(d.title())));
-        add(Parts.line(Badges.dot(d.state()), new Span(Badges.label(d.state()) + " · par " + d.author()),
-                Parts.link("Ouvrir sur CodeFloe", d.htmlUrl())));
+        add(Parts.line(Badges.dot(d.state(), messages),
+                new Span(messages.text("pull.stateBy", Badges.label(d.state(), messages), d.author())),
+                Parts.link(messages.text("pull.openOnCodefloe"), d.htmlUrl())));
 
-        add(Parts.section("Contrôles CI"));
+        add(Parts.section(messages.text("pull.checks")));
         if (d.contexts().isEmpty()) {
-            add(Parts.muted("Aucun statut."));
+            add(Parts.muted(messages.text("pull.noStatus")));
         }
-        d.contexts().forEach(c -> add(Parts.line(Badges.dot(c.state()),
+        d.contexts().forEach(c -> add(Parts.line(Badges.dot(c.state(), messages),
                 c.targetUrl() == null ? new Span(c.context()) : Parts.link(c.context(), c.targetUrl()))));
-        add(Parts.line(new Span("Sonar :"), Badges.gate(d.sonarGate())));
+        add(Parts.line(new Span(messages.text("pull.sonar")), Badges.gate(d.sonarGate())));
 
-        add(Parts.section("Jobs du dernier run"));
+        add(Parts.section(messages.text("pull.lastRunJobs")));
         if (d.lastRunJobs().isEmpty()) {
-            add(Parts.muted("Aucun job vu par le dashboard."));
+            add(Parts.muted(messages.text("pull.noJobs")));
         }
         d.lastRunJobs().forEach(j -> add(jobLine(j)));
     }
@@ -95,7 +101,7 @@ public class PullDetailsDrawer extends Div {
         String at = org;
         Component runner = j.runnerId() == null ? new Span(j.runnerName())
                 : Parts.action(j.runnerName(), () -> openRunner.accept(at, j.runnerId()));
-        return Parts.line(Parts.link(j.jobName(), j.htmlUrl()), new Span("sur"), runner,
-                Parts.muted(j.status() + " · " + j.duration()));
+        return Parts.line(Parts.link(j.jobName(), j.htmlUrl()), new Span(messages.text("pull.on")), runner,
+                Parts.muted(StatusLabel.of(j.status(), messages) + " · " + j.duration()));
     }
 }

@@ -5,6 +5,7 @@ import com.vaadin.flow.component.html.Span;
 import io.vidocq.tools.dashboard.testing.InProcessApp;
 import org.junit.jupiter.api.Test;
 
+import java.util.Locale;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -14,7 +15,7 @@ class CiPanelIntegrationTest {
 
     @Test
     void emptyOrgSaysTheCollectionIsComing() {
-        CiPanel panel = InProcessApp.bean(CiPanel.class).forOrg("Nobody");
+        CiPanel panel = TestUi.get(Locale.FRENCH, () -> InProcessApp.bean(CiPanel.class).forOrg("Nobody"));
         assertTrue(descendants(panel).anyMatch(c -> c instanceof Span s && s.getText().contains("Aucun runner")),
                 "the empty state is shown");
     }

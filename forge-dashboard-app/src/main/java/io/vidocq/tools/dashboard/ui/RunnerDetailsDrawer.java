@@ -3,6 +3,7 @@ package io.vidocq.tools.dashboard.ui;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
+import io.vidocq.tools.dashboard.i18n.Messages;
 import io.vidocq.tools.dashboard.domain.Formats;
 import io.vidocq.tools.dashboard.live.ChangeBus;
 import io.vidocq.tools.dashboard.live.ChangeEvent;
@@ -14,6 +15,7 @@ import io.vidocq.tools.dashboard.store.JobExecutionRepository;
 import io.vidocq.tools.dashboard.ui.model.RunnerCard;
 import io.vidocq.tools.dashboard.ui.model.RunnerDetailsModel;
 import io.vidocq.tools.dashboard.ui.model.RunnerPrGroup;
+import io.vidocq.tools.dashboard.ui.model.StatusLabel;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -26,6 +28,8 @@ import java.util.function.BiConsumer;
  * ref), each linked to CodeFloe; an open PR opens its own drawer. It follows the runner while open.
  */
 public class RunnerDetailsDrawer extends Div {
+
+    private final Messages messages = Texts.current();
 
     static final Duration RECENT = Duration.ofDays(7);
     static final int GROUPS = 20;
@@ -62,40 +66,43 @@ public class RunnerDetailsDrawer extends Div {
     private void refresh() {
         removeAll();
         Optional<RunnerView> runner = live.snapshot(org).runners().stream().filter(r -> r.id() == runnerId).findFirst();
-        add(Parts.drawerTop(runner.map(RunnerView::name).orElse("Runner " + runnerId), this::close));
+        add(Parts.drawerTop(runner.map(RunnerView::name).orElseGet(() -> messages.text("runner.title", String.valueOf(runnerId))),
+                this::close, messages));
         if (runner.isEmpty()) {
-            add(new Span("Ce runner n'est plus listé par CodeFloe."));
+            add(new Span(messages.text("runner.gone")));
             return;
         }
         RunnerView r = runner.get();
         Instant now = clock.instant();
-        add(Parts.line(new Span(RunnerCard.label(r.status())),
+        add(Parts.line(new Span(RunnerCard.label(r.status(), messages)),
                 Parts.muted(r.running().size() + "/" + r.capacity() + " · " + String.join(", ", r.labels()))));
 
-        add(Parts.section("En cours (" + r.running().size() + ")"));
+        add(Parts.section(messages.text("runner.running", r.running().size())));
         if (r.running().isEmpty()) {
-            add(Parts.muted("Aucun job."));
+            add(Parts.muted(messages.text("runner.noJob")));
         }
         r.running().forEach(j -> add(Parts.line(target(j.repo(), j.prNumber(), j.ref()),
                 Parts.link(j.jobName(), j.htmlUrl()),
-                Parts.muted(j.startedAt() == null ? "" : "depuis " + Formats.duration(Duration.between(j.startedAt(), now))))));
+                Parts.muted(j.startedAt() == null ? "" : messages.text("runner.since",
+                        Formats.duration(Duration.between(j.startedAt(), now), messages))))));
 
-        add(Parts.section("Récents (7 j)"));
+        add(Parts.section(messages.text("runner.recent", messages.text("duration.days", 7))));
         var groups = RunnerDetailsModel.groups(
                 jobs.findByRunnerIdAndStartedAtGreaterThanOrderByStartedAtDesc(runnerId, now.minus(RECENT)), GROUPS);
         if (groups.isEmpty()) {
-            add(Parts.muted("Aucun job sur 7 jours."));
+            add(Parts.muted(messages.text("runner.noRecent", 7)));
         }
         groups.forEach(g -> add(group(g, now)));
     }
 
     private Component group(RunnerPrGroup g, Instant now) {
         Div group = new Div(Parts.line(target(g.repo(), g.prNumber(), g.ref()),
-                Parts.muted(g.jobs().size() + " job" + (g.jobs().size() > 1 ? "s" : ""))));
+                Parts.muted(messages.text("runner.jobs", g.jobs().size()))));
         group.getStyle().set("margin-bottom", "var(--lumo-space-s)");
         for (JobView j : g.jobs()) {
             Div line = new Div(Parts.line(Parts.link(j.jobName() == null ? "job" : j.jobName(), j.htmlUrl()),
-                    Parts.muted(j.status() + (j.startedAt() == null ? "" : " · " + Formats.relative(j.startedAt(), now)))));
+                    Parts.muted(StatusLabel.of(j.status(), messages)
+                            + (j.startedAt() == null ? "" : " · " + Formats.relative(j.startedAt(), now, messages)))));
             line.getStyle().set("padding-left", "var(--lumo-space-m)");
             group.add(line);
         }
@@ -111,6 +118,6 @@ public class RunnerDetailsDrawer extends Div {
         Optional<PullView> pr = live.snapshot(org).repos().stream().filter(r -> r.name().equals(repo))
                 .flatMap(r -> r.pulls().stream()).filter(p -> p.number() == prNumber).findFirst();
         return pr.<Component>map(p -> Parts.action(repo + " #" + prNumber + " " + p.title(), () -> openPull.accept(at, p)))
-                .orElseGet(() -> new Span(repo + " #" + prNumber + " (fermée)"));
+                .orElseGet(() -> new Span(messages.text("runner.closedPull", repo, String.valueOf(prNumber))));
     }
 }

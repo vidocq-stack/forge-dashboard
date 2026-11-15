@@ -4,7 +4,9 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Locale;
 
-/** Short French renderings of counts, ages and durations, for dense tables. */
+import io.vidocq.tools.dashboard.i18n.Messages;
+
+/** Short renderings of counts, ages and durations, for dense tables; ages and durations in the given language. */
 public final class Formats {
 
     private Formats() {
@@ -22,30 +24,38 @@ public final class Formats {
         return String.format(Locale.ROOT, "%.1fM", n / 1_000_000.0);
     }
 
-    /** {@code il y a 8 s}, {@code il y a 3 min}, {@code il y a 2 h}, {@code il y a 4 j}; a future instant is 0 s. */
-    public static String relative(Instant t, Instant now) {
+    /**
+     * {@code 8 s ago}, {@code il y a 3 min}, {@code vor 2 h}, {@code 4 d geleden}: seconds, minutes, hours or days; a
+     * future instant is 0 s.
+     */
+    public static String relative(Instant t, Instant now, Messages m) {
         long s = Math.max(0, Duration.between(t, now).toSeconds());
+        String age;
         if (s < 60) {
-            return "il y a " + s + " s";
+            age = m.text("duration.seconds", s);
+        } else if (s < 3_600) {
+            age = m.text("duration.minutes", s / 60);
+        } else if (s < 86_400) {
+            age = m.text("duration.hours", s / 3_600);
+        } else {
+            age = m.text("duration.days", s / 86_400);
         }
-        if (s < 3_600) {
-            return "il y a " + s / 60 + " min";
-        }
-        if (s < 86_400) {
-            return "il y a " + s / 3_600 + " h";
-        }
-        return "il y a " + s / 86_400 + " j";
+        return m.text("duration.ago", age);
     }
 
     /** {@code 42 s}, {@code 3 min 05 s}, {@code 1 h 12 min}; a negative duration is 0 s. */
-    public static String duration(Duration d) {
+    public static String duration(Duration d, Messages m) {
         long s = Math.max(0, d.toSeconds());
         if (s < 60) {
-            return s + " s";
+            return m.text("duration.seconds", s);
         }
         if (s < 3_600) {
-            return String.format(Locale.ROOT, "%d min %02d s", s / 60, s % 60);
+            return m.text("duration.minutesSeconds", s / 60, twoDigits(s % 60));
         }
-        return String.format(Locale.ROOT, "%d h %02d min", s / 3_600, s % 3_600 / 60);
+        return m.text("duration.hoursMinutes", s / 3_600, twoDigits(s % 3_600 / 60));
+    }
+
+    private static String twoDigits(long n) {
+        return String.format(Locale.ROOT, "%02d", n);
     }
 }

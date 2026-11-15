@@ -1,5 +1,6 @@
 package io.vidocq.tools.dashboard.auth;
 
+import io.vidocq.tools.dashboard.i18n.Messages;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,7 +19,9 @@ public class LogoutServlet extends HttpServlet {
         if (session != null) {
             session.invalidate();
         }
-        CallbackServlet.page(response, HttpServletResponse.SC_OK, ForbiddenPage.loggedOut());
+        // no more user: the browser's language
+        CallbackServlet.page(response, HttpServletResponse.SC_OK,
+                ForbiddenPage.loggedOut(Messages.forAcceptLanguage(request.getHeader("Accept-Language"))));
     }
 
     @Override

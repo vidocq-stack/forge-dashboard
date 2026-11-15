@@ -1,6 +1,7 @@
 package io.vidocq.tools.dashboard.ui.model;
 
 import io.vidocq.tools.dashboard.domain.CiState;
+import io.vidocq.tools.dashboard.i18n.Messages;
 import io.vidocq.tools.dashboard.live.OrgSnapshot;
 import io.vidocq.tools.dashboard.live.PullView;
 import io.vidocq.tools.dashboard.live.RepoView;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -33,7 +35,8 @@ class ProjectsModelTest {
     }
 
     private static List<ProjectRow> rows(RepoView... repos) {
-        return ProjectsModel.rows(new OrgSnapshot("Vidocq", List.of(repos), List.of(), List.of(), NOW), NOW);
+        return ProjectsModel.rows(new OrgSnapshot("Vidocq", List.of(repos), List.of(), List.of(), NOW), NOW,
+                Messages.forLocale(Locale.FRENCH));
     }
 
     @Test

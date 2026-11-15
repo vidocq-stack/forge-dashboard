@@ -11,6 +11,7 @@ import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import io.vidocq.tools.dashboard.i18n.Messages;
 
 /** The small building blocks the panels and drawers share. */
 final class Parts {
@@ -62,12 +63,12 @@ final class Parts {
     }
 
     /** The heading of a drawer, with its close button. */
-    static HorizontalLayout drawerTop(String title, Runnable close) {
+    static HorizontalLayout drawerTop(String title, Runnable close, Messages m) {
         H3 heading = new H3(title);
         heading.getStyle().set("margin", "0").set("flex", "1");
         Button x = new Button("✕", e -> close.run());
         x.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        x.getElement().setAttribute("aria-label", "Fermer");
+        x.getElement().setAttribute("aria-label", m.text("common.close"));
         HorizontalLayout top = new HorizontalLayout(heading, x);
         top.setWidthFull();
         top.setAlignItems(FlexComponent.Alignment.CENTER);

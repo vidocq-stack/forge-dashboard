@@ -19,7 +19,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -61,35 +60,33 @@ class OrgAdminIntegrationTest {
     @Test
     void inaccessibleOrgIsRejectedWithReason() {
         forge.runnersForbidden.add("AkoyoGames");
-        var result = admin.add("AkoyoGames", ADMIN);
-        assertInstanceOf(OrgAdminResult.Rejected.class, result);
-        assertTrue(((OrgAdminResult.Rejected) result).reason()
-                .startsWith("Le jeton de service n'a pas accès aux runners de AkoyoGames"), result.toString());
+        assertEquals(new OrgAdminResult.Rejected("orgs.runnersUnreadable", List.of("AkoyoGames")),
+                admin.add("AkoyoGames", ADMIN));
         assertTrue(orgs.findByName("AkoyoGames").isEmpty());
     }
 
     @Test
     void unreachableForgeIsRejectedWithReason() {
         forge.failNext("canReadRunners", new ForgeUnavailableException("CodeFloe answered 502", null));
-        var result = admin.add("AkoyoGames", ADMIN);
-        assertTrue(((OrgAdminResult.Rejected) result).reason().startsWith("CodeFloe ne répond pas"), result.toString());
+        assertEquals(new OrgAdminResult.Rejected("orgs.forgeUnreachable", List.of("CodeFloe answered 502")),
+                admin.add("AkoyoGames", ADMIN));
     }
 
     @Test
     void nonAdminIsRejected() {
-        assertEquals(new OrgAdminResult.Rejected("Réservé aux administrateurs du dashboard."),
+        assertEquals(new OrgAdminResult.Rejected("orgs.adminsOnly", List.of()),
                 admin.add("AkoyoGames", DEV));
         assertNull(forge.calls.get("canReadRunners"));
     }
 
     @Test
     void duplicateIsRejected() {
-        assertEquals(new OrgAdminResult.Rejected("Vidocq est déjà suivie."), admin.add("vidocq", ADMIN));
+        assertEquals(new OrgAdminResult.Rejected("orgs.alreadyTracked", List.of("Vidocq")), admin.add("vidocq", ADMIN));
     }
 
     @Test
     void blankNameIsRejected() {
-        assertEquals(new OrgAdminResult.Rejected("Indiquez le nom de l'org CodeFloe."), admin.add("  ", ADMIN));
+        assertEquals(new OrgAdminResult.Rejected("orgs.nameMissing", List.of()), admin.add("  ", ADMIN));
     }
 
     @Test

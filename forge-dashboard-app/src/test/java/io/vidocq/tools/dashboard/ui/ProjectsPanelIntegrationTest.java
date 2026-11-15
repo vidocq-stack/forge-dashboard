@@ -6,6 +6,7 @@ import io.vidocq.tools.dashboard.testing.InProcessApp;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -16,13 +17,30 @@ class ProjectsPanelIntegrationTest {
     /** On a phone the table keeps what is read at a glance; LOC, tests, coverage and last commit come back wider. */
     @Test
     void narrowScreenKeepsRepoMainGateAndPullRequests() {
-        ProjectsPanel panel = InProcessApp.bean(ProjectsPanel.class).forOrg("Nobody");
+        ProjectsPanel panel = TestUi.get(Locale.FRENCH, () -> InProcessApp.bean(ProjectsPanel.class).forOrg("Nobody"));
 
         panel.narrow(true);
         assertEquals(List.of("Repo", "main", "Gate", "PR"), visibleHeaders(panel));
 
         panel.narrow(false);
         assertEquals(List.of("Repo", "main", "LOC", "Tests", "Couv.", "Gate", "PR", "Dernier commit"),
+                visibleHeaders(panel));
+    }
+
+    @Test
+    void headersFollowTheUiLanguage() {
+        ProjectsPanel panel = TestUi.get(Locale.GERMAN, () -> InProcessApp.bean(ProjectsPanel.class).forOrg("Nobody"));
+
+        assertEquals(List.of("Repo", "main", "LOC", "Tests", "Abd.", "Gate", "PR", "Letzter Commit"),
+                visibleHeaders(panel));
+    }
+
+    /** Outside a UI (a test, a background thread): English. */
+    @Test
+    void englishOutsideAUi() {
+        ProjectsPanel panel = InProcessApp.bean(ProjectsPanel.class).forOrg("Nobody");
+
+        assertEquals(List.of("Repo", "main", "LOC", "Tests", "Cov.", "Gate", "PR", "Last commit"),
                 visibleHeaders(panel));
     }
 

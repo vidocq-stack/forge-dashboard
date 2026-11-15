@@ -1,6 +1,7 @@
 package io.vidocq.tools.dashboard.ui;
 
 import com.vaadin.flow.component.html.Span;
+import io.vidocq.tools.dashboard.i18n.Messages;
 import io.vidocq.tools.dashboard.live.ChangeBus;
 import io.vidocq.tools.dashboard.live.ChangeEvent;
 import io.vidocq.tools.dashboard.live.LoopHealth;
@@ -12,10 +13,12 @@ import java.util.List;
 import java.util.function.Supplier;
 
 /**
- * "frais il y a N s", or "périmé" in orange with the late loops in its tooltip. It moves on its own: every 5 s, and
- * at each health change of the collector, by push.
+ * The age of the latest collector pass ("updated 8 s ago"), or "stale" in orange with the late loops in its tooltip,
+ * in the user's language. It moves on its own: every 5 s, and at each health change of the collector, by push.
  */
 public class FreshnessBadge extends Span {
+
+    private final Messages messages = Texts.current();
 
     static final Duration TICK = Duration.ofSeconds(5);
 
@@ -32,7 +35,7 @@ public class FreshnessBadge extends Span {
     }
 
     void refresh() {
-        Freshness f = Freshness.of(health.get(), clock.instant());
+        Freshness f = Freshness.of(health.get(), clock.instant(), messages);
         setText(f.text());
         getElement().setAttribute("title", f.details());
         getStyle().set("color", f.stale()
