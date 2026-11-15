@@ -14,8 +14,7 @@ import java.util.function.Supplier;
 
 /**
  * The age of the latest collector pass ("updated 8 s ago"), or "stale" in orange with the late loops in its tooltip,
- * in the user's language. It moves on its own: every 5 s, and
- * at each health change of the collector, by push.
+ * in the user's language. It moves on its own: every 5 s, and at each health change of the collector, by push.
  */
 public class FreshnessBadge extends Span {
 

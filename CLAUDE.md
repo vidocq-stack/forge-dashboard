@@ -23,6 +23,9 @@ Spec : `docs/superpowers/specs/` ; plan v2 : `docs/superpowers/plans/2026-11-14-
 - **Runner ↔ job** : Forgejo 17 n'expose pas le runner d'un job ; il est lu dans l'en-tête du log
   (`<html_url>/logs`, Range).
 - **Commiters** : humain = auteur git, agents = trailers `Co-Authored-By`.
+- **Langues** : fr, en (repli), de, nl ; textes dans `i18n/messages*.properties` lus par `i18n/Messages` (pas de
+  `ResourceBundle`) ; langue du navigateur ou choix de l'avatar (`user_pref.language`) ; les vues prennent leur
+  `Messages` à la construction (`ui/Texts.current()`), les modèles le reçoivent en paramètre.
 
 ## Packages (`io.vidocq.tools.dashboard`)
 
@@ -37,6 +40,7 @@ Spec : `docs/superpowers/specs/` ; plan v2 : `docs/superpowers/plans/2026-11-14-
 | `auth` | OIDC, session, groupes |
 | `ui`, `ui/model`, `ui/cdi` | Vues Vaadin, modèles de vue purs (testés sans Vaadin), instanciateur CDI |
 | `config` | Alias et bots des commiters |
+| `i18n` | Langues de l'interface et leurs textes (`Messages`) |
 | `web` | `/healthz` |
 
 ## Convention écosystème (héritée du parent `vidocq/CLAUDE.md`)

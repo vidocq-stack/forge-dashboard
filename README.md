@@ -10,11 +10,26 @@ ajoute depuis l'interface). Un onglet par org, trois vues :
 - **Commiters** : commits, lignes et PR par personne, avec la part faite avec un agent (trailers
   `Co-Authored-By`) et l'automatisation à part.
 
-La vue choisie, la période et la dernière org sont mémorisées par utilisateur.
+La vue choisie, la période, la dernière org et la langue sont mémorisées par utilisateur.
 
 Sur un téléphone (fenêtre de moins de 720 px de large), le choix de la vue passe sous les onglets et les
 tableaux gardent l'essentiel : repo, `main`, gate et PR pour les projets ; commiter, commits et part pour
 les commiters. Le reste revient en tournant le téléphone (ou sur un écran plus large).
+
+## Langues
+
+L'interface existe en français, anglais, allemand et néerlandais. Elle prend la langue du navigateur, la plus
+proche des quatre (`de-CH` donne l'allemand), et l'anglais pour toute autre langue. Chacun peut en choisir une dans
+le menu de son avatar (« Langue ») : le choix est mémorisé, « Navigateur » revient à la langue du navigateur. Les
+pages de connexion et de déconnexion suivent la langue du navigateur. Les données restent telles que CodeFloe les
+donne : noms d'org, de repo et de runner, titres de PR, auteurs, familles d'agents.
+
+Les textes sont dans `forge-dashboard-app/src/main/resources/i18n/` : `messages.properties` (anglais, le repli),
+`messages_fr.properties`, `messages_de.properties` et `messages_nl.properties`, en UTF-8, au format `MessageFormat`
+(`{0}` pour une valeur, les apostrophes écrites telles quelles). Les traductions anglaise, allemande et néerlandaise
+ont été écrites par Claude : corrections bienvenues de la part de locuteurs natifs, par une PR qui ne touche qu'au
+fichier de leur langue. Un test vérifie que les quatre fichiers ont les mêmes clés et les mêmes paramètres. Pour
+ajouter une langue : son fichier, et son entrée dans `Messages.LANGUAGES` (`i18n/Messages.java`).
 
 ## Stack
 
