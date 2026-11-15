@@ -38,6 +38,8 @@ class CiPanelIntegrationTest {
         Component group = parents.getFirst();
         assertTrue(group.getElement().getClassList().contains("dash-toggle"));
         assertEquals(3, group.getChildren().count(), "only the buttons in the frame");
+        // on a phone the Polish label and the frame do not fit one row: the frame goes under its label
+        assertEquals("wrap", group.getParent().orElseThrow().getElement().getStyle().get("flex-wrap"));
     }
 
     private static Stream<Component> descendants(Component root) {

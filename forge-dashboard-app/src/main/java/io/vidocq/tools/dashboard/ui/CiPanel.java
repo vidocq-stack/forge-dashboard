@@ -67,7 +67,8 @@ public class CiPanel extends Div {
         HorizontalLayout windows = new HorizontalLayout(new Span(messages.text("ci.occupancyOver")));
         windows.setAlignItems(HorizontalLayout.Alignment.CENTER);
         windows.setSpacing(false);
-        windows.getStyle().set("gap", "var(--lumo-space-s)");
+        // wraps: on a phone the Polish label and the frame do not fit one row
+        windows.getStyle().set("gap", "var(--lumo-space-s)").set("flex-wrap", "wrap");
         HorizontalLayout group = Parts.toggle();
         WINDOWS.forEach(span -> {
             Button b = new Button(label(span), e -> {

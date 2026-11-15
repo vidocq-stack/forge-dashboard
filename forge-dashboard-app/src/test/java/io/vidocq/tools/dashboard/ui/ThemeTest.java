@@ -42,6 +42,20 @@ class ThemeTest {
         }
     }
 
+    /**
+     * The underline of the selected org tab replaces Lumo's focus ring (both are box-shadows), and the toggle's frame
+     * clips the buttons' outer ring: both get a ring of their own, or a keyboard user loses sight of the focus.
+     */
+    @Test
+    void keyboardFocusStaysVisible() {
+        // the production build minifies the stylesheet: ".a > b" becomes ".a>b"
+        String css = css().replaceAll("\\s*>\\s*", ">");
+        for (String selector : List.of(".dash-header vaadin-tab[selected][focus-ring]",
+                ".dash-toggle>vaadin-button[focus-ring]", ".dash-toggle>vaadin-button[theme~=\"primary\"][focus-ring]")) {
+            assertTrue(css.contains(selector), "no focus ring for " + selector);
+        }
+    }
+
     /** A class or a grid part a view sets with no rule in the stylesheet would change nothing on screen. */
     @Test
     void everyThemeClassAndPartIsStyled() {
