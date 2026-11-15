@@ -16,7 +16,9 @@ import io.vidocq.tools.dashboard.i18n.Messages;
 import io.vidocq.tools.dashboard.live.ChangeBus;
 import io.vidocq.tools.dashboard.live.ChangeEvent;
 import io.vidocq.tools.dashboard.live.LiveState;
+import io.vidocq.tools.dashboard.live.OrgSnapshot;
 import io.vidocq.tools.dashboard.live.PullView;
+import io.vidocq.tools.dashboard.live.RepoView;
 import io.vidocq.tools.dashboard.store.JobExecutionRepository;
 import io.vidocq.tools.dashboard.store.RunnerRowRepository;
 import io.vidocq.tools.dashboard.ui.model.ProjectRow;
@@ -30,6 +32,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 
 /**
  * The projects of an org: state of main, Sonar figures, open PRs counted by state, last commit. The PR counter
@@ -46,6 +49,7 @@ public class ProjectsPanel extends Div {
     private final Grid<ProjectRow> grid = new Grid<>();
     private final Drawers drawers;
     private final Set<String> unfolded = new HashSet<>();
+    private Shown shown;
     private final List<Grid.Column<ProjectRow>> wideOnly = new ArrayList<>();
     private String org;
 
@@ -65,7 +69,7 @@ public class ProjectsPanel extends Div {
         grid.setSelectionMode(Grid.SelectionMode.NONE);
         grid.addComponentColumn(r -> Parts.link(r.repo(), r.htmlUrl())).setHeader(messages.text("projects.column.repo"))
                 .setAutoWidth(true).setFlexGrow(1);
-        grid.addComponentColumn(r -> Badges.dot(r.main(), messages)).setHeader(messages.text("projects.column.main")).setAutoWidth(true).setFlexGrow(0)
+        grid.addComponentColumn(r -> Badges.dot(r.main(), r.mainProgress(), messages)).setHeader(messages.text("projects.column.main")).setAutoWidth(true).setFlexGrow(0)
                 .setTextAlign(ColumnTextAlign.CENTER);
         wideOnly.add(grid.addColumn(ProjectRow::loc).setHeader(messages.text("projects.column.loc")).setAutoWidth(true).setFlexGrow(0)
                 .setTextAlign(ColumnTextAlign.END));
@@ -86,8 +90,7 @@ public class ProjectsPanel extends Div {
     public ProjectsPanel forOrg(String org) {
         this.org = org;
         refresh();
-        LiveBinding.bind(this, bus, e -> e.equals(new ChangeEvent.PullsChanged(org))
-                || e.equals(new ChangeEvent.SonarChanged(org)), this::refresh);
+        LiveBinding.bind(this, bus, interest(org), this::refresh);
         return this;
     }
 
@@ -99,10 +102,25 @@ public class ProjectsPanel extends Div {
         return this;
     }
 
-    private void refresh() {
-        List<ProjectRow> rows = ProjectsModel.rows(live.snapshot(org), clock.instant(), messages);
-        grid.setItems(rows);
-        rows.stream().filter(r -> unfolded.contains(r.repo())).forEach(r -> grid.setDetailsVisible(r, true));
+    /** The PRs, Sonar, and the runners: the progress of the running builds moves with each pass of the runners. */
+    static Predicate<ChangeEvent> interest(String org) {
+        return e -> e.equals(new ChangeEvent.PullsChanged(org)) || e.equals(new ChangeEvent.SonarChanged(org))
+                || e.equals(new ChangeEvent.RunnersChanged(org));
+    }
+
+    /**
+     * Reloads the grid only when a row or a PR changed: a reload loses the keyboard focus, and the runners pass every
+     * 15 s.
+     */
+    void refresh() {
+        OrgSnapshot snapshot = live.snapshot(org);
+        List<ProjectRow> rows = ProjectsModel.rows(snapshot, clock.instant(), messages);
+        Shown next = new Shown(rows, snapshot.repos().stream().map(RepoView::pulls).toList());
+        if (!next.equals(shown)) {
+            shown = next;
+            grid.setItems(rows);
+            rows.stream().filter(r -> unfolded.contains(r.repo())).forEach(r -> grid.setDetailsVisible(r, true));
+        }
         if (rows.isEmpty()) {
             grid.setVisible(false);
             if (getChildren().noneMatch(Span.class::isInstance)) {
@@ -129,7 +147,7 @@ public class ProjectsPanel extends Div {
         return counter;
     }
 
-    private Component pullList(ProjectRow row) {
+    Component pullList(ProjectRow row) {
         VerticalLayout list = new VerticalLayout();
         list.setPadding(false);
         list.setSpacing(false);
@@ -137,16 +155,24 @@ public class ProjectsPanel extends Div {
         live.snapshot(org).repos().stream().filter(r -> r.name().equals(row.repo()))
                 .flatMap(r -> r.pulls().stream())
                 .sorted(Comparator.comparingInt(PullView::number).reversed())
-                .forEach(pr -> list.add(pullLine(pr)));
+                .forEach(pr -> list.add(pullLine(pr, row.pullProgress().get(pr.number()))));
         return list;
     }
 
-    private Component pullLine(PullView pr) {
+    /** {@code progress}: how far along its running build is, null when it has no estimate. */
+    private Component pullLine(PullView pr, String progress) {
         Button open = Parts.action("#" + pr.number() + " " + pr.title(), () -> drawers.openPull(org, pr));
         Span author = new Span(pr.author());
         author.addClassName(Theme.MUTED);
         HorizontalLayout line = new HorizontalLayout(Badges.dot(pr.state(), messages), open, author);
+        if (progress != null) {
+            line.add(Parts.muted(progress));
+        }
         line.setAlignItems(FlexComponent.Alignment.CENTER);
         return line;
+    }
+
+    /** What the grid shows: its rows and, for the unfolded lists, the PRs of each project. */
+    private record Shown(List<ProjectRow> rows, List<List<PullView>> pulls) {
     }
 }

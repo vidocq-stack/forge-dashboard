@@ -3,6 +3,7 @@ package io.vidocq.tools.dashboard.ui.model;
 import io.vidocq.tools.dashboard.domain.CiState;
 import io.vidocq.tools.dashboard.domain.Formats;
 import io.vidocq.tools.dashboard.i18n.Messages;
+import io.vidocq.tools.dashboard.live.JobView;
 import io.vidocq.tools.dashboard.live.OrgSnapshot;
 import io.vidocq.tools.dashboard.live.PullView;
 import io.vidocq.tools.dashboard.live.RepoView;
@@ -11,9 +12,12 @@ import io.vidocq.tools.dashboard.sonar.SonarMeasures;
 
 import java.time.Instant;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * The projects grid of an org. Errors first: a red main, then a red pull request that is not a draft, then a failed
@@ -34,9 +38,11 @@ public final class ProjectsModel {
     }
 
     public static List<ProjectRow> rows(OrgSnapshot snapshot, Instant now, Messages m) {
+        Map<String, List<JobView>> running = snapshot.runners().stream().flatMap(r -> r.running().stream())
+                .collect(Collectors.groupingBy(JobView::repo));
         return snapshot.repos().stream()
                 .sorted(ORDER)
-                .map(r -> row(r, now, m))
+                .map(r -> row(r, running.getOrDefault(r.name(), List.of()), now, m))
                 .toList();
     }
 
@@ -55,7 +61,8 @@ public final class ProjectsModel {
         return r.sonar() == null ? null : metric.apply(r.sonar());
     }
 
-    private static ProjectRow row(RepoView r, Instant now, Messages m) {
+    /** {@code running}: the running jobs of the project. */
+    private static ProjectRow row(RepoView r, List<JobView> running, Instant now, Messages m) {
         SonarMeasures s = r.sonar();
         int green = count(r.pulls(), CiState.SUCCESS);
         int red = count(r.pulls(), CiState.FAILURE);
@@ -66,7 +73,28 @@ public final class ProjectsModel {
                 s == null || s.gate() == null ? GateStatus.NONE : s.gate(),
                 green, red, r.pulls().size() - green - red,
                 r.lastCommitAt() == null ? DASH : Formats.relative(r.lastCommitAt(), now, m),
-                r.htmlUrl(), severity(r) < 3);
+                r.htmlUrl(), severity(r) < 3, mainProgress(r, running, now, m), pullProgress(running, now, m));
+    }
+
+    /**
+     * Main's jobs are the running jobs of the project without a PR, while main runs: otherwise they belong to another
+     * branch.
+     */
+    private static String mainProgress(RepoView r, List<JobView> running, Instant now, Messages m) {
+        return r.mainState() != CiState.PENDING ? null
+                : Progress.ofBuild(running.stream().filter(j -> j.prNumber() == null).toList(), now, m);
+    }
+
+    private static Map<Integer, String> pullProgress(List<JobView> running, Instant now, Messages m) {
+        Map<Integer, String> progress = new HashMap<>();
+        running.stream().filter(j -> j.prNumber() != null).collect(Collectors.groupingBy(JobView::prNumber))
+                .forEach((pr, jobs) -> {
+                    String p = Progress.ofBuild(jobs, now, m);
+                    if (p != null) {
+                        progress.put(pr, p);
+                    }
+                });
+        return progress;
     }
 
     private static int count(List<PullView> pulls, CiState state) {

@@ -2,9 +2,11 @@ package io.vidocq.tools.dashboard.ui.model;
 
 import io.vidocq.tools.dashboard.domain.CiState;
 import io.vidocq.tools.dashboard.i18n.Messages;
+import io.vidocq.tools.dashboard.live.JobView;
 import io.vidocq.tools.dashboard.live.OrgSnapshot;
 import io.vidocq.tools.dashboard.live.PullView;
 import io.vidocq.tools.dashboard.live.RepoView;
+import io.vidocq.tools.dashboard.live.RunnerView;
 import io.vidocq.tools.dashboard.sonar.GateStatus;
 import io.vidocq.tools.dashboard.sonar.SonarMeasures;
 import org.junit.jupiter.api.Test;
@@ -13,8 +15,10 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class ProjectsModelTest {
 
@@ -49,7 +53,7 @@ class ProjectsModelTest {
                 List.of(pull("vauban", 1, CiState.SUCCESS), pull("vauban", 2, CiState.PENDING)))).getFirst();
 
         assertEquals(new ProjectRow("vauban", CiState.SUCCESS, "41.8k", "2077", "86.9%", GateStatus.OK, 1, 0, 1,
-                "il y a 2 h", "https://codefloe.com/Vidocq/vauban", false), row);
+                "il y a 2 h", "https://codefloe.com/Vidocq/vauban", false, null, Map.of()), row);
     }
 
     @Test
@@ -135,6 +139,40 @@ class ProjectsModelTest {
         assertEquals(0, row.prGreen());
         assertEquals(1, row.prRed());
         assertEquals(1, row.prPending());
+    }
+
+    /** A job of {@code repo} running for {@code elapsedMinutes} that usually takes {@code usualMinutes}. */
+    private static JobView job(long task, String repo, Integer pr, long elapsedMinutes, long usualMinutes) {
+        return new JobView(task, task + 1000, repo, pr, null, "build", "running",
+                NOW.minus(Duration.ofMinutes(elapsedMinutes)), "u", 1219L, "r1", Duration.ofMinutes(usualMinutes));
+    }
+
+    private static ProjectRow row(RepoView repo, JobView... running) {
+        RunnerView runner = new RunnerView(1219, "r1", "active", List.of(), 4, List.of(running));
+        return ProjectsModel.rows(new OrgSnapshot("Vidocq", List.of(repo), List.of(runner), List.of(), NOW), NOW,
+                Messages.forLocale(Locale.FRENCH)).getFirst();
+    }
+
+    /** A running main and the running PRs say how far along they are: as far as their longest job. */
+    @Test
+    void runningBuildsSayHowFarAlongTheyAre() {
+        RepoView vauban = repo("vauban", CiState.PENDING, null,
+                List.of(pull("vauban", 7, CiState.PENDING), pull("vauban", 8, CiState.SUCCESS)));
+
+        ProjectRow row = row(vauban, job(1, "vauban", null, 3, 5), job(2, "vauban", 7, 1, 10),
+                job(3, "cyrano", null, 1, 2));
+
+        assertEquals("60 % · reste ~2 min", row.mainProgress());
+        assertEquals(Map.of(7, "10 % · reste ~9 min"), row.pullProgress());
+    }
+
+    /** A job without a PR while main is not running is on another branch: main says nothing. */
+    @Test
+    void mainSaysNothingUnlessItIsRunning() {
+        ProjectRow row = row(repo("vauban", CiState.SUCCESS, null, List.of()), job(1, "vauban", null, 3, 5));
+
+        assertNull(row.mainProgress());
+        assertEquals(Map.of(), row.pullProgress());
     }
 
     @Test

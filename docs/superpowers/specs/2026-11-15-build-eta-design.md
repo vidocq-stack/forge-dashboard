@@ -28,7 +28,13 @@ restant »).
      PR ;
    - vue Projets : info-bulle de la pastille `main` en cours, et lignes de PR dépliées en cours. Pour un build, on
      prend son job en cours au plus long reste. Les jobs de `main` sont les jobs en cours du dépôt sans PR.
-5. **Sans historique** (moins de 3 réussites) : rien de plus qu'aujourd'hui.
+5. **Sans historique** (moins de 3 réussites sur 30 jours) : rien de plus qu'aujourd'hui.
+6. **Pris en route** :
+   - la pastille `main` ne montre l'avancement que si `main` est en cours : sinon un job sans PR est celui d'une
+     autre branche ;
+   - une PR dépliée le montre dès qu'un de ses jobs tourne avec une estimation, quel que soit son état ;
+   - la vue Projets suit aussi les passes des runners (toutes les 15 s, au lieu des 90 s des PR), mais ne recharge
+     la grille que si une ligne ou une PR a changé : un rechargement fait perdre le focus clavier.
 
 ## Non-objectifs
 

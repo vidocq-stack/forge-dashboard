@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -21,7 +22,7 @@ class BadgesTest {
 
     private static ProjectRow row(int green, int red, int pending) {
         return new ProjectRow("vauban", CiState.SUCCESS, "—", "—", "—", GateStatus.OK, green, red, pending, "—", "u",
-                false);
+                false, null, Map.of());
     }
 
     private static List<Span> pills(Span pills) {
@@ -32,6 +33,14 @@ class BadgesTest {
         assertEquals(text, pill.getText());
         assertTrue(pill.hasClassName("dash-pill"), pill.getClassNames() + " lacks dash-pill");
         assertTrue(pill.hasClassName(kind), pill.getClassNames() + " lacks " + kind);
+    }
+
+    /** A running build's dot says how far along it is in its tooltip. */
+    @Test
+    void dotTooltipSaysHowFarAlong() {
+        assertEquals("en cours · 60 % · reste ~2 min",
+                Badges.dot(CiState.PENDING, "60 % · reste ~2 min", FR).getElement().getAttribute("title"));
+        assertEquals("en cours", Badges.dot(CiState.PENDING, null, FR).getElement().getAttribute("title"));
     }
 
     @Test

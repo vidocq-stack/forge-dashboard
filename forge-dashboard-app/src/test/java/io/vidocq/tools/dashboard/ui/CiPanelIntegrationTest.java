@@ -4,9 +4,15 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Span;
 import io.vidocq.tools.dashboard.i18n.Messages;
+import io.vidocq.tools.dashboard.live.ChangeEvent;
+import io.vidocq.tools.dashboard.live.JobView;
+import io.vidocq.tools.dashboard.live.LiveState;
+import io.vidocq.tools.dashboard.live.RunnerView;
 import io.vidocq.tools.dashboard.testing.InProcessApp;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Stream;
@@ -40,6 +46,24 @@ class CiPanelIntegrationTest {
         assertEquals(3, group.getChildren().count(), "only the buttons in the frame");
         // on a phone the Polish label and the frame do not fit one row: the frame goes under its label
         assertEquals("wrap", group.getParent().orElseThrow().getElement().getStyle().get("flex-wrap"));
+    }
+
+    /** A runner's card says how far along each running job is, after its elapsed time. */
+    @Test
+    void runnerCardsSayHowFarAlongTheJobsAre() {
+        String org = "CiProgress";
+        Instant now = Instant.now();
+        JobView job = new JobView(1, 1001, "vauban", null, "refs/heads/main", "build", "running",
+                now.minus(Duration.ofMinutes(3)), "u", 1219L, "r1", Duration.ofMinutes(5));
+        InProcessApp.bean(LiveState.class).update(org, s -> s.withRunners(
+                List.of(new RunnerView(1219, "r1", "active", List.of(), 2, List.of(job))), List.of(), now),
+                new ChangeEvent.RunnersChanged(org));
+
+        CiPanel panel = TestUi.get(Locale.FRENCH, () -> InProcessApp.bean(CiPanel.class).forOrg(org));
+
+        assertTrue(descendants(panel).anyMatch(c -> c instanceof Span s
+                        && s.getText().matches("build · 3 min 0\\d s · 60 % · reste ~2 min")),
+                "the card line of the job");
     }
 
     private static Stream<Component> descendants(Component root) {
