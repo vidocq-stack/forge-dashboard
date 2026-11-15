@@ -16,11 +16,15 @@ public class UserPrefs {
         this.repository = repository;
     }
 
-    /** The saved preferences, or the defaults for a user who never chose; a view no longer known is the default. */
+    /**
+     * The saved preferences, or the defaults for a user who never chose; a view or a language no longer known is the
+     * default.
+     */
     public UserPreferences load(String login) {
         return repository.findById(login)
                 .map(row -> new UserPreferences(login, view(row.getViewMode()),
-                        row.getPeriodDays() == null ? 0 : row.getPeriodDays(), row.getLastOrg()))
+                        row.getPeriodDays() == null ? 0 : row.getPeriodDays(), row.getLastOrg(),
+                        row.getLanguage()))
                 .orElseGet(() -> UserPreferences.defaults(login));
     }
 
@@ -30,6 +34,7 @@ public class UserPrefs {
         row.setViewMode(preferences.view().name());
         row.setPeriodDays(preferences.periodDays());
         row.setLastOrg(preferences.lastOrg());
+        row.setLanguage(preferences.language());
         repository.save(row);
     }
 
