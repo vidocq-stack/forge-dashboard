@@ -128,7 +128,7 @@ public class MainView extends VerticalLayout {
         header = new HorizontalLayout(left, toggleRow, right);
         header.setWidthFull();
         header.setAlignItems(FlexComponent.Alignment.CENTER);
-        header.getStyle().set("border-bottom", "1px solid var(--lumo-contrast-10pct)");
+        header.addClassName(Theme.HEADER);
 
         content.setSizeFull();
         content.getStyle().set("box-sizing", "border-box");
@@ -206,9 +206,7 @@ public class MainView extends VerticalLayout {
     }
 
     private HorizontalLayout viewToggle() {
-        HorizontalLayout group = new HorizontalLayout();
-        group.setSpacing(false);
-        group.getStyle().set("gap", "2px");
+        HorizontalLayout group = Parts.toggle();
         for (ViewMode mode : ViewMode.values()) {
             Button button = new Button(messages.text(mode.key()), e -> {
                 save(current.withView(mode));

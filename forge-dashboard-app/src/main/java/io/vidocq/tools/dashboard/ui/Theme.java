@@ -22,10 +22,16 @@ final class Theme {
     static final String PILLS = "dash-pills";
     /** Secondary text. */
     static final String MUTED = "dash-muted";
+    /** The main view's header, ruled from the page. */
+    static final String HEADER = "dash-header";
+    /** A framed group of buttons, the selected one filled: views, occupancy windows, periods. */
+    static final String TOGGLE = "dash-toggle";
+    /** A framed box: a runner. */
+    static final String CARD = "dash-card";
 
     /** The CSS classes the views use. */
     static final List<String> CLASSES = List.of(PILL, PILL_OK, PILL_ERR, PILL_WARN, PILL_PENDING, PILL_ZERO, PILLS,
-            MUTED);
+            MUTED, HEADER, TOGGLE, CARD);
 
     /** Cells of a projects grid row in error (red main, red pull request, failed gate). */
     static final String ERROR_ROW = "error";

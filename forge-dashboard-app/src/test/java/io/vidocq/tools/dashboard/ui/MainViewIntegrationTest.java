@@ -84,6 +84,18 @@ class MainViewIntegrationTest {
         assertEquals("0", tabs.getStyle().get("min-width"));
     }
 
+    /** The stylesheet rules the header (no inline border any more) and frames the view buttons. */
+    @Test
+    void headerAndViewToggleCarryTheThemeClasses() {
+        TestUi.run(Locale.FRENCH, () -> {
+            Component toggle = toggleRow(button(mainView(), "Projets"));
+            assertTrue(toggle.getElement().getClassList().contains("dash-toggle"), "the view buttons are a toggle");
+            Component header = toggle.getParent().orElseThrow();
+            assertTrue(header.getElement().getClassList().contains("dash-header"), "the header is themed");
+            assertNull(header.getElement().getStyle().get("border-bottom"), "the stylesheet draws its rule");
+        });
+    }
+
     /** Without a choice, the language Vaadin took from the browser; a regional variant gets its language. */
     @Test
     void browserLanguageWithoutAChoice() {

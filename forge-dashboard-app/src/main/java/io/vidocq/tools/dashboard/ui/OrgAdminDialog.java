@@ -27,7 +27,8 @@ final class OrgAdminDialog extends Dialog {
         Span refused = new Span();
         refused.getStyle().set("color", "var(--lumo-error-text-color)").set("font-size", "var(--lumo-font-size-s)");
         Span hint = new Span(messages.text("orgs.hint"));
-        hint.getStyle().set("color", "var(--lumo-secondary-text-color)").set("font-size", "var(--lumo-font-size-s)");
+        hint.addClassName(Theme.MUTED);
+        hint.getStyle().set("font-size", "var(--lumo-font-size-s)");
         VerticalLayout body = new VerticalLayout(name, hint, refused);
         body.setPadding(false);
         body.setSpacing(false);

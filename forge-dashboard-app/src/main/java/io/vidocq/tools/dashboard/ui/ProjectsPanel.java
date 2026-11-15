@@ -144,7 +144,7 @@ public class ProjectsPanel extends Div {
     private Component pullLine(PullView pr) {
         Button open = Parts.action("#" + pr.number() + " " + pr.title(), () -> drawers.openPull(org, pr));
         Span author = new Span(pr.author());
-        author.getStyle().set("color", "var(--lumo-secondary-text-color)");
+        author.addClassName(Theme.MUTED);
         HorizontalLayout line = new HorizontalLayout(Badges.dot(pr.state(), messages), open, author);
         line.setAlignItems(FlexComponent.Alignment.CENTER);
         return line;

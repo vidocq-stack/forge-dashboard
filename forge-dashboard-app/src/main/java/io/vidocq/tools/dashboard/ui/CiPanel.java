@@ -67,7 +67,8 @@ public class CiPanel extends Div {
         HorizontalLayout windows = new HorizontalLayout(new Span(messages.text("ci.occupancyOver")));
         windows.setAlignItems(HorizontalLayout.Alignment.CENTER);
         windows.setSpacing(false);
-        windows.getStyle().set("gap", "2px");
+        windows.getStyle().set("gap", "var(--lumo-space-s)");
+        HorizontalLayout group = Parts.toggle();
         WINDOWS.forEach(span -> {
             Button b = new Button(label(span), e -> {
                 window = span;
@@ -76,8 +77,9 @@ public class CiPanel extends Div {
             });
             b.addThemeVariants(ButtonVariant.LUMO_SMALL);
             windowButtons.put(span, b);
-            windows.add(b);
+            group.add(b);
         });
+        windows.add(group);
         markWindow();
         cards.getStyle().set("display", "flex").set("flex-wrap", "wrap").set("gap", "var(--lumo-space-m)")
                 .set("margin", "var(--lumo-space-m) 0");
@@ -127,8 +129,8 @@ public class CiPanel extends Div {
 
     private Component card(RunnerCard c, Instant now) {
         Div card = new Div();
-        card.getStyle().set("border", "1px solid var(--lumo-contrast-10pct)")
-                .set("border-radius", "var(--lumo-border-radius-l)").set("padding", "var(--lumo-space-s) var(--lumo-space-m)")
+        card.addClassName(Theme.CARD);
+        card.getStyle().set("padding", "var(--lumo-space-s) var(--lumo-space-m)")
                 .set("width", "18rem").set("box-sizing", "border-box")
                 .set("opacity", c.offline() ? "0.6" : "1");
         Button name = Parts.action(c.name(), () -> drawers.openRunner(org, c.runnerId()));

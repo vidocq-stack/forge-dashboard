@@ -76,8 +76,9 @@ public class CommittersPanel extends Div {
         setWidthFull();
         HorizontalLayout controls = new HorizontalLayout(new Span(messages.text("committers.period")));
         controls.setAlignItems(FlexComponent.Alignment.CENTER);
-        controls.getStyle().set("gap", "2px").set("flex-wrap", "wrap");
+        controls.getStyle().set("gap", "var(--lumo-space-s)").set("flex-wrap", "wrap");
         controls.setSpacing(false);
+        HorizontalLayout periods = Parts.toggle();
         for (int days : PERIODS) {
             Button b = new Button(messages.text("duration.days", days), e -> {
                 periodDays = days;
@@ -87,8 +88,9 @@ public class CommittersPanel extends Div {
             });
             b.addThemeVariants(ButtonVariant.LUMO_SMALL);
             periodButtons.put(days, b);
-            controls.add(b);
+            periods.add(b);
         }
+        controls.add(periods);
         allOrgs.getStyle().set("margin-left", "var(--lumo-space-m)");
         allOrgs.addValueChangeListener(e -> refresh());
         controls.add(allOrgs);
