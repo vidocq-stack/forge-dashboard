@@ -19,6 +19,7 @@ import io.vidocq.tools.dashboard.store.JobExecutionRepository;
 import io.vidocq.tools.dashboard.store.RunnerRowRepository;
 import io.vidocq.tools.dashboard.ui.model.CiBoard;
 import io.vidocq.tools.dashboard.ui.model.CiBoardModel;
+import io.vidocq.tools.dashboard.ui.model.Progress;
 import io.vidocq.tools.dashboard.ui.model.RunnerCard;
 import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
@@ -150,7 +151,8 @@ public class CiPanel extends Div {
         spark.getStyle().set("color", "var(--lumo-primary-color)");
         card.add(spark);
         c.running().forEach(j -> card.add(Parts.line(target(j), Parts.muted(j.jobName() + (j.startedAt() == null ? ""
-                : " · " + Formats.duration(Duration.between(j.startedAt(), now), messages))))));
+                : " · " + Formats.duration(Duration.between(j.startedAt(), now), messages)
+                + Progress.after(j.startedAt(), j.usual(), now, messages))))));
         return card;
     }
 

@@ -8,6 +8,7 @@ import io.vidocq.tools.dashboard.sonar.GateStatus;
 import io.vidocq.tools.dashboard.store.JobExecution;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
@@ -43,7 +44,7 @@ class PullDetailsModelTest {
                 job(11, 7, "sonar", null, "running", NOW.minusSeconds(30), null),
                 job(10, 7, "build", 1219L, "success", NOW.minusSeconds(200), NOW.minusSeconds(80)));
 
-        PullDetails d = PullDetailsModel.of(PR, jobs, Map.of(1219L, "vidocq-runner-1"), NOW, FR);
+        PullDetails d = PullDetailsModel.of(PR, jobs, Map.of(1219L, "vidocq-runner-1"), Map.of(), NOW, FR);
 
         assertEquals("feat: proxies", d.title());
         assertEquals("yblazart", d.author());
@@ -64,15 +65,29 @@ class PullDetailsModelTest {
                 job(21, 8, "build", 1219L, "running", NOW.minusSeconds(10), null),
                 job(10, 7, "build", 1219L, "failure", NOW.minusSeconds(900), NOW.minusSeconds(800)));
 
-        PullDetails d = PullDetailsModel.of(PR, jobs, Map.of(), NOW, FR);
+        PullDetails d = PullDetailsModel.of(PR, jobs, Map.of(), Map.of(), NOW, FR);
 
         assertEquals(1, d.lastRunJobs().size());
         assertEquals("?", d.lastRunJobs().getFirst().runnerName());
         assertEquals("running", d.lastRunJobs().getFirst().status());
     }
 
+    /** A running job says how far along it is, from the usual duration the live state gives its task. */
+    @Test
+    void runningJobsSayHowFarAlong() {
+        List<JobExecution> jobs = List.of(
+                job(11, 7, "sonar", 1219L, "running", NOW.minusSeconds(180), null),
+                job(10, 7, "build", 1219L, "success", NOW.minusSeconds(400), NOW.minusSeconds(200)));
+        Map<Long, Duration> usual = Map.of(11L, Duration.ofMinutes(5), 10L, Duration.ofMinutes(5));
+
+        PullDetails d = PullDetailsModel.of(PR, jobs, Map.of(), usual, NOW, FR);
+
+        assertEquals("3 min 20 s", d.lastRunJobs().get(0).duration());   // finished: no estimate
+        assertEquals("3 min 00 s · 60 % · reste ~2 min", d.lastRunJobs().get(1).duration());
+    }
+
     @Test
     void noJobYetGivesAnEmptyList() {
-        assertEquals(List.of(), PullDetailsModel.of(PR, List.of(), Map.of(), NOW, FR).lastRunJobs());
+        assertEquals(List.of(), PullDetailsModel.of(PR, List.of(), Map.of(), Map.of(), NOW, FR).lastRunJobs());
     }
 }

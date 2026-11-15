@@ -12,6 +12,7 @@ import io.vidocq.tools.dashboard.live.LiveState;
 import io.vidocq.tools.dashboard.live.PullView;
 import io.vidocq.tools.dashboard.live.RunnerView;
 import io.vidocq.tools.dashboard.store.JobExecutionRepository;
+import io.vidocq.tools.dashboard.ui.model.Progress;
 import io.vidocq.tools.dashboard.ui.model.RunnerCard;
 import io.vidocq.tools.dashboard.ui.model.RunnerDetailsModel;
 import io.vidocq.tools.dashboard.ui.model.RunnerPrGroup;
@@ -84,7 +85,8 @@ public class RunnerDetailsDrawer extends Div {
         r.running().forEach(j -> add(Parts.line(target(j.repo(), j.prNumber(), j.ref()),
                 Parts.link(j.jobName(), j.htmlUrl()),
                 Parts.muted(j.startedAt() == null ? "" : messages.text("runner.since",
-                        Formats.duration(Duration.between(j.startedAt(), now), messages))))));
+                        Formats.duration(Duration.between(j.startedAt(), now), messages))
+                        + Progress.after(j.startedAt(), j.usual(), now, messages)))));
 
         add(Parts.section(messages.text("runner.recent", messages.text("duration.days", 7))));
         var groups = RunnerDetailsModel.groups(

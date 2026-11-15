@@ -38,6 +38,6 @@ public final class RunnerDetailsModel {
 
     private static JobView view(JobExecution e) {
         return new JobView(e.getTaskId(), e.getJobId() == null ? 0 : e.getJobId(), e.getRepo(), e.getPrNumber(),
-                e.getRef(), e.getJobName(), e.getStatus(), e.getStartedAt(), e.getHtmlUrl(), e.getRunnerId(), null);
+                e.getRef(), e.getJobName(), e.getStatus(), e.getStartedAt(), e.getHtmlUrl(), e.getRunnerId(), null, null);
     }
 }

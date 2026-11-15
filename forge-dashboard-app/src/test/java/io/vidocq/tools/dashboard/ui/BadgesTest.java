@@ -34,6 +34,14 @@ class BadgesTest {
         assertTrue(pill.hasClassName(kind), pill.getClassNames() + " lacks " + kind);
     }
 
+    /** A running build's dot says how far along it is in its tooltip. */
+    @Test
+    void dotTooltipSaysHowFarAlong() {
+        assertEquals("en cours · 60 % · reste ~2 min",
+                Badges.dot(CiState.PENDING, "60 % · reste ~2 min", FR).getElement().getAttribute("title"));
+        assertEquals("en cours", Badges.dot(CiState.PENDING, null, FR).getElement().getAttribute("title"));
+    }
+
     @Test
     void gateIsAPill() {
         assertPill(Badges.gate(GateStatus.OK), "OK", "dash-pill-ok");

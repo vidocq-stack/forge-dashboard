@@ -2,6 +2,7 @@ package io.vidocq.tools.dashboard.store;
 
 import io.vidocq.tools.dashboard.domain.CommitKind;
 import io.vidocq.tools.dashboard.domain.Interval;
+import io.vidocq.tools.dashboard.domain.JobKey;
 import io.vidocq.tools.dashboard.domain.StatusSpan;
 import io.vidocq.tools.dashboard.testing.InProcessApp;
 import org.junit.jupiter.api.BeforeAll;
@@ -12,6 +13,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -127,6 +129,43 @@ class StoreIntegrationTest {
                 now.minus(Duration.ofDays(30)));
 
         assertEquals(java.util.List.of("r2", "r1"), recent.stream().map(CommitStat::getSha).toList());
+    }
+
+    /** A job's usual duration: the median of its last 10 successes; failures, running jobs and other orgs aside. */
+    @Test
+    void usualDurationsAreTheMedianOfTheLastTenSuccesses() {
+        long task = 500;
+        // the two oldest successes, very long, fall outside the last ten
+        for (int i = 0; i < 2; i++) {
+            jobs.save(ran(task++, "Vidocq", "build", "success", 3_000, 60 - i));
+        }
+        // the last ten: five of 60 s, five of 120 s
+        for (int i = 0; i < 10; i++) {
+            jobs.save(ran(task++, "Vidocq", "build", "success", i % 2 == 0 ? 60 : 120, 40 - i));
+        }
+        jobs.save(ran(task++, "Vidocq", "build", "failure", 5_000, 1));
+        jobs.save(job(task++, "Vidocq", now.minus(Duration.ofHours(2)), null));
+        // two successes only: no usual duration yet
+        jobs.save(ran(task++, "Vidocq", "lint", "success", 30, 5));
+        jobs.save(ran(task++, "Vidocq", "lint", "success", 30, 4));
+        for (int i = 0; i < 3; i++) {
+            jobs.save(ran(task++, "VidocqTools", "build", "success", 600, 10 + i));
+        }
+        // older than 30 days: outside the window
+        for (int i = 0; i < 3; i++) {
+            jobs.save(ran(task++, "Vidocq", "deploy", "success", 45, 31L * 24 * 60 + i));
+        }
+
+        assertEquals(Map.of(new JobKey("vauban", "build"), Duration.ofSeconds(90)), stats.usualDurations("Vidocq", now));
+    }
+
+    private JobExecution ran(long taskId, String org, String jobName, String status, long seconds,
+                             long endedMinutesAgo) {
+        Instant stopped = now.minus(Duration.ofMinutes(endedMinutesAgo));
+        JobExecution j = job(taskId, org, stopped.minusSeconds(seconds), stopped);
+        j.setJobName(jobName);
+        j.setStatus(status);
+        return j;
     }
 
     @Test

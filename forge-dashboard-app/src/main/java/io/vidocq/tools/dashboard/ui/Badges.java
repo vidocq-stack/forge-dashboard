@@ -18,10 +18,21 @@ final class Badges {
     }
 
     static Span dot(CiState state, Messages m) {
+        return dot(state, null, m);
+    }
+
+    /** The dot of a build, with how far along it is in the tooltip when it runs with an estimate. */
+    static Span dot(CiState state, String progress, Messages m) {
         Span dot = new Span("●");
         dot.getStyle().set("color", color(state)).set("font-size", "1.1em").set("line-height", "1");
-        dot.getElement().setAttribute("title", label(state, m));
+        describe(dot, state, progress, m);
         return dot;
+    }
+
+    /** The tooltip of a dot: its state and, when given, how far along the build is. */
+    static void describe(Span dot, CiState state, String progress, Messages m) {
+        String label = label(state, m);
+        dot.getElement().setAttribute("title", progress == null ? label : label + " · " + progress);
     }
 
     static String color(CiState state) {

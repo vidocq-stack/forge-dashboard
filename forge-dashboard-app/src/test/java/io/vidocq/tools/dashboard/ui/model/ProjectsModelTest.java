@@ -2,9 +2,11 @@ package io.vidocq.tools.dashboard.ui.model;
 
 import io.vidocq.tools.dashboard.domain.CiState;
 import io.vidocq.tools.dashboard.i18n.Messages;
+import io.vidocq.tools.dashboard.live.JobView;
 import io.vidocq.tools.dashboard.live.OrgSnapshot;
 import io.vidocq.tools.dashboard.live.PullView;
 import io.vidocq.tools.dashboard.live.RepoView;
+import io.vidocq.tools.dashboard.live.RunnerView;
 import io.vidocq.tools.dashboard.sonar.GateStatus;
 import io.vidocq.tools.dashboard.sonar.SonarMeasures;
 import org.junit.jupiter.api.Test;
@@ -15,6 +17,7 @@ import java.util.List;
 import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class ProjectsModelTest {
 
@@ -135,6 +138,41 @@ class ProjectsModelTest {
         assertEquals(0, row.prGreen());
         assertEquals(1, row.prRed());
         assertEquals(1, row.prPending());
+    }
+
+    /** A job of {@code repo} running for {@code elapsedMinutes} that usually takes {@code usualMinutes}. */
+    private static JobView job(long task, String repo, Integer pr, long elapsedMinutes, long usualMinutes) {
+        return new JobView(task, task + 1000, repo, pr, null, "build", "running",
+                NOW.minus(Duration.ofMinutes(elapsedMinutes)), "u", 1219L, "r1", Duration.ofMinutes(usualMinutes));
+    }
+
+    private static ProjectsProgress progress(RepoView repo, JobView... running) {
+        RunnerView runner = new RunnerView(1219, "r1", "active", List.of(), 4, List.of(running));
+        return ProjectsModel.progress(new OrgSnapshot("Vidocq", List.of(repo), List.of(runner), List.of(), NOW), NOW,
+                Messages.forLocale(Locale.FRENCH));
+    }
+
+    /** A running main and the running PRs say how far along they are: as far as their longest job. */
+    @Test
+    void runningBuildsSayHowFarAlongTheyAre() {
+        RepoView vauban = repo("vauban", CiState.PENDING, null,
+                List.of(pull("vauban", 7, CiState.PENDING), pull("vauban", 8, CiState.SUCCESS)));
+
+        ProjectsProgress p = progress(vauban, job(1, "vauban", null, 3, 5), job(2, "vauban", 7, 1, 10),
+                job(3, "cyrano", null, 1, 2));
+
+        assertEquals("60 % · reste ~2 min", p.main("vauban"));
+        assertEquals("10 % · reste ~9 min", p.pull("vauban", 7));
+        assertNull(p.pull("vauban", 8));
+        assertNull(p.main("cyrano"), "cyrano is not a project of the snapshot");
+    }
+
+    /** A job without a PR while main is not running is on another branch: main says nothing. */
+    @Test
+    void mainSaysNothingUnlessItIsRunning() {
+        ProjectsProgress p = progress(repo("vauban", CiState.SUCCESS, null, List.of()), job(1, "vauban", null, 3, 5));
+
+        assertNull(p.main("vauban"));
     }
 
     @Test

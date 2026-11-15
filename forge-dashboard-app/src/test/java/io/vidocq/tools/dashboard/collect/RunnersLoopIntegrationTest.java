@@ -5,6 +5,7 @@ import io.vidocq.tools.dashboard.forge.ForgeJob;
 import io.vidocq.tools.dashboard.forge.ForgeUnavailableException;
 import io.vidocq.tools.dashboard.forge.RateLimitedException;
 import io.vidocq.tools.dashboard.live.ChangeBus;
+import io.vidocq.tools.dashboard.live.JobView;
 import io.vidocq.tools.dashboard.live.LiveState;
 import io.vidocq.tools.dashboard.live.RunnerView;
 import io.vidocq.tools.dashboard.store.JobExecution;
@@ -12,6 +13,7 @@ import io.vidocq.tools.dashboard.store.JobExecutionRepository;
 import io.vidocq.tools.dashboard.store.QueueSampleRepository;
 import io.vidocq.tools.dashboard.store.RunnerRowRepository;
 import io.vidocq.tools.dashboard.store.RunnerStatusChangeRepository;
+import io.vidocq.tools.dashboard.store.StatsQueries;
 import io.vidocq.tools.dashboard.testing.InProcessApp;
 import io.vidocq.tools.dashboard.testing.TestClock;
 import org.junit.jupiter.api.BeforeAll;
@@ -43,6 +45,7 @@ class RunnersLoopIntegrationTest {
     private static RunnerRowRepository runners;
     private static RunnerStatusChangeRepository changes;
     private static QueueSampleRepository queue;
+    private static StatsQueries stats;
 
     private FakeForgeApi forge;
     private LiveState live;
@@ -54,6 +57,7 @@ class RunnersLoopIntegrationTest {
         runners = InProcessApp.bean(RunnerRowRepository.class);
         changes = InProcessApp.bean(RunnerStatusChangeRepository.class);
         queue = InProcessApp.bean(QueueSampleRepository.class);
+        stats = InProcessApp.bean(StatsQueries.class);
     }
 
     @BeforeEach
@@ -67,7 +71,7 @@ class RunnersLoopIntegrationTest {
     }
 
     private RunnersLoop loop() {
-        return new RunnersLoop(forge, jobs, runners, changes, queue, live, clock);
+        return new RunnersLoop(forge, jobs, runners, changes, queue, stats, live, clock);
     }
 
     private void running(ForgeJob... active) {
@@ -238,6 +242,41 @@ class RunnersLoopIntegrationTest {
         assertEquals(2, view.capacity());   // observed: both at once
         assertEquals(1, live.snapshot(ORG).waiting().size());
         assertEquals(T0, live.snapshot(ORG).updatedAt());
+    }
+
+    /** A running job carries its usual duration, the median of its last successes; a job never seen has none. */
+    @Test
+    void runningJobsCarryTheirUsualDuration() {
+        long[] seconds = {240, 300, 360};
+        for (int i = 0; i < seconds.length; i++) {
+            jobs.save(succeeded(170_000 + i, "vidocq", seconds[i], T0.minus(Duration.ofHours(i + 1))));
+        }
+        ForgeJob a = job(1, 86_414, 175_790, "running", "vidocq");
+        ForgeJob b = job(2, 86_414, 175_791, "running", "vauban");
+        running(a, b);
+        forge.logHeads.put(a.id(), logHead(HEAD_AT, U, 175_790));
+        forge.logHeads.put(b.id(), logHead(HEAD_AT, U, 175_791));
+
+        loop().tick(ORG);
+
+        List<JobView> held = live.snapshot(ORG).runners().getFirst().running();
+        assertEquals(Duration.ofMinutes(5), held.stream().filter(j -> j.repo().equals("vidocq")).findFirst()
+                .orElseThrow().usual());
+        assertNull(held.stream().filter(j -> j.repo().equals("vauban")).findFirst().orElseThrow().usual());
+    }
+
+    private static JobExecution succeeded(long taskId, String repo, long seconds, Instant stoppedAt) {
+        var e = new JobExecution();
+        e.setTaskId(taskId);
+        e.setJobId(taskId + 10_000);
+        e.setRunId(86_000L);
+        e.setOrg(ORG);
+        e.setRepo(repo);
+        e.setJobName("build");
+        e.setStatus("success");
+        e.setStartedAt(stoppedAt.minusSeconds(seconds));
+        e.setStoppedAt(stoppedAt);
+        return e;
     }
 
     @Test

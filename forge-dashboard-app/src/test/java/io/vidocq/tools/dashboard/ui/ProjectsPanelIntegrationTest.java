@@ -2,18 +2,33 @@ package io.vidocq.tools.dashboard.ui;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
 import io.vidocq.tools.dashboard.domain.CiState;
+import io.vidocq.tools.dashboard.live.ChangeEvent;
+import io.vidocq.tools.dashboard.live.JobView;
+import io.vidocq.tools.dashboard.live.LiveState;
+import io.vidocq.tools.dashboard.live.PullView;
+import io.vidocq.tools.dashboard.live.RepoView;
+import io.vidocq.tools.dashboard.live.RunnerView;
 import io.vidocq.tools.dashboard.sonar.GateStatus;
 import io.vidocq.tools.dashboard.testing.InProcessApp;
 import io.vidocq.tools.dashboard.ui.model.ProjectRow;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** The projects panel as the main view gets it from Vauban. */
 class ProjectsPanelIntegrationTest {
@@ -60,6 +75,122 @@ class ProjectsPanelIntegrationTest {
 
         assertEquals("error", grid.getPartNameGenerator().apply(failing));
         assertNull(grid.getPartNameGenerator().apply(healthy));
+    }
+
+    /** The rows change with the PRs and Sonar; the runners only move the progress of the running builds. */
+    @Test
+    void theRunnersOnlyMoveTheProgress() {
+        Predicate<ChangeEvent> rows = ProjectsPanel.rowsInterest("Vidocq");
+        Predicate<ChangeEvent> progress = ProjectsPanel.progressInterest("Vidocq");
+
+        assertTrue(rows.test(new ChangeEvent.PullsChanged("Vidocq")));
+        assertTrue(rows.test(new ChangeEvent.SonarChanged("Vidocq")));
+        assertFalse(rows.test(new ChangeEvent.RunnersChanged("Vidocq")));
+        assertTrue(progress.test(new ChangeEvent.RunnersChanged("Vidocq")));
+        assertFalse(progress.test(new ChangeEvent.RunnersChanged("VidocqTools")));
+    }
+
+    /** A pass that changes nothing visible leaves the grid alone: no reload, the keyboard focus stays where it is. */
+    @Test
+    void aPassThatChangesNothingVisibleLeavesTheGridAlone() {
+        String org = "ProjectsUnchanged";
+        vaubanIn(org, CiState.SUCCESS, 7);
+        ProjectsPanel panel = panel(org);
+        var items = grid(panel).getDataProvider();
+
+        TestUi.run(Locale.FRENCH, panel::refresh);
+
+        assertSame(items, grid(panel).getDataProvider());
+    }
+
+    /** A PR replaced by another of the same state changes no count, but the unfolded list must show the new one. */
+    @Test
+    void aPullReplacedByAnotherReloadsTheGrid() {
+        String org = "ProjectsPullReplaced";
+        vaubanIn(org, CiState.SUCCESS, 7);
+        ProjectsPanel panel = panel(org);
+        var items = grid(panel).getDataProvider();
+        vaubanIn(org, CiState.SUCCESS, 9);
+
+        TestUi.run(Locale.FRENCH, panel::refresh);
+
+        assertNotSame(items, grid(panel).getDataProvider());
+    }
+
+    /** The dot of a running main says how far along it is, and follows the runners without reloading the grid. */
+    @Test
+    void aRunningMainsDotFollowsTheRunnersInPlace() {
+        String org = "ProjectsMainProgress";
+        vaubanIn(org, CiState.PENDING, 7);
+        running(org, null, 30);
+        ProjectsPanel panel = panel(org);
+        Grid<ProjectRow> grid = grid(panel);
+        var items = grid.getDataProvider();
+        Component dot = TestUi.get(Locale.FRENCH, () -> mainColumn(grid).createComponent(firstRow(grid)));
+        assertEquals("en cours · 30 % · reste ~1 h 10 min", dot.getElement().getAttribute("title"));
+
+        running(org, null, 50);
+        TestUi.run(Locale.FRENCH, panel::refreshProgress);
+
+        assertEquals("en cours · 50 % · reste ~50 min", dot.getElement().getAttribute("title"));
+        assertSame(items, grid.getDataProvider());
+    }
+
+    /** Unfolded, a PR with a running build says how far along it is, and follows the runners in place. */
+    @Test
+    void anUnfoldedPullFollowsTheRunnersInPlace() {
+        String org = "ProjectsPullProgress";
+        vaubanIn(org, CiState.SUCCESS, 7);
+        running(org, 7, 30);
+        ProjectsPanel panel = panel(org);
+        Component pulls = TestUi.get(Locale.FRENCH, () -> panel.pullList(firstRow(grid(panel))));
+        assertTrue(shows(pulls, "30 % · reste ~1 h 10 min"), "the progress of #7");
+
+        running(org, 7, 50);
+        TestUi.run(Locale.FRENCH, panel::refreshProgress);
+
+        assertTrue(shows(pulls, "50 % · reste ~50 min"), "the progress of #7, moved");
+    }
+
+    private static ProjectsPanel panel(String org) {
+        return TestUi.get(Locale.FRENCH, () -> InProcessApp.bean(ProjectsPanel.class).forOrg(org));
+    }
+
+    private static ProjectRow firstRow(Grid<ProjectRow> grid) {
+        return grid.getGenericDataView().getItems().findFirst().orElseThrow();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static ComponentRenderer<? extends Component, ProjectRow> mainColumn(Grid<ProjectRow> grid) {
+        return (ComponentRenderer<? extends Component, ProjectRow>) grid.getColumns().get(1).getRenderer();
+    }
+
+    private static boolean shows(Component root, String text) {
+        return descendants(root).anyMatch(c -> c instanceof Span s && s.isVisible() && s.getText().equals(text));
+    }
+
+    /** vauban, its main in {@code main}, with one running PR numbered {@code pull}. */
+    private static void vaubanIn(String org, CiState main, int pull) {
+        Instant now = Instant.now();
+        PullView pr = new PullView("vauban", pull, "feat: x", "yblazart", "sha", CiState.PENDING, List.of(),
+                GateStatus.NONE, "u", Instant.parse("2026-11-15T10:00:00Z"));
+        RepoView vauban = new RepoView("vauban", main, "abc", "fix: y", now.minus(Duration.ofHours(2)), null,
+                List.of(pr), "u");
+        InProcessApp.bean(LiveState.class).update(org, s -> s.withRepos(List.of(vauban), now),
+                new ChangeEvent.PullsChanged(org));
+    }
+
+    /**
+     * A job of vauban's PR {@code pr} (null: of main) running for {@code minutes} out of its usual 100: a percent
+     * point a minute, so a slow test does not move it.
+     */
+    private static void running(String org, Integer pr, long minutes) {
+        Instant now = Instant.now();
+        JobView job = new JobView(1, 1001, "vauban", pr, null, "build", "running",
+                now.minus(Duration.ofMinutes(minutes)), "u", 1219L, "r1", Duration.ofMinutes(100));
+        RunnerView runner = new RunnerView(1219, "r1", "active", List.of(), 2, List.of(job));
+        InProcessApp.bean(LiveState.class).update(org, s -> s.withRunners(List.of(runner), List.of(), now),
+                new ChangeEvent.RunnersChanged(org));
     }
 
     @SuppressWarnings("unchecked")

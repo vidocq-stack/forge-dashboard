@@ -1,6 +1,7 @@
 package io.vidocq.tools.dashboard.collect;
 
 import io.vidocq.tools.dashboard.domain.Interval;
+import io.vidocq.tools.dashboard.domain.JobKey;
 import io.vidocq.tools.dashboard.domain.LogHead;
 import io.vidocq.tools.dashboard.domain.OccupancyCalculator;
 import io.vidocq.tools.dashboard.forge.ForgeApi;
@@ -21,6 +22,7 @@ import io.vidocq.tools.dashboard.store.RunnerRow;
 import io.vidocq.tools.dashboard.store.RunnerRowRepository;
 import io.vidocq.tools.dashboard.store.RunnerStatusChange;
 import io.vidocq.tools.dashboard.store.RunnerStatusChangeRepository;
+import io.vidocq.tools.dashboard.store.StatsQueries;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -59,6 +61,7 @@ public class RunnersLoop {
     private final RunnerRowRepository runners;
     private final RunnerStatusChangeRepository changes;
     private final QueueSampleRepository queue;
+    private final StatsQueries stats;
     private final LiveState live;
     private final Clock clock;
     /** Runs by id: a run's jobs all start within minutes, and a run never changes the fields kept. */
@@ -71,12 +74,14 @@ public class RunnersLoop {
 
     @Inject
     public RunnersLoop(ForgeApi forge, JobExecutionRepository jobs, RunnerRowRepository runners,
-                       RunnerStatusChangeRepository changes, QueueSampleRepository queue, LiveState live, Clock clock) {
+                       RunnerStatusChangeRepository changes, QueueSampleRepository queue, StatsQueries stats,
+                       LiveState live, Clock clock) {
         this.forge = forge;
         this.jobs = jobs;
         this.runners = runners;
         this.changes = changes;
         this.queue = queue;
+        this.stats = stats;
         this.live = live;
         this.clock = clock;
     }
@@ -227,10 +232,12 @@ public class RunnersLoop {
         Map<Long, String> names = new HashMap<>();
         rows.forEach(r -> names.put(r.getId(), r.getName()));
         Map<Long, List<JobView>> running = new HashMap<>();
+        Map<JobKey, Duration> usual = stats.usualDurations(org, now);
         for (JobExecution e : jobs.findByOrgAndStoppedAtNull(org)) {
             if (e.getRunnerId() != null) {
                 running.computeIfAbsent(e.getRunnerId(), id -> new ArrayList<>())
-                        .add(runningView(e, names.get(e.getRunnerId())));
+                        .add(runningView(e, names.get(e.getRunnerId()),
+                                usual.get(new JobKey(e.getRepo(), e.getJobName()))));
             }
         }
         List<RunnerView> views = new ArrayList<>();
@@ -258,13 +265,13 @@ public class RunnersLoop {
         return r.getLabels() == null || r.getLabels().isBlank() ? List.of() : Arrays.asList(r.getLabels().split(","));
     }
 
-    private static JobView runningView(JobExecution e, String runnerName) {
+    private static JobView runningView(JobExecution e, String runnerName, Duration usual) {
         return new JobView(e.getTaskId(), e.getJobId(), e.getRepo(), e.getPrNumber(), e.getRef(), e.getJobName(),
-                e.getStatus(), e.getStartedAt(), e.getHtmlUrl(), e.getRunnerId(), runnerName);
+                e.getStatus(), e.getStartedAt(), e.getHtmlUrl(), e.getRunnerId(), runnerName, usual);
     }
 
     private static JobView waitingView(ForgeJob j) {
         return new JobView(j.taskId(), j.id(), JobResolver.repoOf(j.htmlUrl()).orElse("?"), null, null, j.name(),
-                j.status(), null, j.htmlUrl(), null, null);
+                j.status(), null, j.htmlUrl(), null, null, null);
     }
 }

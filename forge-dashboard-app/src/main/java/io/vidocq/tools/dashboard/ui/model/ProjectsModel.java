@@ -3,6 +3,7 @@ package io.vidocq.tools.dashboard.ui.model;
 import io.vidocq.tools.dashboard.domain.CiState;
 import io.vidocq.tools.dashboard.domain.Formats;
 import io.vidocq.tools.dashboard.i18n.Messages;
+import io.vidocq.tools.dashboard.live.JobView;
 import io.vidocq.tools.dashboard.live.OrgSnapshot;
 import io.vidocq.tools.dashboard.live.PullView;
 import io.vidocq.tools.dashboard.live.RepoView;
@@ -11,9 +12,12 @@ import io.vidocq.tools.dashboard.sonar.SonarMeasures;
 
 import java.time.Instant;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * The projects grid of an org. Errors first: a red main, then a red pull request that is not a draft, then a failed
@@ -38,6 +42,26 @@ public final class ProjectsModel {
                 .sorted(ORDER)
                 .map(r -> row(r, now, m))
                 .toList();
+    }
+
+    /** How far along the running builds of the projects are: apart from the rows, it moves with every runners pass. */
+    public static ProjectsProgress progress(OrgSnapshot snapshot, Instant now, Messages m) {
+        Map<String, List<JobView>> running = snapshot.runners().stream().flatMap(r -> r.running().stream())
+                .collect(Collectors.groupingBy(JobView::repo));
+        Map<String, String> mains = new HashMap<>();
+        Map<String, Map<Integer, String>> pulls = new HashMap<>();
+        for (RepoView r : snapshot.repos()) {
+            List<JobView> jobs = running.getOrDefault(r.name(), List.of());
+            String main = mainProgress(r, jobs, now, m);
+            if (main != null) {
+                mains.put(r.name(), main);
+            }
+            Map<Integer, String> prs = pullProgress(jobs, now, m);
+            if (!prs.isEmpty()) {
+                pulls.put(r.name(), prs);
+            }
+        }
+        return new ProjectsProgress(mains, pulls);
     }
 
     /** 0 a red main, 1 a red pull request other than a draft, 2 a failed Sonar gate, 3 no error. */
@@ -67,6 +91,27 @@ public final class ProjectsModel {
                 green, red, r.pulls().size() - green - red,
                 r.lastCommitAt() == null ? DASH : Formats.relative(r.lastCommitAt(), now, m),
                 r.htmlUrl(), severity(r) < 3);
+    }
+
+    /**
+     * Main's jobs are the running jobs of the project ({@code running}) without a PR, while main runs: otherwise they
+     * belong to another branch.
+     */
+    private static String mainProgress(RepoView r, List<JobView> running, Instant now, Messages m) {
+        return r.mainState() != CiState.PENDING ? null
+                : Progress.ofBuild(running.stream().filter(j -> j.prNumber() == null).toList(), now, m);
+    }
+
+    private static Map<Integer, String> pullProgress(List<JobView> running, Instant now, Messages m) {
+        Map<Integer, String> progress = new HashMap<>();
+        running.stream().filter(j -> j.prNumber() != null).collect(Collectors.groupingBy(JobView::prNumber))
+                .forEach((pr, jobs) -> {
+                    String p = Progress.ofBuild(jobs, now, m);
+                    if (p != null) {
+                        progress.put(pr, p);
+                    }
+                });
+        return progress;
     }
 
     private static int count(List<PullView> pulls, CiState state) {

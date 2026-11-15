@@ -17,6 +17,9 @@ import io.vidocq.tools.dashboard.ui.model.PullJobLine;
 import io.vidocq.tools.dashboard.ui.model.StatusLabel;
 
 import java.time.Clock;
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
@@ -74,9 +77,12 @@ public class PullDetailsDrawer extends Div {
         }
         var names = runners.findByOrg(org).stream()
                 .collect(Collectors.toMap(RunnerRow::getId, RunnerRow::getName, (a, b) -> a));
+        Map<Long, Duration> usual = new HashMap<>();
+        live.snapshot(org).runners().stream().flatMap(r -> r.running().stream()).filter(j -> j.usual() != null)
+                .forEach(j -> usual.put(j.taskId(), j.usual()));
         PullDetails d = PullDetailsModel.of(pr.get(),
-                jobs.findByOrgAndRepoAndPrNumberOrderByStartedAtDesc(org, repo, number), names, clock.instant(),
-                messages);
+                jobs.findByOrgAndRepoAndPrNumberOrderByStartedAtDesc(org, repo, number), names, usual,
+                clock.instant(), messages);
         add(new Div(new Span(d.title())));
         add(Parts.line(Badges.dot(d.state(), messages),
                 new Span(messages.text("pull.stateBy", Badges.label(d.state(), messages), d.author())),
