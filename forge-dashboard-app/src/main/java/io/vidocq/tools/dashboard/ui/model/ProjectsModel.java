@@ -38,12 +38,30 @@ public final class ProjectsModel {
     }
 
     public static List<ProjectRow> rows(OrgSnapshot snapshot, Instant now, Messages m) {
-        Map<String, List<JobView>> running = snapshot.runners().stream().flatMap(r -> r.running().stream())
-                .collect(Collectors.groupingBy(JobView::repo));
         return snapshot.repos().stream()
                 .sorted(ORDER)
-                .map(r -> row(r, running.getOrDefault(r.name(), List.of()), now, m))
+                .map(r -> row(r, now, m))
                 .toList();
+    }
+
+    /** How far along the running builds of the projects are: apart from the rows, it moves with every runners pass. */
+    public static ProjectsProgress progress(OrgSnapshot snapshot, Instant now, Messages m) {
+        Map<String, List<JobView>> running = snapshot.runners().stream().flatMap(r -> r.running().stream())
+                .collect(Collectors.groupingBy(JobView::repo));
+        Map<String, String> mains = new HashMap<>();
+        Map<String, Map<Integer, String>> pulls = new HashMap<>();
+        for (RepoView r : snapshot.repos()) {
+            List<JobView> jobs = running.getOrDefault(r.name(), List.of());
+            String main = mainProgress(r, jobs, now, m);
+            if (main != null) {
+                mains.put(r.name(), main);
+            }
+            Map<Integer, String> prs = pullProgress(jobs, now, m);
+            if (!prs.isEmpty()) {
+                pulls.put(r.name(), prs);
+            }
+        }
+        return new ProjectsProgress(mains, pulls);
     }
 
     /** 0 a red main, 1 a red pull request other than a draft, 2 a failed Sonar gate, 3 no error. */
@@ -61,8 +79,7 @@ public final class ProjectsModel {
         return r.sonar() == null ? null : metric.apply(r.sonar());
     }
 
-    /** {@code running}: the running jobs of the project. */
-    private static ProjectRow row(RepoView r, List<JobView> running, Instant now, Messages m) {
+    private static ProjectRow row(RepoView r, Instant now, Messages m) {
         SonarMeasures s = r.sonar();
         int green = count(r.pulls(), CiState.SUCCESS);
         int red = count(r.pulls(), CiState.FAILURE);
@@ -73,12 +90,12 @@ public final class ProjectsModel {
                 s == null || s.gate() == null ? GateStatus.NONE : s.gate(),
                 green, red, r.pulls().size() - green - red,
                 r.lastCommitAt() == null ? DASH : Formats.relative(r.lastCommitAt(), now, m),
-                r.htmlUrl(), severity(r) < 3, mainProgress(r, running, now, m), pullProgress(running, now, m));
+                r.htmlUrl(), severity(r) < 3);
     }
 
     /**
-     * Main's jobs are the running jobs of the project without a PR, while main runs: otherwise they belong to another
-     * branch.
+     * Main's jobs are the running jobs of the project ({@code running}) without a PR, while main runs: otherwise they
+     * belong to another branch.
      */
     private static String mainProgress(RepoView r, List<JobView> running, Instant now, Messages m) {
         return r.mainState() != CiState.PENDING ? null

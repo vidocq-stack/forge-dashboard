@@ -90,10 +90,6 @@ public class StatsQueries {
     }
 
     /**
-     * The jobs of {@code org} with a known runner that overlap {@code [from, to)}, unclipped: the caller clips them to
-     * its window. A job still running has a null stop.
-     */
-    /**
      * Each job of the org with enough successful runs over the {@link UsualDurations#WINDOW} before {@code now}, and
      * its usual duration (see {@link UsualDurations}).
      */
@@ -107,6 +103,10 @@ public class StatsQueries {
         return usual;
     }
 
+    /**
+     * The jobs of {@code org} with a known runner that overlap {@code [from, to)}, unclipped: the caller clips them to
+     * its window. A job still running has a null stop.
+     */
     public List<Interval> jobIntervals(String org, Instant from, Instant to) {
         return query(JOB_INTERVALS, List.of(org, at(to), at(from)),
                 rs -> new Interval(rs.getLong(1), instant(rs, 2), instant(rs, 3)));

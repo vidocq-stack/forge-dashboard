@@ -39,15 +39,23 @@ class ProgressTest {
         assertEquals("", Progress.after(null, Duration.ofMinutes(5), NOW, FR));
     }
 
-    /** A build is as far along as its job with the most time left; jobs without history do not count. */
+    /** A build is as far along as its job with the most time left. */
     @Test
     void aBuildStandsWhereItsLongestJobStands() {
         JobView twoLeft = running(1, null, Duration.ofMinutes(3), Duration.ofMinutes(5));
         JobView nineLeft = running(2, null, Duration.ofMinutes(1), Duration.ofMinutes(10));
+
+        assertEquals("10 % · reste ~9 min", Progress.ofBuild(List.of(twoLeft, nineLeft), NOW, FR));
+        assertNull(Progress.ofBuild(List.of(), NOW, FR));
+    }
+
+    /** One running job without history may be the longest: the build would look nearly done, so it says nothing. */
+    @Test
+    void aBuildWithAJobWithoutHistorySaysNothing() {
+        JobView twoLeft = running(1, null, Duration.ofMinutes(3), Duration.ofMinutes(5));
         JobView unknown = running(3, null, Duration.ofMinutes(1), null);
 
-        assertEquals("10 % · reste ~9 min", Progress.ofBuild(List.of(twoLeft, nineLeft, unknown), NOW, FR));
+        assertNull(Progress.ofBuild(List.of(twoLeft, unknown), NOW, FR));
         assertNull(Progress.ofBuild(List.of(unknown), NOW, FR));
-        assertNull(Progress.ofBuild(List.of(), NOW, FR));
     }
 }

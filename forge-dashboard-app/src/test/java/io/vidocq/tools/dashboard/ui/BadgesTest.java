@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -22,7 +21,7 @@ class BadgesTest {
 
     private static ProjectRow row(int green, int red, int pending) {
         return new ProjectRow("vauban", CiState.SUCCESS, "—", "—", "—", GateStatus.OK, green, red, pending, "—", "u",
-                false, null, Map.of());
+                false);
     }
 
     private static List<Span> pills(Span pills) {

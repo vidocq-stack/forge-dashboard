@@ -12,6 +12,7 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import io.vidocq.tools.dashboard.domain.CiState;
 import io.vidocq.tools.dashboard.i18n.Messages;
 import io.vidocq.tools.dashboard.live.ChangeBus;
 import io.vidocq.tools.dashboard.live.ChangeEvent;
@@ -23,14 +24,18 @@ import io.vidocq.tools.dashboard.store.JobExecutionRepository;
 import io.vidocq.tools.dashboard.store.RunnerRowRepository;
 import io.vidocq.tools.dashboard.ui.model.ProjectRow;
 import io.vidocq.tools.dashboard.ui.model.ProjectsModel;
+import io.vidocq.tools.dashboard.ui.model.ProjectsProgress;
 import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
 
 import java.time.Clock;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -50,6 +55,10 @@ public class ProjectsPanel extends Div {
     private final Drawers drawers;
     private final Set<String> unfolded = new HashSet<>();
     private Shown shown;
+    private ProjectsProgress progress = ProjectsProgress.NONE;
+    /** The main dots and the progress of the PR lines on screen: the progress moves in place, without a reload. */
+    private final Map<String, MainDot> mainDots = new HashMap<>();
+    private final Map<PullKey, Span> pullProgress = new HashMap<>();
     private final List<Grid.Column<ProjectRow>> wideOnly = new ArrayList<>();
     private String org;
 
@@ -69,7 +78,7 @@ public class ProjectsPanel extends Div {
         grid.setSelectionMode(Grid.SelectionMode.NONE);
         grid.addComponentColumn(r -> Parts.link(r.repo(), r.htmlUrl())).setHeader(messages.text("projects.column.repo"))
                 .setAutoWidth(true).setFlexGrow(1);
-        grid.addComponentColumn(r -> Badges.dot(r.main(), r.mainProgress(), messages)).setHeader(messages.text("projects.column.main")).setAutoWidth(true).setFlexGrow(0)
+        grid.addComponentColumn(this::mainDot).setHeader(messages.text("projects.column.main")).setAutoWidth(true).setFlexGrow(0)
                 .setTextAlign(ColumnTextAlign.CENTER);
         wideOnly.add(grid.addColumn(ProjectRow::loc).setHeader(messages.text("projects.column.loc")).setAutoWidth(true).setFlexGrow(0)
                 .setTextAlign(ColumnTextAlign.END));
@@ -90,7 +99,8 @@ public class ProjectsPanel extends Div {
     public ProjectsPanel forOrg(String org) {
         this.org = org;
         refresh();
-        LiveBinding.bind(this, bus, interest(org), this::refresh);
+        LiveBinding.bind(this, bus, rowsInterest(org), this::refresh);
+        LiveBinding.bind(this, bus, progressInterest(org), this::refreshProgress);
         return this;
     }
 
@@ -102,22 +112,30 @@ public class ProjectsPanel extends Div {
         return this;
     }
 
-    /** The PRs, Sonar, and the runners: the progress of the running builds moves with each pass of the runners. */
-    static Predicate<ChangeEvent> interest(String org) {
-        return e -> e.equals(new ChangeEvent.PullsChanged(org)) || e.equals(new ChangeEvent.SonarChanged(org))
-                || e.equals(new ChangeEvent.RunnersChanged(org));
+    /** The rows change with the PRs and Sonar. */
+    static Predicate<ChangeEvent> rowsInterest(String org) {
+        return e -> e.equals(new ChangeEvent.PullsChanged(org)) || e.equals(new ChangeEvent.SonarChanged(org));
     }
 
-    /**
-     * Reloads the grid only when a row or a PR changed: a reload loses the keyboard focus, and the runners pass every
-     * 15 s.
-     */
+    /** The progress of the running builds moves with each pass of the runners. */
+    static Predicate<ChangeEvent> progressInterest(String org) {
+        return e -> e.equals(new ChangeEvent.RunnersChanged(org));
+    }
+
+    /** Reloads the grid only when a row or a PR changed: a reload loses the keyboard focus. */
     void refresh() {
         OrgSnapshot snapshot = live.snapshot(org);
-        List<ProjectRow> rows = ProjectsModel.rows(snapshot, clock.instant(), messages);
+        Instant now = clock.instant();
+        progress = ProjectsModel.progress(snapshot, now, messages);
+        List<ProjectRow> rows = ProjectsModel.rows(snapshot, now, messages);
         Shown next = new Shown(rows, snapshot.repos().stream().map(RepoView::pulls).toList());
-        if (!next.equals(shown)) {
+        if (next.equals(shown)) {
+            showProgress();
+        } else {
             shown = next;
+            // the grid renders its rows and details anew, with the progress just computed
+            mainDots.clear();
+            pullProgress.clear();
             grid.setItems(rows);
             rows.stream().filter(r -> unfolded.contains(r.repo())).forEach(r -> grid.setDetailsVisible(r, true));
         }
@@ -130,6 +148,28 @@ public class ProjectsPanel extends Div {
             grid.setVisible(true);
             getChildren().filter(Span.class::isInstance).toList().forEach(this::remove);
         }
+    }
+
+    /** On each pass of the runners: the progress moves in the dots and lines on screen; the grid is not reloaded. */
+    void refreshProgress() {
+        progress = ProjectsModel.progress(live.snapshot(org), clock.instant(), messages);
+        showProgress();
+    }
+
+    private void showProgress() {
+        mainDots.forEach((repo, d) -> Badges.describe(d.dot(), d.state(), progress.main(repo), messages));
+        pullProgress.forEach((pr, span) -> show(span, progress.pull(pr.repo(), pr.number())));
+    }
+
+    private static void show(Span span, String progress) {
+        span.setText(progress == null ? "" : progress);
+        span.setVisible(progress != null);
+    }
+
+    private Span mainDot(ProjectRow row) {
+        Span dot = Badges.dot(row.main(), progress.main(row.repo()), messages);
+        mainDots.put(row.repo(), new MainDot(dot, row.main()));
+        return dot;
     }
 
     private Component pullCounter(ProjectRow row) {
@@ -155,24 +195,31 @@ public class ProjectsPanel extends Div {
         live.snapshot(org).repos().stream().filter(r -> r.name().equals(row.repo()))
                 .flatMap(r -> r.pulls().stream())
                 .sorted(Comparator.comparingInt(PullView::number).reversed())
-                .forEach(pr -> list.add(pullLine(pr, row.pullProgress().get(pr.number()))));
+                .forEach(pr -> list.add(pullLine(row.repo(), pr)));
         return list;
     }
 
-    /** {@code progress}: how far along its running build is, null when it has no estimate. */
-    private Component pullLine(PullView pr, String progress) {
+    /** A PR of {@code repo}, with how far along its running build is when it has an estimate. */
+    private Component pullLine(String repo, PullView pr) {
         Button open = Parts.action("#" + pr.number() + " " + pr.title(), () -> drawers.openPull(org, pr));
         Span author = new Span(pr.author());
         author.addClassName(Theme.MUTED);
-        HorizontalLayout line = new HorizontalLayout(Badges.dot(pr.state(), messages), open, author);
-        if (progress != null) {
-            line.add(Parts.muted(progress));
-        }
+        Span progressOf = Parts.muted("");
+        PullKey key = new PullKey(repo, pr.number());
+        pullProgress.put(key, progressOf);
+        show(progressOf, progress.pull(repo, pr.number()));
+        HorizontalLayout line = new HorizontalLayout(Badges.dot(pr.state(), messages), open, author, progressOf);
         line.setAlignItems(FlexComponent.Alignment.CENTER);
         return line;
     }
 
     /** What the grid shows: its rows and, for the unfolded lists, the PRs of each project. */
     private record Shown(List<ProjectRow> rows, List<List<PullView>> pulls) {
+    }
+
+    private record MainDot(Span dot, CiState state) {
+    }
+
+    private record PullKey(String repo, int number) {
     }
 }

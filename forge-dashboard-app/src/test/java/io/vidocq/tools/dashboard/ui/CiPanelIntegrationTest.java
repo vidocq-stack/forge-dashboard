@@ -48,13 +48,13 @@ class CiPanelIntegrationTest {
         assertEquals("wrap", group.getParent().orElseThrow().getElement().getStyle().get("flex-wrap"));
     }
 
-    /** A runner's card says how far along each running job is, after its elapsed time. */
+    /** A runner's card says how far along each running job is, after its elapsed time (1 % a minute: no flakiness). */
     @Test
     void runnerCardsSayHowFarAlongTheJobsAre() {
         String org = "CiProgress";
         Instant now = Instant.now();
         JobView job = new JobView(1, 1001, "vauban", null, "refs/heads/main", "build", "running",
-                now.minus(Duration.ofMinutes(3)), "u", 1219L, "r1", Duration.ofMinutes(5));
+                now.minus(Duration.ofMinutes(30)), "u", 1219L, "r1", Duration.ofMinutes(100));
         InProcessApp.bean(LiveState.class).update(org, s -> s.withRunners(
                 List.of(new RunnerView(1219, "r1", "active", List.of(), 2, List.of(job))), List.of(), now),
                 new ChangeEvent.RunnersChanged(org));
@@ -62,7 +62,7 @@ class CiPanelIntegrationTest {
         CiPanel panel = TestUi.get(Locale.FRENCH, () -> InProcessApp.bean(CiPanel.class).forOrg(org));
 
         assertTrue(descendants(panel).anyMatch(c -> c instanceof Span s
-                        && s.getText().matches("build · 3 min 0\\d s · 60 % · reste ~2 min")),
+                        && s.getText().matches("build · 30 min \\d\\d s · 30 % · reste ~1 h 10 min")),
                 "the card line of the job");
     }
 

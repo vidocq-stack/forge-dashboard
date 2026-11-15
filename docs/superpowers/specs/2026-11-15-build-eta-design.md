@@ -33,8 +33,14 @@ restant »).
    - la pastille `main` ne montre l'avancement que si `main` est en cours : sinon un job sans PR est celui d'une
      autre branche ;
    - une PR dépliée le montre dès qu'un de ses jobs tourne avec une estimation, quel que soit son état ;
-   - la vue Projets suit aussi les passes des runners (toutes les 15 s, au lieu des 90 s des PR), mais ne recharge
-     la grille que si une ligne ou une PR a changé : un rechargement fait perdre le focus clavier.
+   - un build dont un job en cours n'a pas d'historique ne montre rien : ce job peut être le plus long, et le build
+     paraîtrait presque fini ;
+   - dans la vue Projets, les passes des runners (toutes les 15 s) déplacent l'avancement sur place, dans l'info-bulle
+     et les lignes de PR affichées ; la grille ne se recharge qu'aux passes des PR et de Sonar, et seulement si une
+     ligne ou une PR a changé : un rechargement fait perdre le focus clavier.
+7. **Laissé de côté** (relevé en revue) : un job en cours dont le runner n'est pas résolu (2 % des jobs, surtout
+   transitoire) n'a pas d'estimation ; les jobs de `main` sont ceux sans PR, pas ceux du commit de `main` ; deux
+   workflows d'un dépôt avec un job du même nom partagent une médiane (`job_execution` ne garde pas le workflow).
 
 ## Non-objectifs
 

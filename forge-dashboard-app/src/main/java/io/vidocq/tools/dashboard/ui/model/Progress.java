@@ -8,6 +8,7 @@ import io.vidocq.tools.dashboard.live.JobView;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 /** How far along running jobs and builds are, against the usual duration of each job (see {@link JobEta}). */
@@ -22,12 +23,17 @@ public final class Progress {
     }
 
     /**
-     * A build's progress, that of its running job with the most time left: « 62 % · reste ~3 min »; null when none
-     * of its jobs has an estimate. The jobs not started yet are unknown: a build of several stages looks shorter.
+     * A build's progress, that of its running job with the most time left: « 62 % · reste ~3 min ». Null when a
+     * running job has no estimate: it may be the longest, and the build would look nearly done. The jobs not started
+     * yet are unknown: a build of several stages looks shorter.
      */
     public static String ofBuild(Collection<JobView> running, Instant now, Messages m) {
-        return JobEta.longest(running.stream().flatMap(j -> eta(j.startedAt(), j.usual(), now).stream()).toList())
-                .map(e -> Formats.eta(e, m)).orElse(null);
+        List<Optional<JobEta>> etas = running.stream().map(j -> eta(j.startedAt(), j.usual(), now)).toList();
+        if (etas.stream().anyMatch(Optional::isEmpty)) {
+            return null;
+        }
+        return JobEta.longest(etas.stream().map(Optional::orElseThrow).toList()).map(e -> Formats.eta(e, m))
+                .orElse(null);
     }
 
     private static Optional<JobEta> eta(Instant startedAt, Duration usual, Instant now) {
