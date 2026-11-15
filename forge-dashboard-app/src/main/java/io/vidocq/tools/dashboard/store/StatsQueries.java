@@ -37,7 +37,7 @@ public class StatsQueries {
              ORDER BY runner_id, started_at""";
 
     /**
-     * The last successful runs of each job of an org over 30 days, at most {@code ?} per job. The window keeps the
+     * The last successful runs of each job of an org since a moment, at most {@code ?} per job. The window keeps the
      * query on the (org, stopped_at) index: the runners loop asks every 15 s.
      */
     private static final String LAST_SUCCESSES = """
@@ -45,7 +45,7 @@ public class StatsQueries {
                 SELECT repo, job_name, started_at, stopped_at,
                        row_number() OVER (PARTITION BY repo, job_name ORDER BY stopped_at DESC) AS recent
                   FROM job_execution
-                 WHERE org = ? AND stopped_at > now() - interval '30 days' AND status = 'success'
+                 WHERE org = ? AND stopped_at > ? AND status = 'success'
                    AND job_name IS NOT NULL) runs
              WHERE recent <= ?""";
 
@@ -93,10 +93,13 @@ public class StatsQueries {
      * The jobs of {@code org} with a known runner that overlap {@code [from, to)}, unclipped: the caller clips them to
      * its window. A job still running has a null stop.
      */
-    /** Each job of the org with enough successful runs, and its usual duration (see {@link UsualDurations}). */
-    public Map<JobKey, Duration> usualDurations(String org) {
+    /**
+     * Each job of the org with enough successful runs over the {@link UsualDurations#WINDOW} before {@code now}, and
+     * its usual duration (see {@link UsualDurations}).
+     */
+    public Map<JobKey, Duration> usualDurations(String org, Instant now) {
         Map<JobKey, List<Duration>> runs = new HashMap<>();
-        query(LAST_SUCCESSES, List.of(org, UsualDurations.LAST_RUNS), rs -> runs
+        query(LAST_SUCCESSES, List.of(org, at(now.minus(UsualDurations.WINDOW)), UsualDurations.LAST_RUNS), rs -> runs
                 .computeIfAbsent(new JobKey(rs.getString(1), rs.getString(2)), k -> new ArrayList<>())
                 .add(Duration.ofMillis(rs.getLong(3))));
         Map<JobKey, Duration> usual = new HashMap<>();

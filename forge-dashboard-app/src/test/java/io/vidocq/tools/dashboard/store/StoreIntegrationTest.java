@@ -156,7 +156,7 @@ class StoreIntegrationTest {
             jobs.save(ran(task++, "Vidocq", "deploy", "success", 45, 31L * 24 * 60 + i));
         }
 
-        assertEquals(Map.of(new JobKey("vauban", "build"), Duration.ofSeconds(90)), stats.usualDurations("Vidocq"));
+        assertEquals(Map.of(new JobKey("vauban", "build"), Duration.ofSeconds(90)), stats.usualDurations("Vidocq", now));
     }
 
     private JobExecution ran(long taskId, String org, String jobName, String status, long seconds,

@@ -13,6 +13,9 @@ public final class UsualDurations {
     /** Below this, one cold cache or one flaky step would set the estimate. */
     public static final int MIN_RUNS = 3;
 
+    /** How far back the runs are read: a job not run for a month starts over. */
+    public static final Duration WINDOW = Duration.ofDays(30);
+
     private UsualDurations() {
     }
 

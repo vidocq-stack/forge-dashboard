@@ -24,7 +24,7 @@ class CiBoardModelTest {
     static JobView job(long task, String repo, Integer pr, Instant started) {
         return new JobView(task, task + 1000, repo, pr, pr == null ? "refs/heads/main" : "refs/pull/" + pr + "/head",
                 "build", "running", started, "https://codefloe.com/Vidocq/" + repo + "/actions/runs/1/jobs/" + task,
-                1219L, "r1");
+                1219L, "r1", null);
     }
 
     static RunnerView runner(long id, String name, String status, int capacity, JobView... running) {
