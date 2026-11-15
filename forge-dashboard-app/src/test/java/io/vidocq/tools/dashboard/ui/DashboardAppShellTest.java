@@ -27,6 +27,14 @@ class DashboardAppShellTest {
         assertTrue(sheets.contains(Lumo.STYLESHEET), "style sheets: " + sheets);
     }
 
+    /** The dashboard's own look comes after Lumo, so that its rules and colours win over Lumo's. */
+    @Test
+    void dashboardStylesheetComesAfterLumo() {
+        List<String> sheets = Arrays.stream(DashboardAppShell.class.getAnnotationsByType(StyleSheet.class))
+                .map(StyleSheet::value).toList();
+        assertEquals(List.of(Lumo.STYLESHEET, Theme.STYLESHEET), sheets);
+    }
+
     /** Server push over one WebSocket, which Foy serves since vidocq#65, instead of a long poll every few seconds. */
     @Test
     void pushGoesOverAWebSocket() {

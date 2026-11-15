@@ -1,0 +1,17 @@
+/*
+ * forge-dashboard's look, loaded after Lumo by DashboardAppShell: option A of the contrast mockups, light and high
+ * contrast. The classes and grid parts are the constants of ui/Theme.java; ThemeTest checks that each has a rule here.
+ */
+
+/* Colours: near-black text, dark secondary text, deeper status colours, firmer borders. */
+:root {
+  --lumo-body-text-color: #0b0f14;
+  --lumo-header-text-color: #0b0f14;
+  --lumo-secondary-text-color: #3a4250;
+  --lumo-success-color: #0a7a3d;
+  --lumo-success-text-color: #065f2e;
+  --lumo-error-color: #c81e1e;
+  --lumo-error-text-color: #a51717;
+  --lumo-warning-color: #b45309;
+  --dash-border: #c9ced6;
+}

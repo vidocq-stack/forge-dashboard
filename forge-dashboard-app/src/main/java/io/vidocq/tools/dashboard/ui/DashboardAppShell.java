@@ -9,10 +9,12 @@ import com.vaadin.flow.shared.ui.Transport;
 import com.vaadin.flow.theme.lumo.Lumo;
 
 /**
- * Application shell, with the Lumo theme (Vaadin 25 applies none by default, and the views use Lumo's variables) and
+ * Application shell, with the Lumo theme (Vaadin 25 applies none by default, and the views use Lumo's variables) then
+ * the dashboard's own stylesheet ({@link Theme}), and
  * server push over a WebSocket (Foy's Jakarta WebSocket, which accepts the handshake from the server's own origin).
  */
 @StyleSheet(Lumo.STYLESHEET)
+@StyleSheet(Theme.STYLESHEET)
 @Push(value = PushMode.AUTOMATIC, transport = Transport.WEBSOCKET_XHR)
 public class DashboardAppShell implements AppShellConfigurator {
 
