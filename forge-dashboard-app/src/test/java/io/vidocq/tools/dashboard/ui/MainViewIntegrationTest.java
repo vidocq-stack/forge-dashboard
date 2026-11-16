@@ -84,6 +84,21 @@ class MainViewIntegrationTest {
         assertEquals("0", tabs.getStyle().get("min-width"));
     }
 
+    /** The PR tab comes right after the projects, and shows the PRs of the org. */
+    @Test
+    void thePullsTabFollowsTheProjects() {
+        TestUi.run(Locale.FRENCH, () -> {
+            MainView view = mainView();
+            Component toggle = toggleRow(button(view, "Projets"));
+            assertEquals(List.of("Projets", "PR", "CI", "Commiters"),
+                    toggle.getChildren().map(b -> ((Button) b).getText()).toList());
+
+            button(view, "PR").click();
+
+            assertTrue(descendants(view).anyMatch(PullsPanel.class::isInstance), "the PR tab is shown");
+        });
+    }
+
     /** On a phone the space under the views' toggle stays outside its frame: a margin, not a padding. */
     @Test
     void narrowToggleKeepsItsSpaceOutsideItsFrame() {

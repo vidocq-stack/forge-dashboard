@@ -49,8 +49,8 @@ final class Badges {
     }
 
     /**
-     * The PR column: the green, red and running counts of the PRs ready for review, then the drafts (WIP), one pill each
-     * (a zero in grey), spelled out in the tooltip.
+     * The PR column: the green, red and running counts of the PRs ready for review, then the drafts (WIP), one pill
+     * each (a zero in grey), spelled out in the tooltip.
      */
     static Span pulls(ProjectRow row, Messages m) {
         Span pills = new Span(count(row.prGreen(), Theme.PILL_OK), count(row.prRed(), Theme.PILL_ERR),
