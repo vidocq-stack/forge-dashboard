@@ -217,8 +217,12 @@ public class ProjectsPanel extends Div {
         }
         line.add(author, progressOf);
         line.setAlignItems(FlexComponent.Alignment.CENTER);
-        // the list, aligned to the start, would let the line grow with its title: no wider than the cell
+        // the list, aligned to the start, would let the line grow with its title: no wider than the cell, and only
+        // the title shrinks
         line.getStyle().set("max-width", "100%");
+        for (Span keep : List.of(author, progressOf)) {
+            keep.getStyle().set("flex-shrink", "0").set("white-space", "nowrap");
+        }
         return line;
     }
 
