@@ -64,6 +64,17 @@ class ProjectsPanelIntegrationTest {
                 visibleHeaders(panel));
     }
 
+    /**
+     * A long project name ("vidocq-workspace") does not push the PR pills past a 390 px phone: the Repo column takes
+     * the room left, and a name too long for it ends in an ellipsis.
+     */
+    @Test
+    void theRepoColumnTakesTheRoomLeft() {
+        Grid.Column<ProjectRow> repo = grid(panel("Nobody")).getColumns().getFirst();
+        assertFalse(repo.isAutoWidth(), "an auto width would be the longest name's");
+        assertEquals(1, repo.getFlexGrow());
+    }
+
     /** A project in error gets the grid part the stylesheet tints red; the others get none. */
     @Test
     void errorRowsGetTheErrorPart() {
