@@ -93,6 +93,20 @@ vaadin-grid::part(error details-cell) {
 }
 
 /*
+ * A title button (Theme.TITLE): Lumo keeps a button at its text's width and lets the text overflow its label; this one
+ * shrinks with its cell, and its label cuts the text with an ellipsis.
+ */
+vaadin-button.dash-title {
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+vaadin-button.dash-title::part(label) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/*
  * The PR counter button: no padding around its pills, so that the column fits a 390 px phone. Its pills are its only
  * content, so Vaadin gives it the icon theme (square, padded, wide minimum): this undoes it.
  */

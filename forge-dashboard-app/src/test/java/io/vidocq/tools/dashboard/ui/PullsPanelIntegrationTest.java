@@ -29,6 +29,7 @@ import java.util.Locale;
 import static io.vidocq.tools.dashboard.ui.ProjectsPanelIntegrationTest.descendants;
 import static io.vidocq.tools.dashboard.ui.ProjectsPanelIntegrationTest.visibleHeaders;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -76,6 +77,30 @@ class PullsPanelIntegrationTest {
 
         assertTrue(descendants(panel).anyMatch(c -> c instanceof PullDetailsDrawer d && d.isVisible()),
                 "the drawer of #7 is open");
+    }
+
+    /**
+     * A long title does not widen the grid past a phone's screen: the PR column takes the room left, its title shrinks
+     * to an ellipsis (whole in its tooltip), and the WIP pill keeps its size.
+     */
+    @Test
+    void aLongTitleShrinksAndTheWipPillStays() {
+        String org = "PullsLongTitle";
+        String title = "WIP : build(mcp): langchain4j-cdi 1.5.0, and the MCP extension ships with the release";
+        vaubanWith(org, title);
+        PullsPanel panel = panel(org);
+        Grid.Column<PullRow> column = grid(panel).getColumns().get(PULL);
+        assertFalse(column.isAutoWidth(), "an auto width would be the longest title's");
+        assertEquals(1, column.getFlexGrow());
+
+        Component cell = TestUi.get(Locale.FRENCH, () -> column(panel, PULL).createComponent(firstRow(panel)));
+        Button open = descendants(cell).filter(Button.class::isInstance).map(Button.class::cast).findFirst()
+                .orElseThrow();
+        assertTrue(open.hasClassName("dash-title"), "the title may shrink");
+        assertEquals("#7 " + title, open.getElement().getAttribute("title"));
+        Span wip = descendants(cell).filter(c -> c instanceof Span s && "WIP".equals(s.getText()))
+                .map(Span.class::cast).findFirst().orElseThrow();
+        assertEquals("0", wip.getStyle().get("flex-shrink"), "the pill keeps its size");
     }
 
     /** A running build's progress moves with the runners, in place: the grid is not reloaded. */

@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -70,6 +71,20 @@ class ThemeTest {
             double ratio = contrast(colour(rule.get("color")), colour(rule.get("background")));
             assertTrue(ratio >= 4.5, pill + ": " + String.format("%.2f", ratio) + ":1");
         }
+    }
+
+    /**
+     * Lumo keeps a button at its text's width ({@code flex-shrink: 0}) and lets the text overflow its label: a title
+     * button shrinks, and its label cuts the text with an ellipsis.
+     */
+    @Test
+    void aTitleShrinksToAnEllipsis() {
+        Map<String, String> button = rule("vaadin-button.dash-title");
+        assertEquals("1", button.get("flex-shrink"));
+        assertEquals("0", button.get("min-width"));
+        Map<String, String> label = rule("vaadin-button.dash-title::part(label)");
+        assertEquals("hidden", label.get("overflow"));
+        assertEquals("ellipsis", label.get("text-overflow"));
     }
 
     /** A Theme constant left out of CLASSES would escape the check that it has a rule. */

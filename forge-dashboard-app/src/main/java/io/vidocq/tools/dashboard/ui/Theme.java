@@ -30,10 +30,12 @@ final class Theme {
     static final String TOGGLE = "dash-toggle";
     /** A framed box: a runner. */
     static final String CARD = "dash-card";
+    /** A button with a long text (a PR's title): short of room, it shrinks to an ellipsis. */
+    static final String TITLE = "dash-title";
 
     /** The CSS classes the views use. */
     static final List<String> CLASSES = List.of(PILL, PILL_OK, PILL_ERR, PILL_WARN, PILL_PENDING, PILL_ZERO, PILL_WIP,
-            PILLS, MUTED, HEADER, TOGGLE, CARD);
+            PILLS, MUTED, HEADER, TOGGLE, CARD, TITLE);
 
     /** Cells of a projects grid row in error (red main, red pull request, failed gate). */
     static final String ERROR_ROW = "error";

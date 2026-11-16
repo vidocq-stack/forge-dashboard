@@ -1,6 +1,7 @@
 package io.vidocq.tools.dashboard.ui;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
@@ -71,7 +72,8 @@ public class PullsPanel extends Div {
                 .setFlexGrow(0);
         grid.addColumn(r -> r.pull().repo()).setHeader(messages.text("pulls.column.repo")).setAutoWidth(true)
                 .setFlexGrow(0);
-        grid.addComponentColumn(this::pull).setHeader(messages.text("pulls.column.pull")).setAutoWidth(true)
+        // the room left, not the longest title's width: on a phone, a long title would push the grid off the screen
+        grid.addComponentColumn(this::pull).setHeader(messages.text("pulls.column.pull")).setWidth("10em")
                 .setFlexGrow(1);
         wideOnly.add(grid.addComponentColumn(r -> Parts.muted(r.pull().author()))
                 .setHeader(messages.text("pulls.column.author")).setAutoWidth(true).setFlexGrow(0));
@@ -157,15 +159,24 @@ public class PullsPanel extends Div {
         return dot;
     }
 
-    /** « #n title », which opens the PR's drawer, and the WIP pill of a draft. */
+    /**
+     * « #n title », which opens the PR's drawer, and the WIP pill of a draft. Short of room, the title shrinks to an
+     * ellipsis (whole in its tooltip); the pill keeps its size.
+     */
     private Component pull(PullRow row) {
         PullView pr = row.pull();
-        HorizontalLayout cell = new HorizontalLayout(Parts.action("#" + pr.number() + " " + pr.title(),
-                () -> drawers.openPull(org, pr)));
+        String text = "#" + pr.number() + " " + pr.title();
+        Button open = Parts.action(text, () -> drawers.openPull(org, pr));
+        open.addClassName(Theme.TITLE);
+        open.getElement().setAttribute("title", text);
+        HorizontalLayout cell = new HorizontalLayout(open);
         if (pr.draft()) {
-            cell.add(Badges.wip(messages));
+            Span wip = Badges.wip(messages);
+            wip.getStyle().set("flex-shrink", "0");
+            cell.add(wip);
         }
         cell.setAlignItems(FlexComponent.Alignment.CENTER);
+        cell.getStyle().set("min-width", "0");
         return cell;
     }
 
