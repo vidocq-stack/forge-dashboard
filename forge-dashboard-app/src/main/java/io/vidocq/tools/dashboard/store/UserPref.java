@@ -5,7 +5,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 /**
- * The preferences of a signed-in user: view ({@code PROJECTS|CI|COMMITTERS}), period in days, last org tab, and
+ * The preferences of a signed-in user: view ({@code PROJECTS|PULLS|CI|COMMITTERS}), period in days, last org tab, and
  * language tag ({@code null}: the browser's).
  */
 @Entity

@@ -87,6 +87,12 @@ class ThemeTest {
         assertEquals("ellipsis", label.get("text-overflow"));
     }
 
+    /** A pill never shrinks: beside a long title, it keeps its size. */
+    @Test
+    void aPillKeepsItsSize() {
+        assertEquals("0", rule(".dash-pill").get("flex-shrink"));
+    }
+
     /** A Theme constant left out of CLASSES would escape the check that it has a rule. */
     @Test
     void everyDashConstantIsListed() throws IllegalAccessException {

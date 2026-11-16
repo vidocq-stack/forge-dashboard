@@ -201,7 +201,8 @@ public class ProjectsPanel extends Div {
 
     /** A PR of {@code repo}, with how far along its running build is when it has an estimate. */
     private Component pullLine(String repo, PullView pr) {
-        Button open = Parts.action("#" + pr.number() + " " + pr.title(), () -> drawers.openPull(org, pr));
+        // short of room (a phone), the title shrinks rather than push the WIP pill out of sight
+        Button open = Parts.title("#" + pr.number() + " " + pr.title(), () -> drawers.openPull(org, pr));
         Span author = new Span(pr.author());
         author.addClassName(Theme.MUTED);
         Span progressOf = Parts.muted("");

@@ -1,6 +1,7 @@
 package io.vidocq.tools.dashboard.ui;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
@@ -163,6 +164,9 @@ class ProjectsPanelIntegrationTest {
 
         assertTrue(descendants(pulls).anyMatch(c -> c instanceof Span s && s.getText().equals("WIP")
                 && s.hasClassName("dash-pill-wip")), "the WIP pill of #7");
+        // on a phone, a long title shrinks rather than push the pill out of sight
+        assertTrue(descendants(pulls).anyMatch(c -> c instanceof Button b && b.getText().startsWith("#7 ")
+                && b.hasClassName("dash-title")), "the title of #7 shrinks");
     }
 
     private static ProjectsPanel panel(String org) {

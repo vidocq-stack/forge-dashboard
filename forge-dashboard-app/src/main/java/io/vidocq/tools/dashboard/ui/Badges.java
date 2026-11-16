@@ -29,10 +29,14 @@ final class Badges {
         return dot;
     }
 
-    /** The tooltip of a dot: its state and, when given, how far along the build is. */
+    /**
+     * The tooltip of a dot, and its name for a screen reader (not « black circle »): its state and, when given, how
+     * far along the build is.
+     */
     static void describe(Span dot, CiState state, String progress, Messages m) {
         String label = label(state, m);
-        dot.getElement().setAttribute("title", progress == null ? label : label + " · " + progress);
+        String text = progress == null ? label : label + " · " + progress;
+        dot.getElement().setAttribute("title", text).setAttribute("role", "img").setAttribute("aria-label", text);
     }
 
     static String color(CiState state) {

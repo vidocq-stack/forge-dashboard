@@ -1,7 +1,6 @@
 package io.vidocq.tools.dashboard.ui;
 
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
@@ -79,10 +78,12 @@ public class PullsPanel extends Div {
                 .setHeader(messages.text("pulls.column.author")).setAutoWidth(true).setFlexGrow(0));
         wideOnly.add(grid.addComponentColumn(r -> Badges.gate(r.pull().sonarGate()))
                 .setHeader(messages.text("pulls.column.gate")).setAutoWidth(true).setFlexGrow(0));
+        // these two move in place, which does not measure the columns again: a width of their own, the longest text's
+        // ("il y a 59 min", "10 min langer dan gewoonlijk"), or a build started after the first rendering is cut
         wideOnly.add(grid.addComponentColumn(this::updated).setHeader(messages.text("pulls.column.updated"))
-                .setAutoWidth(true).setFlexGrow(0));
+                .setWidth("8em").setFlexGrow(0));
         wideOnly.add(grid.addComponentColumn(this::build).setHeader(messages.text("pulls.column.build"))
-                .setAutoWidth(true).setFlexGrow(0));
+                .setWidth("14.5em").setFlexGrow(0));
         add(grid, drawers);
     }
 
@@ -124,6 +125,8 @@ public class PullsPanel extends Div {
             updated.clear();
             builds.clear();
             grid.setItems(rows);
+            // the auto widths were measured with the first rows: a project with a longer name would be cut
+            grid.recalculateColumnWidths();
         }
         if (rows.isEmpty()) {
             grid.setVisible(false);
@@ -165,15 +168,10 @@ public class PullsPanel extends Div {
      */
     private Component pull(PullRow row) {
         PullView pr = row.pull();
-        String text = "#" + pr.number() + " " + pr.title();
-        Button open = Parts.action(text, () -> drawers.openPull(org, pr));
-        open.addClassName(Theme.TITLE);
-        open.getElement().setAttribute("title", text);
-        HorizontalLayout cell = new HorizontalLayout(open);
+        HorizontalLayout cell = new HorizontalLayout(Parts.title("#" + pr.number() + " " + pr.title(),
+                () -> drawers.openPull(org, pr)));
         if (pr.draft()) {
-            Span wip = Badges.wip(messages);
-            wip.getStyle().set("flex-shrink", "0");
-            cell.add(wip);
+            cell.add(Badges.wip(messages));
         }
         cell.setAlignItems(FlexComponent.Alignment.CENTER);
         cell.getStyle().set("min-width", "0");

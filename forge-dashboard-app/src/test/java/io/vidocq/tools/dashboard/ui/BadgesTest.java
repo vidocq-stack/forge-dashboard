@@ -46,6 +46,17 @@ class BadgesTest {
         assertEquals("en cours", Badges.dot(CiState.PENDING, null, FR).getElement().getAttribute("title"));
     }
 
+    /** A screen reader names a dot by its state, not « black circle »; the name follows the progress in place. */
+    @Test
+    void dotReadsAsItsState() {
+        Span dot = Badges.dot(CiState.FAILURE, null, FR);
+        assertEquals("img", dot.getElement().getAttribute("role"));
+        assertEquals("rouge", dot.getElement().getAttribute("aria-label"));
+
+        Badges.describe(dot, CiState.PENDING, "60 % · reste ~2 min", FR);
+        assertEquals("en cours · 60 % · reste ~2 min", dot.getElement().getAttribute("aria-label"));
+    }
+
     @Test
     void gateIsAPill() {
         assertPill(Badges.gate(GateStatus.OK), "OK", "dash-pill-ok");

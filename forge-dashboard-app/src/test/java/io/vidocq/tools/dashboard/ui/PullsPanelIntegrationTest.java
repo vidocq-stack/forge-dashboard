@@ -1,6 +1,7 @@
 package io.vidocq.tools.dashboard.ui;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Span;
@@ -98,9 +99,48 @@ class PullsPanelIntegrationTest {
                 .orElseThrow();
         assertTrue(open.hasClassName("dash-title"), "the title may shrink");
         assertEquals("#7 " + title, open.getElement().getAttribute("title"));
-        Span wip = descendants(cell).filter(c -> c instanceof Span s && "WIP".equals(s.getText()))
-                .map(Span.class::cast).findFirst().orElseThrow();
-        assertEquals("0", wip.getStyle().get("flex-shrink"), "the pill keeps its size");
+        assertTrue(descendants(cell).anyMatch(c -> c instanceof Span s && "WIP".equals(s.getText())
+                && s.hasClassName("dash-pill")), "a pill, which keeps its size (ThemeTest)");
+    }
+
+    /**
+     * The last change and the build's progress move in place, which does not measure the columns again: they get a
+     * width of their own, the longest progress's ("10 min langer dan gewoonlijk"), or a build started after the first
+     * rendering would be cut.
+     */
+    @Test
+    void theCellsThatMoveInPlaceHaveAWidthOfTheirOwn() {
+        Grid<PullRow> grid = grid(panel("Nobody"));
+        for (int index : List.of(UPDATED, BUILD)) {
+            Grid.Column<PullRow> column = grid.getColumns().get(index);
+            assertFalse(column.isAutoWidth(), column.getHeaderText());
+            assertTrue(column.getWidth() != null && column.getWidth().endsWith("em"), column.getHeaderText());
+        }
+    }
+
+    /** A reload measures the auto-width columns again: a project with a longer name would be cut. */
+    @Test
+    void aReloadMeasuresTheColumnsAgain() {
+        String org = "PullsRemeasure";
+        vaubanWith(org, "feat: proxies");
+        TestUi.run(Locale.FRENCH, () -> {
+            PullsPanel panel = InProcessApp.bean(PullsPanel.class).forOrg(org);
+            UI.getCurrent().add(panel);
+            jsCalls();
+
+            vaubanWith(org, "feat: proxies, renamed");
+            panel.refresh();
+
+            assertTrue(jsCalls().stream().anyMatch(js -> js.contains("recalculateColumnWidths")), "measured again");
+        });
+    }
+
+    /** The JavaScript calls queued for the browser since the last call, emptied. */
+    private static List<String> jsCalls() {
+        UI ui = UI.getCurrent();
+        ui.getInternals().getStateTree().runExecutionsBeforeClientResponse();
+        return ui.getInternals().dumpPendingJavaScriptInvocations().stream()
+                .map(i -> i.getInvocation().getExpression()).toList();
     }
 
     /** A running build's progress moves with the runners, in place: the grid is not reloaded. */

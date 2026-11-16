@@ -53,6 +53,8 @@ vaadin-grid::part(error details-cell) {
   line-height: 1.4;
   text-align: center;
   font-variant-numeric: tabular-nums;
+  /* beside a long title, a pill keeps its size */
+  flex-shrink: 0;
 }
 
 .dash-pill-ok {

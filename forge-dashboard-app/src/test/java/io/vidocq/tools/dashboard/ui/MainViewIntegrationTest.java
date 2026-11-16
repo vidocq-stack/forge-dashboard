@@ -99,6 +99,21 @@ class MainViewIntegrationTest {
         });
     }
 
+    /** The PR tab, shown, follows the screen: the essentials on a phone, every column wider. */
+    @Test
+    void thePullsTabFollowsTheScreenWidth() {
+        TestUi.run(Locale.FRENCH, () -> {
+            MainView view = mainView();
+            button(view, "PR").click();
+
+            view.narrow(true);
+            assertEquals(List.of("CI", "Repo", "PR"), visibleHeaders(view));
+
+            view.narrow(false);
+            assertEquals(List.of("CI", "Repo", "PR", "Auteur", "Gate", "Mise à jour", "Build"), visibleHeaders(view));
+        });
+    }
+
     /** On a phone the space under the views' toggle stays outside its frame: a margin, not a padding. */
     @Test
     void narrowToggleKeepsItsSpaceOutsideItsFrame() {
