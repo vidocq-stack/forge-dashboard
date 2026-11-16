@@ -217,6 +217,8 @@ public class ProjectsPanel extends Div {
         }
         line.add(author, progressOf);
         line.setAlignItems(FlexComponent.Alignment.CENTER);
+        // the list, aligned to the start, would let the line grow with its title: no wider than the cell
+        line.getStyle().set("max-width", "100%");
         return line;
     }
 

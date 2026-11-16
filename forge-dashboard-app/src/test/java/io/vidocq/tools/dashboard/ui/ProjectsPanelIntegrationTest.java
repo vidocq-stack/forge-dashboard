@@ -178,6 +178,10 @@ class ProjectsPanelIntegrationTest {
         // on a phone, a long title shrinks rather than push the pill out of sight
         assertTrue(descendants(pulls).anyMatch(c -> c instanceof Button b && b.getText().startsWith("#7 ")
                 && b.hasClassName("dash-title")), "the title of #7 shrinks");
+        // ...within its line, which the list (aligned to the start) would otherwise let grow with the title
+        Component line = descendants(pulls).filter(c -> c instanceof Button b && b.getText().startsWith("#7 "))
+                .findFirst().orElseThrow().getParent().orElseThrow();
+        assertEquals("100%", line.getElement().getStyle().get("max-width"));
     }
 
     private static ProjectsPanel panel(String org) {
