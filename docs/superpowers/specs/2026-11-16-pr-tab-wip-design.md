@@ -11,7 +11,10 @@ Deux demandes de l'utilisateur :
 
 ## Constat
 
-- Un brouillon se reconnaît à son titre, comme dans Forgejo : il commence par `WIP:` ou `[WIP]` (`PullView.draft()`).
+- Un brouillon se reconnaît à son titre (`PullView.draft()`). Forgejo n'en connaît que deux préfixes, `WIP:` et `[WIP]`,
+  mais l'écosystème écrit aussi « WIP : build(mcp): … », « WIP docs: … », « WIP ci(tassis): … » : vu sur les vraies
+  données, vidocq#204 et #142, rouges, comptaient encore en rouge. Un titre qui commence par le mot WIP (pas « WIPE »)
+  ou par `[WIP]` est donc un brouillon.
 - Le tri de Projets ignore déjà un brouillon rouge (il ne fait pas remonter le projet), mais les compteurs le comptent.
 - Les PR ouvertes de chaque projet sont dans le snapshot vivant (`RepoView.pulls`), avec leur état CI, leur gate Sonar,
   leur auteur et leur dernière mise à jour ; le panneau d'une PR existe (`PullDetailsDrawer`).
@@ -38,7 +41,7 @@ Deux demandes de l'utilisateur :
 ## Non-objectifs
 
 - Filtrer ou chercher dans la liste, voir les PR fermées ou fusionnées, agir sur une PR (fusion, relance).
-- Changer la détection des brouillons (préfixes de titre de Forgejo).
+- Lire l'état « brouillon » de l'API Forgejo : il n'existe pas, Forgejo le déduit lui aussi du titre.
 
 ## Découpage
 

@@ -93,8 +93,7 @@ class ProjectsModelTest {
     }
 
     /**
-     * A work in progress (title "WIP:" or "[WIP]", Forgejo's drafts) may fail: it neither lifts its project nor counts
-     * red.
+     * A work in progress (a title starting with WIP or [WIP]) may fail: it neither lifts its project nor counts red.
      */
     @Test
     void failingWorkInProgressIsNotAnError() {
