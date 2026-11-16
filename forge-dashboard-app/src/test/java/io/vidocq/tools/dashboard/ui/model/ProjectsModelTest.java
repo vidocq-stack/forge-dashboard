@@ -51,7 +51,7 @@ class ProjectsModelTest {
         ProjectRow row = rows(repo("vauban", CiState.SUCCESS, sonar(41_814L, 2_077L, 86.9, GateStatus.OK),
                 List.of(pull("vauban", 1, CiState.SUCCESS), pull("vauban", 2, CiState.PENDING)))).getFirst();
 
-        assertEquals(new ProjectRow("vauban", CiState.SUCCESS, "41.8k", "2077", "86.9%", GateStatus.OK, 1, 0, 1,
+        assertEquals(new ProjectRow("vauban", CiState.SUCCESS, "41.8k", "2077", "86.9%", GateStatus.OK, 1, 0, 1, 0,
                 "il y a 2 h", "https://codefloe.com/Vidocq/vauban", false), row);
     }
 
@@ -92,7 +92,7 @@ class ProjectsModelTest {
         assertEquals(List.of("main", "pull", "gate", "covered"), rows.stream().map(ProjectRow::repo).toList());
     }
 
-    /** A work in progress (title "WIP:" or "[WIP]", Forgejo's drafts) may fail: it does not lift its project. */
+    /** A work in progress (title "WIP:" or "[WIP]", Forgejo's drafts) may fail: it neither lifts its project nor counts red. */
     @Test
     void failingWorkInProgressIsNotAnError() {
         List<ProjectRow> rows = rows(
@@ -101,7 +101,8 @@ class ProjectsModelTest {
                                 pull("erasmus", 2, CiState.FAILURE, "[wip] pages"))),
                 repo("vauban", CiState.SUCCESS, sonar(1_000L, 100L, 90.0, GateStatus.OK), List.of()));
         assertEquals(List.of("vauban", "erasmus"), rows.stream().map(ProjectRow::repo).toList());
-        assertEquals(2, rows.getLast().prRed(), "the PR column still shows them red");
+        assertEquals(0, rows.getLast().prRed(), "the PR column does not show them red");
+        assertEquals(2, rows.getLast().prWip(), "but as WIP");
     }
 
     /** Past the errors: the best covered first, then the most lines of code, then the most tests; no Sonar last. */
@@ -138,6 +139,20 @@ class ProjectsModelTest {
         assertEquals(0, row.prGreen());
         assertEquals(1, row.prRed());
         assertEquals(1, row.prPending());
+    }
+
+    /** A draft is not ready: whatever its state, it counts as WIP, never in green, red or running. */
+    @Test
+    void draftsCountApartAsWip() {
+        ProjectRow row = rows(repo("foy", CiState.SUCCESS, null, List.of(pull("foy", 1, CiState.SUCCESS),
+                pull("foy", 2, CiState.FAILURE, "WIP: websocket"), pull("foy", 3, CiState.PENDING, "[WIP] origin"),
+                pull("foy", 4, CiState.SUCCESS, "wip: lower case too"), pull("foy", 5, CiState.FAILURE)))).getFirst();
+
+        assertEquals(1, row.prGreen());
+        assertEquals(1, row.prRed());
+        assertEquals(0, row.prPending());
+        assertEquals(3, row.prWip());
+        assertEquals(5, row.pulls());
     }
 
     /** A job of {@code repo} running for {@code elapsedMinutes} that usually takes {@code usualMinutes}. */

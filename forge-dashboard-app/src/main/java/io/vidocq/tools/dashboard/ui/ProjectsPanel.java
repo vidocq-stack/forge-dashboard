@@ -208,7 +208,11 @@ public class ProjectsPanel extends Div {
         PullKey key = new PullKey(repo, pr.number());
         pullProgress.put(key, progressOf);
         show(progressOf, progress.pull(repo, pr.number()));
-        HorizontalLayout line = new HorizontalLayout(Badges.dot(pr.state(), messages), open, author, progressOf);
+        HorizontalLayout line = new HorizontalLayout(Badges.dot(pr.state(), messages), open);
+        if (pr.draft()) {
+            line.add(Badges.wip(messages));
+        }
+        line.add(author, progressOf);
         line.setAlignItems(FlexComponent.Alignment.CENTER);
         return line;
     }

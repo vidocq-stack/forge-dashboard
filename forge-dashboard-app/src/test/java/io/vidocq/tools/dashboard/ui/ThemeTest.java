@@ -65,7 +65,7 @@ class ThemeTest {
     @Test
     void pillsAreReadable() {
         for (String pill : List.of("dash-pill-ok", "dash-pill-err", "dash-pill-warn", "dash-pill-pending",
-                "dash-pill-zero")) {
+                "dash-pill-zero", "dash-pill-wip")) {
             Map<String, String> rule = rule("." + pill);
             double ratio = contrast(colour(rule.get("color")), colour(rule.get("background")));
             assertTrue(ratio >= 4.5, pill + ": " + String.format("%.2f", ratio) + ":1");

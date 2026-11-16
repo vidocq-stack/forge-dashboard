@@ -68,10 +68,10 @@ class ProjectsPanelIntegrationTest {
     void errorRowsGetTheErrorPart() {
         ProjectsPanel panel = TestUi.get(Locale.FRENCH, () -> InProcessApp.bean(ProjectsPanel.class).forOrg("Nobody"));
         Grid<ProjectRow> grid = grid(panel);
-        ProjectRow failing = new ProjectRow("cyrano", CiState.FAILURE, "—", "—", "—", GateStatus.NONE, 0, 0, 0, "—",
-                "u", true);
-        ProjectRow healthy = new ProjectRow("vauban", CiState.SUCCESS, "—", "—", "—", GateStatus.OK, 0, 0, 0, "—",
-                "u", false);
+        ProjectRow failing = new ProjectRow("cyrano", CiState.FAILURE, "—", "—", "—", GateStatus.NONE, 0, 0, 0, 0,
+                "—", "u", true);
+        ProjectRow healthy = new ProjectRow("vauban", CiState.SUCCESS, "—", "—", "—", GateStatus.OK, 0, 0, 0, 0,
+                "—", "u", false);
 
         assertEquals("error", grid.getPartNameGenerator().apply(failing));
         assertNull(grid.getPartNameGenerator().apply(healthy));
@@ -152,6 +152,19 @@ class ProjectsPanelIntegrationTest {
         assertTrue(shows(pulls, "50 % · reste ~50 min"), "the progress of #7, moved");
     }
 
+    /** Unfolded, a draft carries the neutral WIP pill; a PR ready for review does not. */
+    @Test
+    void anUnfoldedDraftCarriesTheWipPill() {
+        String org = "ProjectsDraft";
+        vaubanIn(org, CiState.SUCCESS, 7, "WIP: proxies");
+        ProjectsPanel panel = panel(org);
+
+        Component pulls = TestUi.get(Locale.FRENCH, () -> panel.pullList(firstRow(grid(panel))));
+
+        assertTrue(descendants(pulls).anyMatch(c -> c instanceof Span s && s.getText().equals("WIP")
+                && s.hasClassName("dash-pill-wip")), "the WIP pill of #7");
+    }
+
     private static ProjectsPanel panel(String org) {
         return TestUi.get(Locale.FRENCH, () -> InProcessApp.bean(ProjectsPanel.class).forOrg(org));
     }
@@ -171,8 +184,12 @@ class ProjectsPanelIntegrationTest {
 
     /** vauban, its main in {@code main}, with one running PR numbered {@code pull}. */
     private static void vaubanIn(String org, CiState main, int pull) {
+        vaubanIn(org, main, pull, "feat: x");
+    }
+
+    private static void vaubanIn(String org, CiState main, int pull, String title) {
         Instant now = Instant.now();
-        PullView pr = new PullView("vauban", pull, "feat: x", "yblazart", "sha", CiState.PENDING, List.of(),
+        PullView pr = new PullView("vauban", pull, title, "yblazart", "sha", CiState.PENDING, List.of(),
                 GateStatus.NONE, "u", Instant.parse("2026-11-15T10:00:00Z"));
         RepoView vauban = new RepoView("vauban", main, "abc", "fix: y", now.minus(Duration.ofHours(2)), null,
                 List.of(pr), "u");

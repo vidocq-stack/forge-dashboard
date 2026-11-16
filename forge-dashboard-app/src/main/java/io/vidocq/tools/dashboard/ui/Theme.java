@@ -18,6 +18,8 @@ final class Theme {
     static final String PILL_WARN = "dash-pill-warn";
     static final String PILL_PENDING = "dash-pill-pending";
     static final String PILL_ZERO = "dash-pill-zero";
+    /** A draft, neutral: neither green nor red. */
+    static final String PILL_WIP = "dash-pill-wip";
     /** The row of pills of the PR column. */
     static final String PILLS = "dash-pills";
     /** Secondary text. */
@@ -30,8 +32,8 @@ final class Theme {
     static final String CARD = "dash-card";
 
     /** The CSS classes the views use. */
-    static final List<String> CLASSES = List.of(PILL, PILL_OK, PILL_ERR, PILL_WARN, PILL_PENDING, PILL_ZERO, PILLS,
-            MUTED, HEADER, TOGGLE, CARD);
+    static final List<String> CLASSES = List.of(PILL, PILL_OK, PILL_ERR, PILL_WARN, PILL_PENDING, PILL_ZERO, PILL_WIP,
+            PILLS, MUTED, HEADER, TOGGLE, CARD);
 
     /** Cells of a projects grid row in error (red main, red pull request, failed gate). */
     static final String ERROR_ROW = "error";

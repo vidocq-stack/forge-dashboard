@@ -78,6 +78,14 @@ vaadin-grid::part(error details-cell) {
   color: #5c6370;
 }
 
+/* A draft (WIP): neutral, a dashed frame on white, apart from the colours of the PRs ready for review */
+.dash-pill-wip {
+  background: #ffffff;
+  color: #3a4250;
+  border-color: #5c6370;
+  border-style: dashed;
+}
+
 .dash-pills {
   display: inline-flex;
   gap: 3px;
