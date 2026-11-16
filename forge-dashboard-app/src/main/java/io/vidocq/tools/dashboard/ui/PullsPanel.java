@@ -71,8 +71,9 @@ public class PullsPanel extends Div {
                 .setFlexGrow(0);
         grid.addColumn(r -> r.pull().repo()).setHeader(messages.text("pulls.column.repo")).setAutoWidth(true)
                 .setFlexGrow(0);
-        // the room left, not the longest title's width: on a phone, a long title would push the grid off the screen
-        grid.addComponentColumn(this::pull).setHeader(messages.text("pulls.column.pull")).setWidth("10em")
+        // the room left, not the longest title's width: on a phone, a long title would push the grid off the screen.
+        // Widths in rem: an em is each cell's, and the header's font is smaller than the rows'
+        grid.addComponentColumn(this::pull).setHeader(messages.text("pulls.column.pull")).setWidth("10rem")
                 .setFlexGrow(1);
         wideOnly.add(grid.addComponentColumn(r -> Parts.muted(r.pull().author()))
                 .setHeader(messages.text("pulls.column.author")).setAutoWidth(true).setFlexGrow(0));
@@ -81,9 +82,9 @@ public class PullsPanel extends Div {
         // these two move in place, which does not measure the columns again: a width of their own, the longest text's
         // ("il y a 59 min", "10 min langer dan gewoonlijk"), or a build started after the first rendering is cut
         wideOnly.add(grid.addComponentColumn(this::updated).setHeader(messages.text("pulls.column.updated"))
-                .setWidth("8em").setFlexGrow(0));
+                .setWidth("8.5rem").setFlexGrow(0));
         wideOnly.add(grid.addComponentColumn(this::build).setHeader(messages.text("pulls.column.build"))
-                .setWidth("14.5em").setFlexGrow(0));
+                .setWidth("14.5rem").setFlexGrow(0));
         add(grid, drawers);
     }
 

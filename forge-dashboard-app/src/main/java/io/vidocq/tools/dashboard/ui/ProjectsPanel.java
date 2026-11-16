@@ -77,9 +77,10 @@ public class ProjectsPanel extends Div {
         grid.setAllRowsVisible(true);
         grid.setSelectionMode(Grid.SelectionMode.NONE);
         // the room left, not the longest name's width: on a phone, "vidocq-workspace" pushed the PR pills off the
-        // screen; a name too long for it ends in an ellipsis
+        // screen; a name too long for it ends in an ellipsis. In rem: an em is each cell's, and the header's font is
+        // smaller than the rows'
         grid.addComponentColumn(r -> Parts.link(r.repo(), r.htmlUrl())).setHeader(messages.text("projects.column.repo"))
-                .setWidth("6em").setFlexGrow(1);
+                .setWidth("6rem").setFlexGrow(1);
         grid.addComponentColumn(this::mainDot).setHeader(messages.text("projects.column.main")).setAutoWidth(true).setFlexGrow(0)
                 .setTextAlign(ColumnTextAlign.CENTER);
         wideOnly.add(grid.addColumn(ProjectRow::loc).setHeader(messages.text("projects.column.loc")).setAutoWidth(true).setFlexGrow(0)

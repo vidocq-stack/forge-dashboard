@@ -106,7 +106,7 @@ class PullsPanelIntegrationTest {
     /**
      * The last change and the build's progress move in place, which does not measure the columns again: they get a
      * width of their own, the longest progress's ("10 min langer dan gewoonlijk"), or a build started after the first
-     * rendering would be cut.
+     * rendering would be cut. In rem: an em is each cell's, and the header's font is smaller than the rows'.
      */
     @Test
     void theCellsThatMoveInPlaceHaveAWidthOfTheirOwn() {
@@ -114,8 +114,9 @@ class PullsPanelIntegrationTest {
         for (int index : List.of(UPDATED, BUILD)) {
             Grid.Column<PullRow> column = grid.getColumns().get(index);
             assertFalse(column.isAutoWidth(), column.getHeaderText());
-            assertTrue(column.getWidth() != null && column.getWidth().endsWith("em"), column.getHeaderText());
+            assertTrue(column.getWidth() != null && column.getWidth().endsWith("rem"), column.getHeaderText());
         }
+        assertTrue(grid.getColumns().get(PULL).getWidth().endsWith("rem"), "the PR column's least width");
     }
 
     /** A reload measures the auto-width columns again: a project with a longer name would be cut. */

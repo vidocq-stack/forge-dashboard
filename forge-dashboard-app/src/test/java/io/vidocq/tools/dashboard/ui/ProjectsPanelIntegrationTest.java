@@ -73,6 +73,8 @@ class ProjectsPanelIntegrationTest {
         Grid.Column<ProjectRow> repo = grid(panel("Nobody")).getColumns().getFirst();
         assertFalse(repo.isAutoWidth(), "an auto width would be the longest name's");
         assertEquals(1, repo.getFlexGrow());
+        // an em is each cell's, and the header's font is smaller than the rows': the header would not line up
+        assertTrue(repo.getWidth().endsWith("rem"), repo.getWidth());
     }
 
     /** A project in error gets the grid part the stylesheet tints red; the others get none. */
