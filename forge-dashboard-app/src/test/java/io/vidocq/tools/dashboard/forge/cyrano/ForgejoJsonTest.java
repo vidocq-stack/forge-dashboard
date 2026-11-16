@@ -119,12 +119,34 @@ class ForgejoJsonTest {
 
     @Test
     void combinedStatusMapsContexts() {
-        var s = ForgejoJson.toCombinedStatus(read("status.json"));
+        var s = ForgejoJson.toCombinedStatus(read("status.json"), "https://codefloe.com");
         assertEquals(CiState.SUCCESS, s.state());
         assertEquals(28, s.contexts().size());
         // Each status carries its value in "status" ("state" is null); a skipped job counts as no state.
         assertEquals(27, s.contexts().stream().filter(c -> c.state() == CiState.SUCCESS).count());
         assertEquals(1, s.contexts().stream().filter(c -> c.state() == CiState.NONE).count());
+    }
+
+    /**
+     * Forgejo gives the target of an Actions status relative to the forge ("/Vidocq/vauban/actions/runs/1928/jobs/1"):
+     * as is, the browser opened it on the dashboard's host. It is resolved on the forge; an absolute one stays.
+     */
+    @Test
+    void statusTargetsLeadToTheForge() {
+        var s = ForgejoJson.toCombinedStatus(read("status.json"), "https://codefloe.com/");
+        assertEquals("https://codefloe.com/Vidocq/vauban/actions/runs/1928/jobs/1",
+                s.contexts().getFirst().targetUrl());
+        assertTrue(s.contexts().stream()
+                .allMatch(c -> c.targetUrl().startsWith("https://codefloe.com/Vidocq/vauban/actions/runs/")));
+
+        var external = ForgejoJson.toCombinedStatus("""
+                {"state": "success", "statuses": [
+                  {"context": "sonar", "status": "success",
+                   "target_url": "https://sonar.vidocq.dev/dashboard?id=foy"},
+                  {"context": "manual", "status": "success", "target_url": null}]}
+                """, "https://codefloe.com");
+        assertEquals("https://sonar.vidocq.dev/dashboard?id=foy", external.contexts().getFirst().targetUrl());
+        assertNull(external.contexts().getLast().targetUrl());
     }
 
     @Test
