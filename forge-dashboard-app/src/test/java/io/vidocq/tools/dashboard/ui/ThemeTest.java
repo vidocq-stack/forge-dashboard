@@ -75,13 +75,15 @@ class ThemeTest {
 
     /**
      * Lumo keeps a button at its text's width ({@code flex-shrink: 0}) and lets the text overflow its label: a title
-     * button shrinks, and its label cuts the text with an ellipsis.
+     * button shrinks, and its label cuts the text with an ellipsis. In a line that wraps, it counts for 6em (the
+     * number and a few words stay, what follows goes below), then grows up to its text's width.
      */
     @Test
     void aTitleShrinksToAnEllipsis() {
         Map<String, String> button = rule("vaadin-button.dash-title");
-        assertEquals("1", button.get("flex-shrink"));
+        assertEquals("1 1 6em", button.get("flex"));
         assertEquals("0", button.get("min-width"));
+        assertEquals("max-content", button.get("max-width"));
         Map<String, String> label = rule("vaadin-button.dash-title::part(label)");
         assertEquals("hidden", label.get("overflow"));
         assertEquals("ellipsis", label.get("text-overflow"));

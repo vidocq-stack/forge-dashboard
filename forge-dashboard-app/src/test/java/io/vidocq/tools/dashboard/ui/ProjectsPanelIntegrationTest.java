@@ -182,6 +182,7 @@ class ProjectsPanelIntegrationTest {
         Component line = descendants(pulls).filter(c -> c instanceof Button b && b.getText().startsWith("#7 "))
                 .findFirst().orElseThrow().getParent().orElseThrow();
         assertEquals("100%", line.getElement().getStyle().get("max-width"));
+        assertEquals("wrap", line.getElement().getStyle().get("flex-wrap"), "short of room, the progress goes below");
         // only the title shrinks: the author and the progress stay on one line
         line.getChildren().filter(c -> c instanceof Span s && s.hasClassName("dash-muted")).forEach(s -> {
             assertEquals("0", s.getElement().getStyle().get("flex-shrink"), "author and progress keep their size");
