@@ -29,10 +29,14 @@ final class Badges {
         return dot;
     }
 
-    /** The tooltip of a dot: its state and, when given, how far along the build is. */
+    /**
+     * The tooltip of a dot, and its name for a screen reader (not « black circle »): its state and, when given, how
+     * far along the build is.
+     */
     static void describe(Span dot, CiState state, String progress, Messages m) {
         String label = label(state, m);
-        dot.getElement().setAttribute("title", progress == null ? label : label + " · " + progress);
+        String text = progress == null ? label : label + " · " + progress;
+        dot.getElement().setAttribute("title", text).setAttribute("role", "img").setAttribute("aria-label", text);
     }
 
     static String color(CiState state) {
@@ -48,15 +52,26 @@ final class Badges {
         return m.text("badge." + (state == null ? CiState.NONE : state).name());
     }
 
-    /** The PR column: green, red and running counts, one pill each (a zero in grey), spelled out in the tooltip. */
+    /**
+     * The PR column: the green, red and running counts of the PRs ready for review, then the drafts (WIP), one pill
+     * each (a zero in grey), spelled out in the tooltip.
+     */
     static Span pulls(ProjectRow row, Messages m) {
         Span pills = new Span(count(row.prGreen(), Theme.PILL_OK), count(row.prRed(), Theme.PILL_ERR),
-                count(row.prPending(), Theme.PILL_PENDING));
+                count(row.prPending(), Theme.PILL_PENDING), count(row.prWip(), Theme.PILL_WIP));
         pills.addClassName(Theme.PILLS);
-        String counts = m.text("projects.pullCounts", row.prGreen(), row.prRed(), row.prPending());
+        String counts = m.text("projects.pullCounts", row.prGreen(), row.prRed(), row.prPending(), row.prWip());
         // the tooltip for the eye; for a screen reader, the counter button takes its name from this image's label
         pills.getElement().setAttribute("title", counts).setAttribute("role", "img").setAttribute("aria-label", counts);
         return pills;
+    }
+
+    /** The mark of a draft in a list of PRs: a neutral WIP pill. */
+    static Span wip(Messages m) {
+        Span wip = new Span("WIP");
+        wip.addClassNames(Theme.PILL, Theme.PILL_WIP);
+        wip.getElement().setAttribute("title", m.text("pull.wip"));
+        return wip;
     }
 
     private static Span count(int n, String kind) {

@@ -53,6 +53,8 @@ vaadin-grid::part(error details-cell) {
   line-height: 1.4;
   text-align: center;
   font-variant-numeric: tabular-nums;
+  /* beside a long title, a pill keeps its size */
+  flex-shrink: 0;
 }
 
 .dash-pill-ok {
@@ -78,10 +80,34 @@ vaadin-grid::part(error details-cell) {
   color: #5c6370;
 }
 
+/* A draft (WIP): neutral, a dashed frame on white, apart from the colours of the PRs ready for review */
+.dash-pill-wip {
+  background: #ffffff;
+  color: #3a4250;
+  border-color: #5c6370;
+  border-style: dashed;
+}
+
 .dash-pills {
   display: inline-flex;
   gap: 3px;
   align-items: center;
+}
+
+/*
+ * A title button (Theme.TITLE): Lumo keeps a button at its text's width and lets the text overflow its label; this one
+ * shrinks with its cell, and its label cuts the text with an ellipsis. In a line that wraps it counts for 6em, so that
+ * the number and a few words stay and what follows goes below, then grows up to its text's width.
+ */
+vaadin-button.dash-title {
+  flex: 1 1 6em;
+  min-width: 0;
+  max-width: max-content;
+}
+
+vaadin-button.dash-title::part(label) {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /*

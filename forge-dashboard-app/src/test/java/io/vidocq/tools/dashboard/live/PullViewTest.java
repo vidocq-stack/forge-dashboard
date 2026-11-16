@@ -27,4 +27,19 @@ class PullViewTest {
         assertFalse(titled("WIPE the cache").draft());
         assertFalse(titled(null).draft());
     }
+
+    /**
+     * The drafts of the ecosystem are written "WIP : build(mcp): …", "WIP docs: …", "WIP ci(tassis): …": the word WIP
+     * at the start, whatever follows it, is a draft too; a word that only starts with WIP is not.
+     */
+    @Test
+    void draftIsATitleStartingWithTheWordWip() {
+        assertTrue(titled("WIP : build(mcp): langchain4j-cdi 1.5.0").draft());
+        assertTrue(titled("WIP docs: refresh README and ROADMAP").draft());
+        assertTrue(titled("WIP ci(tassis): block the release").draft());
+        assertTrue(titled("WIP").draft());
+        assertTrue(titled("  WIP: leading spaces").draft());
+        assertFalse(titled("WIPEOUT: a word").draft());
+        assertFalse(titled("Wiping the cache").draft());
+    }
 }

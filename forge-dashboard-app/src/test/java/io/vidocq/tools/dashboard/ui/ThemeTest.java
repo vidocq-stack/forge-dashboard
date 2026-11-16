@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -65,11 +66,33 @@ class ThemeTest {
     @Test
     void pillsAreReadable() {
         for (String pill : List.of("dash-pill-ok", "dash-pill-err", "dash-pill-warn", "dash-pill-pending",
-                "dash-pill-zero")) {
+                "dash-pill-zero", "dash-pill-wip")) {
             Map<String, String> rule = rule("." + pill);
             double ratio = contrast(colour(rule.get("color")), colour(rule.get("background")));
             assertTrue(ratio >= 4.5, pill + ": " + String.format("%.2f", ratio) + ":1");
         }
+    }
+
+    /**
+     * Lumo keeps a button at its text's width ({@code flex-shrink: 0}) and lets the text overflow its label: a title
+     * button shrinks, and its label cuts the text with an ellipsis. In a line that wraps, it counts for 6em (the
+     * number and a few words stay, what follows goes below), then grows up to its text's width.
+     */
+    @Test
+    void aTitleShrinksToAnEllipsis() {
+        Map<String, String> button = rule("vaadin-button.dash-title");
+        assertEquals("1 1 6em", button.get("flex"));
+        assertEquals("0", button.get("min-width"));
+        assertEquals("max-content", button.get("max-width"));
+        Map<String, String> label = rule("vaadin-button.dash-title::part(label)");
+        assertEquals("hidden", label.get("overflow"));
+        assertEquals("ellipsis", label.get("text-overflow"));
+    }
+
+    /** A pill never shrinks: beside a long title, it keeps its size. */
+    @Test
+    void aPillKeepsItsSize() {
+        assertEquals("0", rule(".dash-pill").get("flex-shrink"));
     }
 
     /** A Theme constant left out of CLASSES would escape the check that it has a rule. */

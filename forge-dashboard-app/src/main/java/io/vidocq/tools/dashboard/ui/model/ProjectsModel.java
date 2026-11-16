@@ -81,14 +81,15 @@ public final class ProjectsModel {
 
     private static ProjectRow row(RepoView r, Instant now, Messages m) {
         SonarMeasures s = r.sonar();
-        int green = count(r.pulls(), CiState.SUCCESS);
-        int red = count(r.pulls(), CiState.FAILURE);
+        List<PullView> ready = r.pulls().stream().filter(p -> !p.draft()).toList();
+        int green = count(ready, CiState.SUCCESS);
+        int red = count(ready, CiState.FAILURE);
         return new ProjectRow(r.name(), r.mainState(),
                 s == null || s.ncloc() == null ? DASH : Formats.compact(s.ncloc()),
                 s == null || s.tests() == null ? DASH : Formats.compact(s.tests()),
                 s == null || s.coverage() == null ? DASH : String.format(Locale.ROOT, "%.1f%%", s.coverage()),
                 s == null || s.gate() == null ? GateStatus.NONE : s.gate(),
-                green, red, r.pulls().size() - green - red,
+                green, red, ready.size() - green - red, r.pulls().size() - ready.size(),
                 r.lastCommitAt() == null ? DASH : Formats.relative(r.lastCommitAt(), now, m),
                 r.htmlUrl(), severity(r) < 3);
     }

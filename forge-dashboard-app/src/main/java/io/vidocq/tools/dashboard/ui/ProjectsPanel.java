@@ -76,8 +76,11 @@ public class ProjectsPanel extends Div {
         grid.setPartNameGenerator(r -> r.error() ? Theme.ERROR_ROW : null);
         grid.setAllRowsVisible(true);
         grid.setSelectionMode(Grid.SelectionMode.NONE);
+        // the room left, not the longest name's width: on a phone, "vidocq-workspace" pushed the PR pills off the
+        // screen; a name too long for it ends in an ellipsis. In rem: an em is each cell's, and the header's font is
+        // smaller than the rows'
         grid.addComponentColumn(r -> Parts.link(r.repo(), r.htmlUrl())).setHeader(messages.text("projects.column.repo"))
-                .setAutoWidth(true).setFlexGrow(1);
+                .setWidth("6rem").setFlexGrow(1);
         grid.addComponentColumn(this::mainDot).setHeader(messages.text("projects.column.main")).setAutoWidth(true).setFlexGrow(0)
                 .setTextAlign(ColumnTextAlign.CENTER);
         wideOnly.add(grid.addColumn(ProjectRow::loc).setHeader(messages.text("projects.column.loc")).setAutoWidth(true).setFlexGrow(0)
@@ -201,15 +204,26 @@ public class ProjectsPanel extends Div {
 
     /** A PR of {@code repo}, with how far along its running build is when it has an estimate. */
     private Component pullLine(String repo, PullView pr) {
-        Button open = Parts.action("#" + pr.number() + " " + pr.title(), () -> drawers.openPull(org, pr));
+        // short of room (a phone), the title shrinks rather than push the WIP pill out of sight
+        Button open = Parts.title("#" + pr.number() + " " + pr.title(), () -> drawers.openPull(org, pr));
         Span author = new Span(pr.author());
         author.addClassName(Theme.MUTED);
         Span progressOf = Parts.muted("");
         PullKey key = new PullKey(repo, pr.number());
         pullProgress.put(key, progressOf);
         show(progressOf, progress.pull(repo, pr.number()));
-        HorizontalLayout line = new HorizontalLayout(Badges.dot(pr.state(), messages), open, author, progressOf);
+        HorizontalLayout line = new HorizontalLayout(Badges.dot(pr.state(), messages), open);
+        if (pr.draft()) {
+            line.add(Badges.wip(messages));
+        }
+        line.add(author, progressOf);
         line.setAlignItems(FlexComponent.Alignment.CENTER);
+        // the list, aligned to the start, would let the line grow with its title: no wider than the cell, only the
+        // title shrinks, and short of room the author or the progress goes below
+        line.getStyle().set("max-width", "100%").set("flex-wrap", "wrap").set("row-gap", "0");
+        for (Span keep : List.of(author, progressOf)) {
+            keep.getStyle().set("flex-shrink", "0").set("white-space", "nowrap");
+        }
         return line;
     }
 

@@ -59,6 +59,7 @@ public class MainView extends VerticalLayout {
     private final OrgRegistry orgs;
     private final OrgAdmin admin;
     private final Instance<ProjectsPanel> projects;
+    private final Instance<PullsPanel> pulls;
     private final Instance<CiPanel> ci;
     private final Instance<CommittersPanel> committers;
     private final Optional<DashboardUser> user;
@@ -79,12 +80,13 @@ public class MainView extends VerticalLayout {
 
     @Inject
     public MainView(ChangeBus bus, UserPrefs prefs, OrgRegistry orgs, CollectorScheduler collector, Clock clock,
-            Instance<ProjectsPanel> projects, Instance<CiPanel> ci, Instance<CommittersPanel> committers,
-            OrgAdmin admin) {
+            Instance<ProjectsPanel> projects, Instance<PullsPanel> pulls, Instance<CiPanel> ci,
+            Instance<CommittersPanel> committers, OrgAdmin admin) {
         this.prefs = prefs;
         this.orgs = orgs;
         this.admin = admin;
         this.projects = projects;
+        this.pulls = pulls;
         this.ci = ci;
         this.committers = committers;
         this.user = CurrentUser.get();
@@ -170,6 +172,8 @@ public class MainView extends VerticalLayout {
         this.narrow = narrow;
         layout();
         if (shown instanceof ProjectsPanel panel) {
+            panel.narrow(narrow);
+        } else if (shown instanceof PullsPanel panel) {
             panel.narrow(narrow);
         } else if (shown instanceof CommittersPanel panel) {
             panel.narrow(narrow);
@@ -289,6 +293,7 @@ public class MainView extends VerticalLayout {
         }
         shown = switch (current.view()) {
             case PROJECTS -> projects.get().narrow(narrow).forOrg(org);
+            case PULLS -> pulls.get().narrow(narrow).forOrg(org);
             case CI -> ci.get().forOrg(org);
             case COMMITTERS -> committers.get().narrow(narrow).forOrg(org, current.periodDays(),
                     days -> save(current.withPeriodDays(days)));

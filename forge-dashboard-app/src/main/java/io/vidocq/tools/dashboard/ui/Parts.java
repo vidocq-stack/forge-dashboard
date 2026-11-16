@@ -33,6 +33,17 @@ final class Parts {
         return b;
     }
 
+    /**
+     * An action with a long text (a PR's title): short of room, it shrinks to an ellipsis (Theme.TITLE), the whole
+     * text in its tooltip.
+     */
+    static Button title(String text, Runnable onClick) {
+        Button b = action(text, onClick);
+        b.addClassName(Theme.TITLE);
+        b.getElement().setAttribute("title", text);
+        return b;
+    }
+
     static HorizontalLayout line(Component... parts) {
         HorizontalLayout line = new HorizontalLayout(parts);
         line.setAlignItems(FlexComponent.Alignment.BASELINE);

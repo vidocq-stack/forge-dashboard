@@ -20,8 +20,12 @@ class BadgesTest {
     private static final Messages FR = Messages.forLocale(Locale.FRENCH);
 
     private static ProjectRow row(int green, int red, int pending) {
-        return new ProjectRow("vauban", CiState.SUCCESS, "—", "—", "—", GateStatus.OK, green, red, pending, "—", "u",
-                false);
+        return row(green, red, pending, 0);
+    }
+
+    private static ProjectRow row(int green, int red, int pending, int wip) {
+        return new ProjectRow("vauban", CiState.SUCCESS, "—", "—", "—", GateStatus.OK, green, red, pending, wip, "—",
+                "u", false);
     }
 
     private static List<Span> pills(Span pills) {
@@ -42,6 +46,17 @@ class BadgesTest {
         assertEquals("en cours", Badges.dot(CiState.PENDING, null, FR).getElement().getAttribute("title"));
     }
 
+    /** A screen reader names a dot by its state, not « black circle »; the name follows the progress in place. */
+    @Test
+    void dotReadsAsItsState() {
+        Span dot = Badges.dot(CiState.FAILURE, null, FR);
+        assertEquals("img", dot.getElement().getAttribute("role"));
+        assertEquals("rouge", dot.getElement().getAttribute("aria-label"));
+
+        Badges.describe(dot, CiState.PENDING, "60 % · reste ~2 min", FR);
+        assertEquals("en cours · 60 % · reste ~2 min", dot.getElement().getAttribute("aria-label"));
+    }
+
     @Test
     void gateIsAPill() {
         assertPill(Badges.gate(GateStatus.OK), "OK", "dash-pill-ok");
@@ -57,17 +72,27 @@ class BadgesTest {
 
     /** Green, red, running: one pill each, a zero in grey, and the counts spelled out in the tooltip. */
     @Test
-    void pullsAreThreePills() {
-        Span pills = Badges.pulls(row(1, 1, 0), FR);
+    void pullsAreFourPills() {
+        Span pills = Badges.pulls(row(1, 1, 0, 2), FR);
 
         assertTrue(pills.hasClassName("dash-pills"));
         List<Span> each = pills(pills);
-        assertEquals(3, each.size());
+        assertEquals(4, each.size());
         assertPill(each.get(0), "1", "dash-pill-ok");
         assertPill(each.get(1), "1", "dash-pill-err");
         assertPill(each.get(2), "0", "dash-pill-zero");
-        assertEquals("1 verte, 1 rouge, 0 en cours", pills.getElement().getAttribute("title"));
+        assertPill(each.get(3), "2", "dash-pill-wip");
+        assertEquals("1 verte, 1 rouge, 0 en cours, 2 WIP", pills.getElement().getAttribute("title"));
         assertPill(pills(Badges.pulls(row(0, 0, 2), FR)).get(2), "2", "dash-pill-pending");
+        assertPill(pills(Badges.pulls(row(0, 0, 2), FR)).get(3), "0", "dash-pill-zero");
+    }
+
+    /** In a list of PRs, a draft carries a neutral WIP pill. */
+    @Test
+    void wipIsANeutralPill() {
+        Span wip = Badges.wip(FR);
+        assertPill(wip, "WIP", "dash-pill-wip");
+        assertEquals("Brouillon : ne compte ni en vert ni en rouge", wip.getElement().getAttribute("title"));
     }
 
     /** A screen reader names the counter button by its content: the pills read as the counts, not « 1 1 0 ». */
@@ -75,29 +100,29 @@ class BadgesTest {
     void pullsReadAsTheirCounts() {
         Span pills = Badges.pulls(row(1, 1, 0), FR);
         assertEquals("img", pills.getElement().getAttribute("role"));
-        assertEquals("1 verte, 1 rouge, 0 en cours", pills.getElement().getAttribute("aria-label"));
+        assertEquals("1 verte, 1 rouge, 0 en cours, 0 WIP", pills.getElement().getAttribute("aria-label"));
     }
 
     /** « 1 verte », « 2 vertes »: the counts agree in number where the language says so. */
     @Test
     void pullCountsAgreeInNumber() {
-        assertEquals("2 vertes, 3 rouges, 0 en cours", title(row(2, 3, 0), FR));
-        assertEquals("0 verte, 1 rouge, 4 en cours", title(row(0, 1, 4), FR));
-        assertEquals("1 verde, 1 roja, 0 en curso", title(row(1, 1, 0), Messages.forLocale(Locale.of("es"))));
-        assertEquals("0 verdes, 2 rojas, 0 en curso", title(row(0, 2, 0), Messages.forLocale(Locale.of("es"))));
-        assertEquals("1 verde, 1 rossa, 0 in corso", title(row(1, 1, 0), Messages.forLocale(Locale.ITALIAN)));
-        assertEquals("1 green, 1 red, 0 running", title(row(1, 1, 0), Messages.forLocale(Locale.ENGLISH)));
+        assertEquals("2 vertes, 3 rouges, 0 en cours, 0 WIP", title(row(2, 3, 0), FR));
+        assertEquals("0 verte, 1 rouge, 4 en cours, 1 WIP", title(row(0, 1, 4, 1), FR));
+        assertEquals("1 verde, 1 roja, 0 en curso, 0 WIP", title(row(1, 1, 0), Messages.forLocale(Locale.of("es"))));
+        assertEquals("0 verdes, 2 rojas, 0 en curso, 0 WIP", title(row(0, 2, 0), Messages.forLocale(Locale.of("es"))));
+        assertEquals("1 verde, 1 rossa, 0 in corso, 0 WIP", title(row(1, 1, 0), Messages.forLocale(Locale.ITALIAN)));
+        assertEquals("1 green, 1 red, 0 running, 3 WIP", title(row(1, 1, 0, 3), Messages.forLocale(Locale.ENGLISH)));
     }
 
     private static String title(ProjectRow row, Messages m) {
         return Badges.pulls(row, m).getElement().getAttribute("title");
     }
 
-    /** A project without PR: three grey zeros, still pills (its counter button is disabled). */
+    /** A project without PR: four grey zeros, still pills (its counter button is disabled). */
     @Test
-    void zeroPullsAreThreeZeroPills() {
+    void zeroPullsAreFourZeroPills() {
         List<Span> zeros = pills(Badges.pulls(row(0, 0, 0), FR));
-        assertEquals(3, zeros.size());
+        assertEquals(4, zeros.size());
         zeros.forEach(p -> assertPill(p, "0", "dash-pill-zero"));
     }
 }
