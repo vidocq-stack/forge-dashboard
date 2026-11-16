@@ -121,6 +121,28 @@ class ProjectsModelTest {
                 rows.stream().map(ProjectRow::repo).toList());
     }
 
+    /**
+     * Past the errors, the projects with a PR ready for review open (running or green) come first: the work under
+     * way. A draft alone does not lift its project (WIP is neutral); in each group, the best covered first.
+     */
+    @Test
+    void thenTheProjectsWithAReadyPullOpen() {
+        List<ProjectRow> rows = rows(
+                repo("quiet", CiState.SUCCESS, sonar(1_000L, 100L, 95.0, GateStatus.OK), List.of()),
+                repo("drafting", CiState.SUCCESS, sonar(1_000L, 100L, 94.0, GateStatus.OK),
+                        List.of(pull("drafting", 1, CiState.PENDING, "WIP: later"))),
+                repo("vidocq", CiState.SUCCESS, sonar(60_000L, 4_000L, 86.9, GateStatus.OK),
+                        List.of(pull("vidocq", 621, CiState.PENDING))),
+                repo("reviewed", CiState.SUCCESS, sonar(1_000L, 100L, 90.0, GateStatus.OK),
+                        List.of(pull("reviewed", 3, CiState.SUCCESS))),
+                repo("red", CiState.FAILURE, sonar(1_000L, 100L, 50.0, GateStatus.OK), List.of()));
+
+        assertEquals(List.of("red", "reviewed", "vidocq", "quiet", "drafting"),
+                rows.stream().map(ProjectRow::repo).toList());
+        assertEquals(List.of(true, false, false, false, false), rows.stream().map(ProjectRow::error).toList(),
+                "a PR under way is not an error");
+    }
+
     /** The rows the grid marks in red are the ones the sort puts first, for the same reasons. */
     @Test
     void errorRowsAreTheOnesSortedFirst() {

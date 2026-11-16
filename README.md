@@ -5,7 +5,9 @@ ajoute depuis l'interface). Un onglet par org, quatre vues :
 
 - **Projets** : état du `main`, lignes de code, tests, couverture, quality gate Sonar, PR ouvertes
   vertes/rouges/en cours, et à part les brouillons (titre qui commence par `WIP` ou `[WIP]`), en gris : un brouillon rouge
-  ne compte pas en rouge. Un clic sur une PR montre ses jobs et le runner qui les exécute.
+  ne compte pas en rouge. Un clic sur une PR montre ses jobs et le runner qui les exécute. Les projets en
+  erreur d'abord (`main` rouge, PR prête rouge, gate en échec), puis ceux qui ont une PR prête ouverte, puis
+  les autres ; dans chaque groupe, le mieux couvert d'abord.
 - **PR** : toutes les PR ouvertes de l'org, les rouges prêtes d'abord, puis les autres prêtes, puis les
   brouillons ; état, dépôt, auteur, gate Sonar, dernière mise à jour et avancement du build en cours.
 - **CI** : runners avec leur activité, leur charge et leur occupation (1 h / 24 h / 7 j), file d'attente.

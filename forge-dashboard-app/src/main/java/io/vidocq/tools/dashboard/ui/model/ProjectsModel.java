@@ -21,8 +21,9 @@ import java.util.stream.Collectors;
 
 /**
  * The projects grid of an org. Errors first: a red main, then a red pull request that is not a draft, then a failed
- * Sonar gate. Then the best covered, the most lines of code, the most tests (no measure last), and the name. A PR
- * without CI status counts as pending.
+ * Sonar gate. Then the projects with a pull request ready for review open, the work under way (a draft alone does not
+ * lift its project). In each group, the best covered, the most lines of code, the most tests (no measure last), and
+ * the name. A PR without CI status counts as pending.
  */
 public final class ProjectsModel {
 
@@ -64,7 +65,10 @@ public final class ProjectsModel {
         return new ProjectsProgress(mains, pulls);
     }
 
-    /** 0 a red main, 1 a red pull request other than a draft, 2 a failed Sonar gate, 3 no error. */
+    /**
+     * 0 a red main, 1 a red pull request other than a draft, 2 a failed Sonar gate (below 3: an error), 3 a pull
+     * request ready for review open, 4 nothing under way.
+     */
     private static int severity(RepoView r) {
         if (r.mainState() == CiState.FAILURE) {
             return 0;
@@ -72,7 +76,10 @@ public final class ProjectsModel {
         if (r.pulls().stream().anyMatch(p -> p.state() == CiState.FAILURE && !p.draft())) {
             return 1;
         }
-        return r.sonar() != null && r.sonar().gate() == GateStatus.ERROR ? 2 : 3;
+        if (r.sonar() != null && r.sonar().gate() == GateStatus.ERROR) {
+            return 2;
+        }
+        return r.pulls().stream().anyMatch(p -> !p.draft()) ? 3 : 4;
     }
 
     private static <T> T measure(RepoView r, Function<SonarMeasures, T> metric) {
