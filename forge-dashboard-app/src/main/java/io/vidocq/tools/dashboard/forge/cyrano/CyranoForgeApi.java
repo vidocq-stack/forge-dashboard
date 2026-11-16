@@ -130,7 +130,7 @@ public class CyranoForgeApi implements ForgeApi {
     @Override
     public CombinedStatus getCombinedStatus(String owner, String repo, String ref) {
         return ForgejoJson.toCombinedStatus(get("status of " + owner + "/" + repo + "@" + ref,
-                () -> api.status(owner, repo, ref, LIMIT)).body());
+                () -> api.status(owner, repo, ref, LIMIT)).body(), forgeUrl);
     }
 
     @Override

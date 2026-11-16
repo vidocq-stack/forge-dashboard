@@ -13,6 +13,7 @@ import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 import jakarta.json.bind.annotation.JsonbProperty;
 
+import java.net.URI;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeParseException;
@@ -118,13 +119,30 @@ public final class ForgejoJson {
         return pull(one(json, RawPull.class));
     }
 
-    public static CombinedStatus toCombinedStatus(String json) {
+    /** {@code forgeUrl}: the forge, on which the targets of its Actions statuses are relative. */
+    public static CombinedStatus toCombinedStatus(String json, String forgeUrl) {
         var s = one(json, RawCombinedStatus.class);
         var contexts = s.statuses() == null ? List.<StatusContext>of() : s.statuses().stream()
                 .map(c -> new StatusContext(c.context(),
-                        CiState.fromForgejo(c.status() != null ? c.status() : c.state()), c.targetUrl()))
+                        CiState.fromForgejo(c.status() != null ? c.status() : c.state()),
+                        onForge(c.targetUrl(), forgeUrl)))
                 .toList();
         return new CombinedStatus(CiState.fromForgejo(s.state()), contexts);
+    }
+
+    /**
+     * Forgejo gives the target of an Actions status relative to itself ("/Vidocq/foy/actions/runs/933/jobs/1"), which
+     * a browser would open on the dashboard's host: resolved on the forge. An absolute one (Sonar…) stays.
+     */
+    private static String onForge(String target, String forgeUrl) {
+        if (target == null || target.isBlank()) {
+            return null;
+        }
+        try {
+            return URI.create(forgeUrl).resolve(target).toString();
+        } catch (IllegalArgumentException e) {
+            return target;
+        }
     }
 
     public static List<RawCommit> toCommits(String json, String org, String repo) {
