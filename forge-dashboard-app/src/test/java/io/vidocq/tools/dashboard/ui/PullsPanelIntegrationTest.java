@@ -316,6 +316,24 @@ class PullsPanelIntegrationTest {
         assertEquals(List.of("vauban#7"), shownPulls(panel));
     }
 
+    /** A filter chosen, a pass that leaves its PRs as they are leaves the grid alone (a reload loses the focus). */
+    @Test
+    void aChosenFilterLeavesTheGridAloneWhenItsPullsStay() {
+        String org = "PullsFilterStill";
+        pullsIn(org, repo("vauban", pr("vauban", 7, "feat: proxies")), repo("foy", pr("foy", 1, "fix: origin")));
+        PullsPanel panel = panel(org);
+        TestUi.run(Locale.FRENCH, () -> filter(panel).setValue("vauban"));
+        var items = grid(panel).getDataProvider();
+
+        TestUi.run(Locale.FRENCH, panel::refresh);
+        assertSame(items, grid(panel).getDataProvider(), "the same pass again");
+
+        pullsIn(org, repo("vauban", pr("vauban", 7, "feat: proxies")), repo("foy", pr("foy", 1, "fix: origin")),
+                repo("vidocq", pr("vidocq", 2, "[CASSINI] x")));
+        TestUi.run(Locale.FRENCH, panel::refresh);
+        assertSame(items, grid(panel).getDataProvider(), "a PR of another component");
+    }
+
     private static PullsPanel panel(String org) {
         return TestUi.get(Locale.FRENCH, () -> InProcessApp.bean(PullsPanel.class).forOrg(org));
     }

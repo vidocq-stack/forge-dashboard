@@ -237,6 +237,33 @@ class CommitsLoopIntegrationTest {
         assertEquals(at, repos.findById(2L).orElseThrow().getLastCommitAt());
     }
 
+    /** Read again under its own id (the cursor's commit, at each tick), a commit is updated, not taken for a copy. */
+    @Test
+    void aCommitReadAgainUnderItsOwnIdIsUpdated() {
+        Instant at = T0.minusSeconds(300);
+        history(commit("c1", at, "Yann", "yblazart", "feat: one"));
+        loop().tick(ORG);
+        history(new RawCommit("c1", ORG, "vauban", at, "Yann", "yann@example.org", "yblazart", "feat: one", 99, 2));
+
+        loop().tick(ORG);
+
+        assertEquals(99, commits.findById("Vidocq/vauban@c1").orElseThrow().getAdditions());
+    }
+
+    /** The same message at the same second by two people: two commits. */
+    @Test
+    void aCommitOfTheSameSecondByAnotherAuthorCounts() {
+        knownRepos(new ForgeRepo(1, ORG, "aaa", "main", false, false), new ForgeRepo(2, ORG, "bbb", "main", false, false));
+        Instant at = T0.minusSeconds(300);
+        history("aaa", commitIn("aaa", "a1", at, "Yann", "yblazart", "chore: bump"));
+        history("bbb", commitIn("bbb", "b1", at, "Sunix", "sunix", "chore: bump"));
+
+        loop().tick(ORG);
+
+        assertTrue(commits.findById(CommitStat.idOf(ORG, "aaa", "a1")).isPresent());
+        assertTrue(commits.findById(CommitStat.idOf(ORG, "bbb", "b1")).isPresent());
+    }
+
     @Test
     void aCommitOfTheSameSecondWithAnotherMessageCounts() {
         Instant at = T0.minusSeconds(300);

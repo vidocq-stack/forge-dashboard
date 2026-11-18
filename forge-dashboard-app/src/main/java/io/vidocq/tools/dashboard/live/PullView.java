@@ -76,12 +76,10 @@ public record PullView(String repo, int number, String title, String author, Str
         if (title == null) {
             return new Head(List.of(), "");
         }
-        int from = 0;
         Matcher wip = WORK_IN_PROGRESS.matcher(title);
-        if (wip.lookingAt()) {
-            from = wip.end();
-        }
-        String rest = title.substring(from);
+        boolean marked = wip.lookingAt();
+        // « WIP: [NOETHER] … », Forgejo's own draft prefix: its ":" comes before the tags
+        String rest = marked ? MARKER_TAIL.matcher(title.substring(wip.end())).replaceFirst("") : title;
         List<String> tags = new ArrayList<>();
         Matcher tag = TAG.matcher(rest);
         while (tag.lookingAt() && !tag.group(1).equals("[WIP]")) {
@@ -89,7 +87,7 @@ public record PullView(String repo, int number, String title, String author, Str
             rest = rest.substring(tag.end());
             tag = TAG.matcher(rest);
         }
-        if (from > 0 || !tags.isEmpty()) {
+        if (!tags.isEmpty()) {
             rest = MARKER_TAIL.matcher(rest).replaceFirst("");
         }
         return new Head(List.copyOf(tags), rest);

@@ -88,6 +88,17 @@ class PullViewTest {
         assertEquals("h3", pull("vidocq", "[WIP] h3").shortTitle());
     }
 
+    /** Forgejo's own draft prefix, « WIP: », does not hide the tags that follow it. */
+    @Test
+    void aTagAfterAWipColon() {
+        PullView colon = pull("vidocq", "WIP: [NOETHER] fix(x): y");
+        assertEquals(List.of("NOETHER"), colon.tags());
+        assertEquals("fix(x): y", colon.shortTitle());
+        PullView bracketColon = pull("vidocq", "[WIP]: [NOETHER] y");
+        assertEquals(List.of("NOETHER"), bracketColon.tags());
+        assertEquals("y", bracketColon.shortTitle());
+    }
+
     /** A tag is only at the start of the title, and in upper case. */
     @Test
     void onlyALeadingTagIsAComponent() {
