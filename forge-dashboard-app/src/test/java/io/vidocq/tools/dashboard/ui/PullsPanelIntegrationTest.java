@@ -265,6 +265,9 @@ class PullsPanelIntegrationTest {
         assertEquals("Composant", filter.getLabel());
         assertEquals("Tous les composants", filter.getPlaceholder());
         assertTrue(filter.isClearButtonVisible(), "a clear button");
+        // the default width cuts « Tous les composants », « Wszystkie komponenty »; a phone has less room still
+        assertEquals("16rem", filter.getWidth());
+        assertEquals("100%", filter.getMaxWidth());
         assertEquals(List.of("cassini", "foy", "vauban"), filter.getListDataView().getItems().toList(),
                 "the choices of the filter");
         assertEquals(List.of("foy#1", "vauban#7", "vidocq#3"), shownPulls(panel));

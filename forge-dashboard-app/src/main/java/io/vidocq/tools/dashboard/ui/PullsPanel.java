@@ -95,6 +95,9 @@ public class PullsPanel extends Div {
         componentFilter.setLabel(messages.text("pulls.filter.component"));
         componentFilter.setPlaceholder(messages.text("pulls.filter.all"));
         componentFilter.setClearButtonVisible(true);
+        // the default width cuts « Tous les composants »; on a phone, no wider than the screen
+        componentFilter.setWidth("16rem");
+        componentFilter.setMaxWidth("100%");
         componentFilter.addValueChangeListener(e -> {
             if (!settingFilter) {
                 refresh();
