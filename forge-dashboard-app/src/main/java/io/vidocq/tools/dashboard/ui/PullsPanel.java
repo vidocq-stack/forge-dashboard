@@ -1,6 +1,7 @@
 package io.vidocq.tools.dashboard.ui;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
@@ -28,11 +29,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * The open PRs of an org, every project together: state, project, PR (it opens its drawer), author, Sonar gate, last
- * change, progress of the running build. Refreshed by push on the PR and Sonar changes of the org; the progress moves
- * in place with the runners.
+ * change, progress of the running build. A filter by component sits above the grid. Refreshed by push on the PR and
+ * Sonar changes of the org; the progress moves in place with the runners.
  */
 @Dependent
 public class PullsPanel extends Div {
@@ -43,8 +45,13 @@ public class PullsPanel extends Div {
     private final ChangeBus bus;
     private final Clock clock;
     private final Grid<PullRow> grid = new Grid<>();
+    private final ComboBox<String> componentFilter = new ComboBox<>();
     private final Drawers drawers;
     private final List<Grid.Column<PullRow>> wideOnly = new ArrayList<>();
+    /** The choices of the component filter, in its list: its items are reset only when they change. */
+    private List<String> components = List.of();
+    /** While refresh() itself sets the filter's items or value: the value change must not run refresh() again. */
+    private boolean settingFilter;
     /** The PRs on screen, in their order: the grid reloads only when they change. */
     private List<PullView> shown;
     private ProjectsProgress progress = ProjectsProgress.NONE;
@@ -85,7 +92,15 @@ public class PullsPanel extends Div {
                 .setWidth("8.5rem").setFlexGrow(0));
         wideOnly.add(grid.addComponentColumn(this::build).setHeader(messages.text("pulls.column.build"))
                 .setWidth("14.5rem").setFlexGrow(0));
-        add(grid, drawers);
+        componentFilter.setLabel(messages.text("pulls.filter.component"));
+        componentFilter.setPlaceholder(messages.text("pulls.filter.all"));
+        componentFilter.setClearButtonVisible(true);
+        componentFilter.addValueChangeListener(e -> {
+            if (!settingFilter) {
+                refresh();
+            }
+        });
+        add(componentFilter, grid, drawers);
     }
 
     /** Shows {@code org}; called once, right after creation. */
@@ -109,7 +124,8 @@ public class PullsPanel extends Div {
         OrgSnapshot snapshot = live.snapshot(org);
         Instant now = clock.instant();
         progress = ProjectsModel.progress(snapshot, now, messages);
-        List<PullRow> rows = PullsModel.rows(snapshot, now, messages);
+        List<PullRow> all = PullsModel.rows(snapshot, now, messages);
+        List<PullRow> rows = PullsModel.of(all, updateComponents(PullsModel.components(all)));
         List<PullView> next = rows.stream().map(PullRow::pull).toList();
         if (next.equals(shown)) {
             rows.forEach(r -> {
@@ -138,6 +154,29 @@ public class PullsPanel extends Div {
             grid.setVisible(true);
             getChildren().filter(Span.class::isInstance).toList().forEach(this::remove);
         }
+    }
+
+    /**
+     * The components of the open PRs as the filter's choices, reset only when they change; returns the chosen
+     * component, which stays chosen while it has an open PR. Without any PR, no filter.
+     */
+    private String updateComponents(List<String> next) {
+        String chosen = componentFilter.getValue();
+        String kept = chosen != null && next.contains(chosen) ? chosen : null;
+        if (!next.equals(components) || !Objects.equals(chosen, kept)) {
+            settingFilter = true;
+            try {
+                if (!next.equals(components)) {
+                    components = next;
+                    componentFilter.setItems(next);   // which drops the value
+                }
+                componentFilter.setValue(kept);
+            } finally {
+                settingFilter = false;
+            }
+        }
+        componentFilter.setVisible(!next.isEmpty());
+        return kept;
     }
 
     /** On each pass of the runners: the progress moves in the dots and the build cells; the grid is not reloaded. */

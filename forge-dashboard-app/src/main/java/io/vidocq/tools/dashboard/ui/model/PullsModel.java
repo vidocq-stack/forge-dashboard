@@ -30,6 +30,22 @@ public final class PullsModel {
                 .toList();
     }
 
+    /**
+     * The components of the PRs, sorted and without duplicates: the choices of the component filter. A PR tagged for
+     * several components is a choice of each of them.
+     */
+    public static List<String> components(List<PullRow> rows) {
+        return rows.stream().flatMap(r -> r.pull().components().stream()).distinct().sorted().toList();
+    }
+
+    /** The rows of {@code component}, in their order; all of them when {@code component} is null. */
+    public static List<PullRow> of(List<PullRow> rows, String component) {
+        if (component == null) {
+            return rows;
+        }
+        return rows.stream().filter(r -> r.pull().components().contains(component)).toList();
+    }
+
     /** 0 red and ready for review, 1 ready otherwise, 2 a draft. */
     private static int group(PullView p) {
         if (p.draft()) {

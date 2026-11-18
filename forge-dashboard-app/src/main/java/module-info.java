@@ -37,6 +37,7 @@ module io.vidocq.tools.dashboard {
     requires vaadin.menu.bar.flow;
     requires vaadin.context.menu.flow;
     requires vaadin.grid.flow;
+    requires vaadin.combo.box.flow;
     requires vaadin.checkbox.flow;
     requires vaadin.dialog.flow;
     requires vaadin.text.field.flow;

@@ -65,4 +65,27 @@ class PullsModelTest {
     void noOpenPullNoRow() {
         assertEquals(List.of(), rows(repo("cyrano")));
     }
+
+    /** The components of the open PRs, sorted and without duplicates: the choices of the component filter. */
+    @Test
+    void componentsOfTheOpenPulls() {
+        List<PullRow> rows = rows(
+                repo("vauban", pull("vauban", 7, CiState.SUCCESS, "feat: proxies", Duration.ofHours(1))),
+                repo("vidocq", pull("vidocq", 3, CiState.SUCCESS, "[VAUBAN][CASSINI] x", Duration.ofHours(2))),
+                repo("foy", pull("foy", 1, CiState.SUCCESS, "fix: origin", Duration.ofHours(3))));
+
+        assertEquals(List.of("cassini", "foy", "vauban"), PullsModel.components(rows));
+    }
+
+    /** The PRs of one component, in the order of {@code rows}; all of them when the component is null. */
+    @Test
+    void aComponentKeepsItsPulls() {
+        List<PullRow> rows = rows(
+                repo("vauban", pull("vauban", 7, CiState.SUCCESS, "feat: proxies", Duration.ofHours(1))),
+                repo("vidocq", pull("vidocq", 3, CiState.SUCCESS, "[VAUBAN][CASSINI] x", Duration.ofHours(2))),
+                repo("foy", pull("foy", 1, CiState.SUCCESS, "fix: origin", Duration.ofHours(3))));
+
+        assertEquals(List.of("vauban#7", "vidocq#3"), order(PullsModel.of(rows, "vauban")));
+        assertEquals(rows, PullsModel.of(rows, null));
+    }
 }
