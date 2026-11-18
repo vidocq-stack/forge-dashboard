@@ -14,4 +14,7 @@ public interface CommitStatRepository extends BasicRepository<CommitStat, String
 
     /** The commits of a human (or of their agents) since {@code since}, newest first. */
     List<CommitStat> findByHumanKeyAndAuthoredAtGreaterThanOrderByAuthoredAtDesc(String humanKey, Instant since);
+
+    /** The commits authored at {@code authoredAt}, in any repository: an imported commit is known by these. */
+    List<CommitStat> findByAuthoredAt(Instant authoredAt);
 }

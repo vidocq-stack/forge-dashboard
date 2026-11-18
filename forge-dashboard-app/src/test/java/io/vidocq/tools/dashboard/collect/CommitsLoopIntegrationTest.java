@@ -4,14 +4,18 @@ import io.vidocq.tools.dashboard.config.CommitterConfig;
 import io.vidocq.tools.dashboard.domain.CommitKind;
 import io.vidocq.tools.dashboard.domain.RawCommit;
 import io.vidocq.tools.dashboard.forge.FakeForgeApi;
+import io.vidocq.tools.dashboard.forge.ForgeLinks;
 import io.vidocq.tools.dashboard.forge.ForgePull;
 import io.vidocq.tools.dashboard.forge.ForgeRepo;
 import io.vidocq.tools.dashboard.live.ChangeBus;
 import io.vidocq.tools.dashboard.live.ChangeEvent;
+import io.vidocq.tools.dashboard.live.LiveState;
 import io.vidocq.tools.dashboard.store.CommitStat;
 import io.vidocq.tools.dashboard.store.CommitStatRepository;
 import io.vidocq.tools.dashboard.store.PrStatRepository;
+import io.vidocq.tools.dashboard.store.PullRequestStateRepository;
 import io.vidocq.tools.dashboard.store.RepoRowRepository;
+import io.vidocq.tools.dashboard.store.SonarSnapshotRepository;
 import io.vidocq.tools.dashboard.testing.InProcessApp;
 import io.vidocq.tools.dashboard.testing.TestClock;
 import org.junit.jupiter.api.BeforeAll;
@@ -60,11 +64,15 @@ class CommitsLoopIntegrationTest {
         forge = new FakeForgeApi();
         bus = new ChangeBus();
         clock = new TestClock(T0);
-        forge.repos.put(ORG, List.of(new ForgeRepo(1, ORG, "vauban", "main", false, false)));
-        new PullsLoop(forge, repos, InProcessApp.bean(io.vidocq.tools.dashboard.store.PullRequestStateRepository.class),
-                InProcessApp.bean(io.vidocq.tools.dashboard.store.SonarSnapshotRepository.class),
-                new io.vidocq.tools.dashboard.live.LiveState(bus),
-                new io.vidocq.tools.dashboard.forge.ForgeLinks("https://codefloe.com"), clock).refreshRepos(ORG);
+        knownRepos(new ForgeRepo(1, ORG, "vauban", "main", false, false));
+    }
+
+    /** The repositories of the org, as the repositories loop stores them. */
+    private void knownRepos(ForgeRepo... known) {
+        forge.repos.put(ORG, List.of(known));
+        new PullsLoop(forge, repos, InProcessApp.bean(PullRequestStateRepository.class),
+                InProcessApp.bean(SonarSnapshotRepository.class), new LiveState(bus),
+                new ForgeLinks("https://codefloe.com"), clock).refreshRepos(ORG);
     }
 
     private CommitsLoop loop() {
@@ -72,13 +80,22 @@ class CommitsLoopIntegrationTest {
     }
 
     private static RawCommit commit(String sha, Instant at, String name, String login, String message) {
-        return new RawCommit(sha, ORG, "vauban", at, name, name.toLowerCase().replace(' ', '.') + "@example.org",
+        return commitIn("vauban", sha, at, name, login, message);
+    }
+
+    private static RawCommit commitIn(String repo, String sha, Instant at, String name, String login, String message) {
+        return new RawCommit(sha, ORG, repo, at, name, name.toLowerCase().replace(' ', '.') + "@example.org",
                 login, message, 10, 2);
     }
 
     /** Newest first, as CodeFloe lists them. */
     private void history(RawCommit... newestFirst) {
-        forge.commits.put("Vidocq/vauban", List.of(newestFirst));
+        history("vauban", newestFirst);
+    }
+
+    /** Newest first, as CodeFloe lists them. */
+    private void history(String repo, RawCommit... newestFirst) {
+        forge.commits.put(ORG + "/" + repo, List.of(newestFirst));
     }
 
     @Test
@@ -203,5 +220,32 @@ class CommitsLoopIntegrationTest {
         loop().tick(ORG);
 
         assertEquals(new ChangeEvent.CommitsChanged(), received.poll(1, TimeUnit.SECONDS));
+    }
+
+    /** An import (git filter-repo) rewrites the SHAs: the same commit read in the absorbing repository counts once. */
+    @Test
+    void aCommitImportedFromAnotherRepositoryCountsOnce() {
+        knownRepos(new ForgeRepo(1, ORG, "aaa", "main", false, false), new ForgeRepo(2, ORG, "bbb", "main", false, false));
+        Instant at = T0.minusSeconds(300);
+        history("aaa", commitIn("aaa", "a1", at, "Yann", "yblazart", "feat: imported"));
+        history("bbb", commitIn("bbb", "b1", at, "Yann", "yblazart", "feat: imported"));
+
+        loop().tick(ORG);
+
+        assertTrue(commits.findById(CommitStat.idOf(ORG, "aaa", "a1")).isPresent());
+        assertTrue(commits.findById(CommitStat.idOf(ORG, "bbb", "b1")).isEmpty());
+        assertEquals(at, repos.findById(2L).orElseThrow().getLastCommitAt());
+    }
+
+    @Test
+    void aCommitOfTheSameSecondWithAnotherMessageCounts() {
+        Instant at = T0.minusSeconds(300);
+        history(commit("c1", at, "Yann", "yblazart", "feat: one"),
+                commit("c2", at, "Yann", "yblazart", "fix: two"));
+
+        loop().tick(ORG);
+
+        assertTrue(commits.findById("Vidocq/vauban@c1").isPresent());
+        assertTrue(commits.findById("Vidocq/vauban@c2").isPresent());
     }
 }
