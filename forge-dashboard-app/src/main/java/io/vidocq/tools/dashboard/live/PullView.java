@@ -5,7 +5,10 @@ import io.vidocq.tools.dashboard.forge.StatusContext;
 import io.vidocq.tools.dashboard.sonar.GateStatus;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /** An open pull request, its combined CI state and, when Sonar is on, its quality gate. */
@@ -15,6 +18,12 @@ public record PullView(String repo, int number, String title, String author, Str
     /** "[WIP]", or the word WIP: not followed by a letter or a digit ("WIPE" is not a draft). */
     private static final Pattern WORK_IN_PROGRESS = Pattern.compile("\\s*(\\[WIP]|WIP(?![\\p{L}\\p{N}_]))",
             Pattern.CASE_INSENSITIVE);
+
+    /** A component tag of a title, brackets included, spaces allowed before it: "[NOETHER]". */
+    private static final Pattern TAG = Pattern.compile("\\s*(\\[[A-Z][A-Z0-9_-]*])");
+
+    /** The ":" and the spaces that can follow a WIP marker or a tag in a title. */
+    private static final Pattern MARKER_TAIL = Pattern.compile("^[\\s:]+");
 
     public PullView {
         contexts = List.copyOf(contexts);
@@ -27,5 +36,63 @@ public record PullView(String repo, int number, String title, String author, Str
      */
     public boolean draft() {
         return title != null && WORK_IN_PROGRESS.matcher(title).lookingAt();
+    }
+
+    /**
+     * The component tags at the start of the title, after a WIP marker if any ("[WIP]" is the draft marker, not a
+     * tag): "[WIP] [NOETHER] fix: …" gives ["NOETHER"]. Empty without a title or a leading tag, so that a tag
+     * elsewhere in the title ("fix: handle [FOY] header") is not a component.
+     */
+    public List<String> tags() {
+        return head().tags();
+    }
+
+    /**
+     * The components the pull request touches: its tags in lower case or, without a tag, its repository — "vauban"
+     * is the vauban repository today and the [VAUBAN] tags of the monorepo tomorrow.
+     */
+    public List<String> components() {
+        List<String> tags = tags();
+        if (!tags.isEmpty()) {
+            return tags.stream().map(tag -> tag.toLowerCase(Locale.ROOT)).toList();
+        }
+        return List.of(repo);
+    }
+
+    /**
+     * The title without its WIP marker and its leading tags, nor the ":" and the spaces that follow them; the whole
+     * title when nothing would be left ("[WIP]", "[RUNTIME]"), empty without a title.
+     */
+    public String shortTitle() {
+        String rest = head().rest();
+        if (rest.isEmpty()) {
+            return title == null ? "" : title;
+        }
+        return rest;
+    }
+
+    /** The leading tags of the title and the title after the WIP marker and those tags. */
+    private Head head() {
+        if (title == null) {
+            return new Head(List.of(), "");
+        }
+        Matcher wip = WORK_IN_PROGRESS.matcher(title);
+        boolean marked = wip.lookingAt();
+        // « WIP: [NOETHER] … », Forgejo's own draft prefix: its ":" comes before the tags
+        String rest = marked ? MARKER_TAIL.matcher(title.substring(wip.end())).replaceFirst("") : title;
+        List<String> tags = new ArrayList<>();
+        Matcher tag = TAG.matcher(rest);
+        while (tag.lookingAt() && !tag.group(1).equals("[WIP]")) {
+            tags.add(tag.group(1).substring(1, tag.group(1).length() - 1));
+            rest = rest.substring(tag.end());
+            tag = TAG.matcher(rest);
+        }
+        if (!tags.isEmpty()) {
+            rest = MARKER_TAIL.matcher(rest).replaceFirst("");
+        }
+        return new Head(List.copyOf(tags), rest);
+    }
+
+    private record Head(List<String> tags, String rest) {
     }
 }

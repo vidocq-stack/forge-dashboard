@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -122,9 +123,12 @@ public class CommitsLoop {
                 budget--;
             }
             for (RawCommit c : batch) {
-                commits.save(stat(org, row.getName(), c, classifier));
+                boolean imported = countedElsewhere(org, row.getName(), c);
+                if (!imported) {
+                    commits.save(stat(org, row.getName(), c, classifier));
+                }
                 if (c.authoredAt() != null) {
-                    if (cursor == null || c.authoredAt().isAfter(cursor)) {
+                    if (!imported && (cursor == null || c.authoredAt().isAfter(cursor))) {
                         fresh++;
                     }
                     if (newest == null || c.authoredAt().isAfter(newest)) {
@@ -157,6 +161,25 @@ public class CommitsLoop {
     /** Whether a back-fill is left for the next ticks: the scheduler then runs them sooner than the cadence. */
     public synchronized boolean backfillPending() {
         return !resumes.isEmpty() || !starved.isEmpty();
+    }
+
+    /**
+     * Whether the same commit is already stored under another id: an import into another repository
+     * ({@code git filter-repo}) rewrites the SHAs but keeps author date, mail and message, and must not count twice.
+     * Checked before {@link #stat}, which may call the forge.
+     */
+    private boolean countedElsewhere(String org, String repo, RawCommit c) {
+        if (c.authoredAt() == null) {
+            return false;
+        }
+        String id = CommitStat.idOf(org, repo, c.sha());
+        for (CommitStat s : commits.findByAuthoredAt(c.authoredAt())) {
+            if (!id.equals(s.getId()) && Objects.equals(s.getAuthorEmail(), c.authorEmail())
+                    && Objects.equals(s.getMessage(), c.message())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private CommitStat stat(String org, String repo, RawCommit c, CommitClassifier classifier) {

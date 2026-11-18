@@ -20,6 +20,8 @@ final class Theme {
     static final String PILL_ZERO = "dash-pill-zero";
     /** A draft, neutral: neither green nor red. */
     static final String PILL_WIP = "dash-pill-wip";
+    /** A component tag of a PR's title, neutral grey. */
+    static final String PILL_TAG = "dash-pill-tag";
     /** The row of pills of the PR column. */
     static final String PILLS = "dash-pills";
     /** Secondary text. */
@@ -35,7 +37,7 @@ final class Theme {
 
     /** The CSS classes the views use. */
     static final List<String> CLASSES = List.of(PILL, PILL_OK, PILL_ERR, PILL_WARN, PILL_PENDING, PILL_ZERO, PILL_WIP,
-            PILLS, MUTED, HEADER, TOGGLE, CARD, TITLE);
+            PILL_TAG, PILLS, MUTED, HEADER, TOGGLE, CARD, TITLE);
 
     /** Cells of a projects grid row in error (red main, red pull request, failed gate). */
     static final String ERROR_ROW = "error";

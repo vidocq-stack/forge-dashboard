@@ -6,6 +6,8 @@ import io.vidocq.tools.dashboard.domain.CiState;
 import io.vidocq.tools.dashboard.sonar.GateStatus;
 import io.vidocq.tools.dashboard.ui.model.ProjectRow;
 
+import java.util.Locale;
+
 /** The small coloured marks of the panels: a CI state dot, a Sonar gate pill, the PR count pills. */
 final class Badges {
 
@@ -72,6 +74,17 @@ final class Badges {
         wip.addClassNames(Theme.PILL, Theme.PILL_WIP);
         wip.getElement().setAttribute("title", m.text("pull.wip"));
         return wip;
+    }
+
+    /**
+     * A component tag of a PR's title (« NOETHER »), as it stands in the title: a neutral pill, the component in
+     * lower case in the tooltip (what the « Composant » filter of the PR tab lists).
+     */
+    static Span tag(String tag, Messages m) {
+        Span pill = new Span(tag);
+        pill.addClassNames(Theme.PILL, Theme.PILL_TAG);
+        pill.getElement().setAttribute("title", m.text("pull.component", tag.toLowerCase(Locale.ROOT)));
+        return pill;
     }
 
     private static Span count(int n, String kind) {

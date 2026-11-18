@@ -95,6 +95,14 @@ class BadgesTest {
         assertEquals("Brouillon : ne compte ni en vert ni en rouge", wip.getElement().getAttribute("title"));
     }
 
+    /** A component tag of a PR's title: a neutral pill, its component in lower case spelled out in the tooltip. */
+    @Test
+    void aTagIsANeutralPill() {
+        Span tag = Badges.tag("NOETHER", FR);
+        assertPill(tag, "NOETHER", Theme.PILL_TAG);
+        assertEquals("Composant : noether", tag.getElement().getAttribute("title"));
+    }
+
     /** A screen reader names the counter button by its content: the pills read as the counts, not « 1 1 0 ». */
     @Test
     void pullsReadAsTheirCounts() {
