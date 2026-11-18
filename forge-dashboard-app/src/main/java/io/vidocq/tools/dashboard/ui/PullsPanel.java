@@ -164,18 +164,22 @@ public class PullsPanel extends Div {
     }
 
     /**
-     * « #n title », which opens the PR's drawer, and the WIP pill of a draft. Short of room, the title shrinks to an
-     * ellipsis (whole in its tooltip); the pill keeps its size.
+     * The component tags of the PR as neutral pills, then « #n short title », which opens the PR's drawer, then the
+     * WIP pill of a draft. Short of room, the title shrinks to an ellipsis (the whole title in its tooltip); the pills
+     * keep their size, and the line wraps.
      */
     private Component pull(PullRow row) {
         PullView pr = row.pull();
-        HorizontalLayout cell = new HorizontalLayout(Parts.title("#" + pr.number() + " " + pr.title(),
-                () -> drawers.openPull(org, pr)));
+        String full = "#" + pr.number() + " " + pr.title();
+        List<Component> parts = new ArrayList<>(pr.tags().size() + 3);
+        pr.tags().forEach(tag -> parts.add(Badges.tag(tag, messages)));
+        parts.add(Parts.title("#" + pr.number() + " " + pr.shortTitle(), full, () -> drawers.openPull(org, pr)));
         if (pr.draft()) {
-            cell.add(Badges.wip(messages));
+            parts.add(Badges.wip(messages));
         }
+        HorizontalLayout cell = new HorizontalLayout(parts.toArray(Component[]::new));
         cell.setAlignItems(FlexComponent.Alignment.CENTER);
-        cell.getStyle().set("min-width", "0");
+        cell.getStyle().set("min-width", "0").set("flex-wrap", "wrap");
         return cell;
     }
 

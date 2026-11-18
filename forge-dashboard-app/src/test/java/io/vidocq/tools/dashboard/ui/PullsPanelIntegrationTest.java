@@ -81,6 +81,44 @@ class PullsPanelIntegrationTest {
     }
 
     /**
+     * A tagged PR shows its component tags as neutral pills, then « #n short title » — the whole title in the
+     * tooltip — then the WIP pill of a draft. A PR without a tag has no tag pill.
+     */
+    @Test
+    void aTaggedPullShowsItsTagsAndItsShortTitle() {
+        String org = "PullsTagged";
+        String title = "[WIP] [NOETHER][VAUBAN] fix(persistence): flush";
+        vaubanWith(org, title);
+        PullsPanel panel = panel(org);
+        Component cell = TestUi.get(Locale.FRENCH, () -> column(panel, PULL).createComponent(firstRow(panel)));
+        List<Component> content = descendants(cell).toList();
+
+        List<Span> tags = content.stream().filter(Span.class::isInstance).map(Span.class::cast)
+                .filter(s -> s.hasClassName("dash-pill-tag")).toList();
+        assertEquals(List.of("NOETHER", "VAUBAN"), tags.stream().map(Span::getText).toList(), "the tag pills");
+
+        Button open = content.stream().filter(Button.class::isInstance).map(Button.class::cast).findFirst()
+                .orElseThrow();
+        assertEquals("#7 fix(persistence): flush", open.getText(), "the short title");
+        assertEquals("#7 " + title, open.getElement().getAttribute("title"), "the whole title in the tooltip");
+        assertTrue(content.indexOf(tags.get(0)) < content.indexOf(open), "the tags come before the title");
+
+        Span wip = content.stream().filter(Span.class::isInstance).map(Span.class::cast)
+                .filter(s -> s.hasClassName("dash-pill-wip")).findFirst().orElseThrow();
+        assertEquals("WIP", wip.getText());
+        assertTrue(content.indexOf(open) < content.indexOf(wip), "the WIP pill comes after the title");
+        assertEquals("wrap", cell.getElement().getStyle().get("flex-wrap"), "several pills wrap when room runs out");
+
+        String plain = "PullsUntagged";
+        vaubanWith(plain, "feat: proxies");
+        PullsPanel plainPanel = panel(plain);
+        Component plainCell = TestUi.get(Locale.FRENCH,
+                () -> column(plainPanel, PULL).createComponent(firstRow(plainPanel)));
+        assertTrue(descendants(plainCell).noneMatch(c -> c instanceof Span s && s.hasClassName("dash-pill-tag")),
+                "no tag, no pill");
+    }
+
+    /**
      * A long title does not widen the grid past a phone's screen: the PR column takes the room left, its title shrinks
      * to an ellipsis (whole in its tooltip), and the WIP pill keeps its size.
      */

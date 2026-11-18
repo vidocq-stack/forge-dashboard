@@ -166,6 +166,27 @@ class ProjectsPanelIntegrationTest {
         assertTrue(shows(pulls, "50 % · reste ~50 min"), "the progress of #7, moved");
     }
 
+    /** Unfolded, a tagged PR shows its component tags as pills, then its short title (the whole one in the tooltip). */
+    @Test
+    void anUnfoldedTaggedPullShowsItsTags() {
+        String org = "ProjectsTagged";
+        String title = "[WIP] [NOETHER][VAUBAN] fix(persistence): flush";
+        vaubanIn(org, CiState.SUCCESS, 7, title);
+        ProjectsPanel panel = panel(org);
+        Component pulls = TestUi.get(Locale.FRENCH, () -> panel.pullList(firstRow(grid(panel))));
+        List<Component> content = descendants(pulls).toList();
+
+        List<Span> tags = content.stream().filter(Span.class::isInstance).map(Span.class::cast)
+                .filter(s -> s.hasClassName("dash-pill-tag")).toList();
+        assertEquals(List.of("NOETHER", "VAUBAN"), tags.stream().map(Span::getText).toList(), "the tag pills");
+
+        Button open = content.stream().filter(Button.class::isInstance).map(Button.class::cast).findFirst()
+                .orElseThrow();
+        assertEquals("#7 fix(persistence): flush", open.getText(), "the short title");
+        assertEquals("#7 " + title, open.getElement().getAttribute("title"), "the whole title in the tooltip");
+        assertTrue(content.indexOf(tags.get(1)) < content.indexOf(open), "the tags come before the title");
+    }
+
     /** Unfolded, a draft carries the neutral WIP pill; a PR ready for review does not. */
     @Test
     void anUnfoldedDraftCarriesTheWipPill() {

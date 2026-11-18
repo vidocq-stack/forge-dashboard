@@ -38,9 +38,16 @@ final class Parts {
      * text in its tooltip.
      */
     static Button title(String text, Runnable onClick) {
+        return title(text, text, onClick);
+    }
+
+    /**
+     * Same, with a tooltip of its own: the PR lists show a short title, the whole one in the tooltip.
+     */
+    static Button title(String text, String tooltip, Runnable onClick) {
         Button b = action(text, onClick);
         b.addClassName(Theme.TITLE);
-        b.getElement().setAttribute("title", text);
+        b.getElement().setAttribute("title", tooltip);
         return b;
     }
 

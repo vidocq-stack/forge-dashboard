@@ -88,6 +88,13 @@ vaadin-grid::part(error details-cell) {
   border-style: dashed;
 }
 
+/* A component tag of a PR's title (Theme.PILL_TAG): neutral grey, a solid frame */
+.dash-pill-tag {
+  background: #eef1f5;
+  color: #3a4250;
+  border: 1px solid #c3c9d2;
+}
+
 .dash-pills {
   display: inline-flex;
   gap: 3px;

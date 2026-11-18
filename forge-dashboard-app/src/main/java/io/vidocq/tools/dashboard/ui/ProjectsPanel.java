@@ -204,19 +204,24 @@ public class ProjectsPanel extends Div {
 
     /** A PR of {@code repo}, with how far along its running build is when it has an estimate. */
     private Component pullLine(String repo, PullView pr) {
-        // short of room (a phone), the title shrinks rather than push the WIP pill out of sight
-        Button open = Parts.title("#" + pr.number() + " " + pr.title(), () -> drawers.openPull(org, pr));
+        // short of room (a phone), the title shrinks rather than push the tags or the WIP pill out of sight
+        String full = "#" + pr.number() + " " + pr.title();
+        List<Component> parts = new ArrayList<>(pr.tags().size() + 5);
+        parts.add(Badges.dot(pr.state(), messages));
+        pr.tags().forEach(tag -> parts.add(Badges.tag(tag, messages)));
+        parts.add(Parts.title("#" + pr.number() + " " + pr.shortTitle(), full, () -> drawers.openPull(org, pr)));
+        if (pr.draft()) {
+            parts.add(Badges.wip(messages));
+        }
         Span author = new Span(pr.author());
         author.addClassName(Theme.MUTED);
         Span progressOf = Parts.muted("");
         PullKey key = new PullKey(repo, pr.number());
         pullProgress.put(key, progressOf);
         show(progressOf, progress.pull(repo, pr.number()));
-        HorizontalLayout line = new HorizontalLayout(Badges.dot(pr.state(), messages), open);
-        if (pr.draft()) {
-            line.add(Badges.wip(messages));
-        }
-        line.add(author, progressOf);
+        parts.add(author);
+        parts.add(progressOf);
+        HorizontalLayout line = new HorizontalLayout(parts.toArray(Component[]::new));
         line.setAlignItems(FlexComponent.Alignment.CENTER);
         // the list, aligned to the start, would let the line grow with its title: no wider than the cell, only the
         // title shrinks, and short of room the author or the progress goes below
