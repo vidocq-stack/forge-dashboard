@@ -9,11 +9,16 @@ ajoute depuis l'interface). Un onglet par org, quatre vues :
   erreur d'abord (`main` rouge, PR prête rouge, gate en échec), puis ceux qui ont une PR prête ouverte, puis
   les autres ; dans chaque groupe, le mieux couvert d'abord.
 - **PR** : toutes les PR ouvertes de l'org, les rouges prêtes d'abord, puis les autres prêtes, puis les
-  brouillons ; état, dépôt, auteur, gate Sonar, dernière mise à jour et avancement du build en cours.
+  brouillons ; état, dépôt, auteur, gate Sonar, dernière mise à jour et avancement du build en cours. Les tags de
+  composant en tête du titre, après un éventuel `WIP` ou `[WIP]` (`[VAUBAN][CASSINI] refactor(spi): …`), passent en
+  pastilles neutres avant le « #n titre court » (le titre sans marqueur WIP ni tags, le titre entier en info-bulle) ;
+  sans tag, le composant d'une PR est son dépôt. Au-dessus de la grille, un filtre « Composant » (liste déroulante
+  effaçable) ne garde que les PR du composant choisi, parmi ceux des PR ouvertes, triés ; vide, toutes les PR.
 - **CI** : runners avec leur activité, leur charge et leur occupation (1 h / 24 h / 7 j), file d'attente.
   Un clic sur un runner montre les PR qu'il construit.
 - **Commiters** : commits, lignes et PR par personne, avec la part faite avec un agent (trailers
-  `Co-Authored-By`) et l'automatisation à part.
+  `Co-Authored-By`) et l'automatisation à part. Un commit importé d'un autre dépôt (même auteur, même date et même
+  message, SHA réécrit par l'import) ne compte qu'une fois.
 
 La vue choisie, la période, la dernière org et la langue sont mémorisées par utilisateur.
 
