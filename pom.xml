@@ -34,6 +34,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>25</maven.compiler.release>
         <vidocq.version>0.4.0-SNAPSHOT</vidocq.version>
+        <!-- The Vaadin extension left the runtime for VidocqCodeUniverse_VCU/vidocq_vcu_extension_vaadin (2026-11-20). -->
+        <vidocq.vaadin.version>0.1.0-SNAPSHOT</vidocq.vaadin.version>
         <vaadin.version>25.3.2</vaadin.version>
         <junit.version>6.0.3</junit.version>
         <postgresql.version>42.7.10</postgresql.version>

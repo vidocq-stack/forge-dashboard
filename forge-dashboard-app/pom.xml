@@ -33,8 +33,9 @@
             <artifactId>vidocq-runtime-foy-servlet-extension</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.vidocq.runtime.extensions.jakartaee.web</groupId>
+            <groupId>io.vidocq.vcu.vaadin</groupId>
             <artifactId>vidocq-runtime-vaadin-extension</artifactId>
+            <version>${vidocq.vaadin.version}</version>
         </dependency>
         <dependency>
             <groupId>io.vidocq.runtime.extensions.microprofile</groupId>
