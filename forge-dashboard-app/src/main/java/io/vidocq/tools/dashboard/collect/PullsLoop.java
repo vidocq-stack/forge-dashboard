@@ -10,7 +10,6 @@ import io.vidocq.tools.dashboard.forge.ForgeNotFoundException;
 import io.vidocq.tools.dashboard.forge.ForgePull;
 import io.vidocq.tools.dashboard.forge.ForgeRepo;
 import io.vidocq.tools.dashboard.forge.ForgeUnavailableException;
-import io.vidocq.tools.dashboard.forge.RateLimitedException;
 import io.vidocq.tools.dashboard.live.ChangeEvent;
 import io.vidocq.tools.dashboard.live.LiveState;
 import io.vidocq.tools.dashboard.live.OrgSnapshot;
@@ -32,6 +31,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -181,7 +181,8 @@ public class PullsLoop {
 
     /**
      * The components.json at the root of the main branch, read again when the branch gets a new commit; none when
-     * absent. Unreadable now (CodeFloe down, rate limit): none for this pass, read again on the next one.
+     * absent. Unreadable now (CodeFloe down): the last one read, or none, for this pass; read again on the next one.
+     * A rate limit ends the pass, for the loop to wait as CodeFloe asks.
      */
     private ComponentMap componentMap(String org, RepoRow row, String mainSha) {
         String key = org + "/" + row.getName();
@@ -194,15 +195,15 @@ public class PullsLoop {
                     .map(ComponentMap::parse).orElse(ComponentMap.EMPTY);
             maps.put(key, new KnownMap(mainSha, map));
             return map;
-        } catch (ForgeUnavailableException | RateLimitedException | ForgeNotFoundException unreadable) {
-            maps.remove(key);
-            return ComponentMap.EMPTY;
+        } catch (ForgeUnavailableException | ForgeNotFoundException unreadable) {
+            return known == null ? ComponentMap.EMPTY : known.map();
         }
     }
 
     /**
      * The components of the pull request's changed files, in a repository with a components.json; its files are read
-     * again when its head changes. Unreadable now: none for this pass, the title's tags stand alone.
+     * again when its head changes. Unreadable now: the last ones read for this pass, or none (the title's tags stand
+     * alone); read again on the next one.
      */
     private List<String> fileTags(String org, String repo, ForgePull p, ComponentMap map) {
         if (map.isEmpty()) {
@@ -210,13 +211,12 @@ public class PullsLoop {
         }
         String id = PullRequestState.idOf(org, repo, p.number());
         KnownFiles known = files.get(id);
-        if (known == null || !known.headSha().equals(p.headSha())) {
+        if (known == null || !Objects.equals(known.headSha(), p.headSha())) {
             try {
                 known = new KnownFiles(p.headSha(), forge.listPullFiles(org, repo, p.number()));
                 files.put(id, known);
-            } catch (ForgeUnavailableException | RateLimitedException | ForgeNotFoundException unreadable) {
-                files.remove(id);
-                return List.of();
+            } catch (ForgeUnavailableException | ForgeNotFoundException unreadable) {
+                return known == null ? List.of() : map.tagsOf(known.paths());
             }
         }
         return map.tagsOf(known.paths());

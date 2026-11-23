@@ -27,8 +27,9 @@ la PR touche vraiment.
   le plus long s'il y en a plusieurs ; aucun hors des dossiers (`.forgejo/`, `.gitignore`…).
 - **Fichiers d'une PR** : `/repos/{o}/{r}/pulls/{n}/files`, toutes les pages, lus seulement pour un dépôt qui a une
   carte, et relus seulement quand le commit de tête de la PR change. En mémoire (pas de migration) ; relus après un
-  redémarrage. Si la lecture échoue, la PR n'a que les composants de son titre pendant ce tour ; on réessaie au
-  suivant.
+  redémarrage. Si une lecture (carte ou fichiers) échoue, on garde la dernière lue, ou, s'il n'y en a pas, la PR n'a
+  que les composants de son titre pendant ce tour ; on réessaie au suivant. Une limite de débit (429) termine le tour,
+  pour que la boucle attende comme CodeFloe le demande.
 - **Composants d'une PR** : les tags du titre (ordre du titre), puis ceux des fichiers absents du titre (ordre de
   `components.json`) ; en minuscules pour le filtre ; sans aucun, le dépôt, comme avant.
 - **Pastilles** (onglet PR et vue Projets) : une par composant, même style neutre. Info-bulle : « Composant : vauban

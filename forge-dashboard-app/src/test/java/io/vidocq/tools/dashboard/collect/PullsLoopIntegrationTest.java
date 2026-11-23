@@ -9,6 +9,7 @@ import io.vidocq.tools.dashboard.forge.ForgeNotFoundException;
 import io.vidocq.tools.dashboard.forge.ForgeUnavailableException;
 import io.vidocq.tools.dashboard.forge.ForgePull;
 import io.vidocq.tools.dashboard.forge.ForgeRepo;
+import io.vidocq.tools.dashboard.forge.RateLimitedException;
 import io.vidocq.tools.dashboard.forge.StatusContext;
 import io.vidocq.tools.dashboard.live.ChangeBus;
 import io.vidocq.tools.dashboard.live.LiveState;
@@ -320,5 +321,46 @@ class PullsLoopIntegrationTest {
         assertEquals(null, forge.calls.get("listPullFiles"));
         assertEquals(List.of(), thePull().fileTags());
         assertEquals(List.of("vauban"), thePull().components());
+    }
+
+    /** A components.json that cannot be read again: its last known map stays, the pills do not blink. */
+    @Test
+    void anUnreadableMapKeepsTheLastOne() {
+        monorepo();
+        var loop = loop();
+        loop.tick(ORG);
+        forge.commits.put("Vidocq/vauban", List.of(commit("beef", "feat: newer")));
+        forge.failNext("readFile", new ForgeUnavailableException("500 on raw", null));
+
+        loop.tick(ORG);
+
+        assertEquals(List.of("FOY"), thePull().fileTags());
+    }
+
+    /** Files that cannot be read again for a new head: the last known ones stay until they can be. */
+    @Test
+    void unreadableFilesKeepTheLastOnes() {
+        monorepo();
+        var loop = loop();
+        loop.tick(ORG);
+        forge.pulls.put("Vidocq/vauban", List.of(pull(298, "h298b")));
+        forge.statuses.put("Vidocq/vauban@h298b", status(CiState.PENDING));
+        forge.pullFiles.put("Vidocq/vauban#298", List.of("core/vauban/pom.xml"));
+        forge.failNext("listPullFiles", new ForgeUnavailableException("500 on files", null));
+        loop.tick(ORG);
+        assertEquals(List.of("FOY"), thePull().fileTags());
+
+        loop.tick(ORG);
+
+        assertEquals(List.of("VAUBAN"), thePull().fileTags());
+    }
+
+    /** A rate limit on the files ends the pass, so that the loop waits as CodeFloe asks. */
+    @Test
+    void aRateLimitOnTheFilesEndsThePass() {
+        monorepo();
+        forge.failNext("listPullFiles", new RateLimitedException(java.time.Duration.ofSeconds(30)));
+
+        assertThrows(RateLimitedException.class, () -> loop().tick(ORG));
     }
 }
