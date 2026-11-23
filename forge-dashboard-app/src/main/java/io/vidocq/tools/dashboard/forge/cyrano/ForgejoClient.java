@@ -46,6 +46,18 @@ public interface ForgejoClient {
                    @QueryParam("page") int page, @QueryParam("limit") int limit);
 
     @GET
+    @Path("/repos/{owner}/{repo}/pulls/{number}/files")
+    Response pullFiles(@PathParam("owner") String owner, @PathParam("repo") String repo,
+                       @PathParam("number") int number, @QueryParam("page") int page, @QueryParam("limit") int limit);
+
+    /** A file of the repository at the root, raw ({@code components.json}). */
+    @GET
+    @Path("/repos/{owner}/{repo}/raw/{file}")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN, MediaType.APPLICATION_OCTET_STREAM})
+    Response rawFile(@PathParam("owner") String owner, @PathParam("repo") String repo, @PathParam("file") String file,
+                     @QueryParam("ref") String ref);
+
+    @GET
     @Path("/repos/{owner}/{repo}/commits/{ref}/status")
     Response status(@PathParam("owner") String owner, @PathParam("repo") String repo, @PathParam("ref") String ref,
                     @QueryParam("limit") int limit);

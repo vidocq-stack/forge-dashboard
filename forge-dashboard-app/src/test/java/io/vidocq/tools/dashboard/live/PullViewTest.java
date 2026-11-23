@@ -115,6 +115,55 @@ class PullViewTest {
         assertEquals("[RUNTIME]", runtime.shortTitle());
     }
 
+    private static PullView touching(String title, List<String> fileTags) {
+        return pull("vidocq", title).withFileTags(fileTags);
+    }
+
+    /** The components of the changed files join the title's tags: the title's first, then the others. */
+    @Test
+    void theFilesAddTheComponentsTheTitleForgets() {
+        PullView pull = touching("[VAUBAN] fix: x", List.of("CASSINI", "VAUBAN", "FOY"));
+        assertEquals(List.of("VAUBAN"), pull.tags());
+        assertEquals(List.of("vauban", "cassini", "foy"), pull.components());
+        assertEquals(List.of(new ComponentTag("VAUBAN", true, true), new ComponentTag("CASSINI", false, true),
+                new ComponentTag("FOY", false, true)), pull.componentTags());
+    }
+
+    /** A tag the files do not touch ([CI], [TCK], or a component the PR does not change) stays, from the title. */
+    @Test
+    void aTitleTagWithoutFilesStays() {
+        PullView pull = touching("[CI] [FOY] ci: x", List.of());
+        assertEquals(List.of(new ComponentTag("CI", true, false), new ComponentTag("FOY", true, false)),
+                pull.componentTags());
+        assertEquals(List.of("ci", "foy"), pull.components());
+    }
+
+    /** Without a tag in the title, the files' components replace the repository. */
+    @Test
+    void withoutTagTheFilesGiveTheComponents() {
+        PullView pull = touching("fix: x", List.of("NOETHER"));
+        assertEquals(List.of("noether"), pull.components());
+        assertEquals(List.of(new ComponentTag("NOETHER", false, true)), pull.componentTags());
+        assertEquals("fix: x", pull.shortTitle());
+    }
+
+    /** Without tag nor files, the repository, as before; the 10-argument constructor has no file tags. */
+    @Test
+    void withoutTagNorFilesTheRepository() {
+        PullView pull = pull("vauban", "feat: proxies");
+        assertEquals(List.of(), pull.fileTags());
+        assertEquals(List.of(), pull.componentTags());
+        assertEquals(List.of("vauban"), pull.components());
+    }
+
+    /** The Sonar gate changes, the file tags stay. */
+    @Test
+    void theSonarGateKeepsTheFileTags() {
+        PullView pull = touching("fix: x", List.of("FOY")).withSonarGate(GateStatus.OK);
+        assertEquals(GateStatus.OK, pull.sonarGate());
+        assertEquals(List.of("FOY"), pull.fileTags());
+    }
+
     /** A pull request restored without a title has no tag, its repository as component, an empty short title. */
     @Test
     void aPullWithoutTitle() {

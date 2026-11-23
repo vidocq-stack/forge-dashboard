@@ -18,6 +18,7 @@ import io.vidocq.tools.dashboard.live.ChangeBus;
 import io.vidocq.tools.dashboard.live.ChangeEvent;
 import io.vidocq.tools.dashboard.live.LiveState;
 import io.vidocq.tools.dashboard.live.OrgSnapshot;
+import io.vidocq.tools.dashboard.live.ComponentTag;
 import io.vidocq.tools.dashboard.live.PullView;
 import io.vidocq.tools.dashboard.live.RepoView;
 import io.vidocq.tools.dashboard.store.JobExecutionRepository;
@@ -206,9 +207,10 @@ public class ProjectsPanel extends Div {
     private Component pullLine(String repo, PullView pr) {
         // short of room (a phone), the title shrinks rather than push the tags or the WIP pill out of sight
         String full = "#" + pr.number() + " " + pr.title();
-        List<Component> parts = new ArrayList<>(pr.tags().size() + 5);
+        List<ComponentTag> tags = pr.componentTags();
+        List<Component> parts = new ArrayList<>(tags.size() + 5);
         parts.add(Badges.dot(pr.state(), messages));
-        pr.tags().forEach(tag -> parts.add(Badges.tag(tag, messages)));
+        tags.forEach(tag -> parts.add(Badges.tag(tag, messages)));
         parts.add(Parts.title("#" + pr.number() + " " + pr.shortTitle(), full, () -> drawers.openPull(org, pr)));
         if (pr.draft()) {
             parts.add(Badges.wip(messages));

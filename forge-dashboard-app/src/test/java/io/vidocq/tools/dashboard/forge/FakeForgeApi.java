@@ -31,6 +31,10 @@ public class FakeForgeApi implements ForgeApi {
     public final Map<Long, String> logHeads = new HashMap<>();
     /** "owner/repo" → pulls, open or not. */
     public final Map<String, List<ForgePull>> pulls = new HashMap<>();
+    /** "owner/repo#number" → paths of the changed files. */
+    public final Map<String, List<String>> pullFiles = new HashMap<>();
+    /** "owner/repo@ref:file" → content. */
+    public final Map<String, String> files = new HashMap<>();
     /** "owner/repo@ref" → combined status. */
     public final Map<String, CombinedStatus> statuses = new HashMap<>();
     /** "owner/repo" → commits, newest first; paged by 50. */
@@ -134,6 +138,18 @@ public class FakeForgeApi implements ForgeApi {
         enter("listPullsUpdatedSince", owner, repo);
         return pulls.getOrDefault(owner + "/" + repo, List.of()).stream()
                 .filter(p -> p.updatedAt() == null || !p.updatedAt().isBefore(since)).toList();
+    }
+
+    @Override
+    public List<String> listPullFiles(String owner, String repo, int number) {
+        enter("listPullFiles", owner, repo);
+        return List.copyOf(pullFiles.getOrDefault(owner + "/" + repo + "#" + number, List.of()));
+    }
+
+    @Override
+    public Optional<String> readFile(String owner, String repo, String ref, String file) {
+        enter("readFile", owner, repo);
+        return Optional.ofNullable(files.get(owner + "/" + repo + "@" + ref + ":" + file));
     }
 
     @Override

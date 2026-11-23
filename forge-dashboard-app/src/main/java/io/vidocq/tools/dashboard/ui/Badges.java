@@ -1,6 +1,7 @@
 package io.vidocq.tools.dashboard.ui;
 
 import com.vaadin.flow.component.html.Span;
+import io.vidocq.tools.dashboard.live.ComponentTag;
 import io.vidocq.tools.dashboard.i18n.Messages;
 import io.vidocq.tools.dashboard.domain.CiState;
 import io.vidocq.tools.dashboard.sonar.GateStatus;
@@ -77,13 +78,16 @@ final class Badges {
     }
 
     /**
-     * A component tag of a PR's title (« NOETHER »), as it stands in the title: a neutral pill, the component in
-     * lower case in the tooltip (what the « Composant » filter of the PR tab lists).
+     * A component of a PR (« NOETHER »), as its tag stands in a title: a neutral pill whether it comes from the title
+     * or from the changed files; the tooltip gives the component in lower case (what the « Composant » filter of the
+     * PR tab lists) and where it comes from.
      */
-    static Span tag(String tag, Messages m) {
-        Span pill = new Span(tag);
+    static Span tag(ComponentTag tag, Messages m) {
+        Span pill = new Span(tag.tag());
         pill.addClassNames(Theme.PILL, Theme.PILL_TAG);
-        pill.getElement().setAttribute("title", m.text("pull.component", tag.toLowerCase(Locale.ROOT)));
+        String key = tag.inTitle() && tag.inFiles() ? "pull.component.both"
+                : tag.inFiles() ? "pull.component.files" : "pull.component.title";
+        pill.getElement().setAttribute("title", m.text(key, tag.tag().toLowerCase(Locale.ROOT)));
         return pill;
     }
 

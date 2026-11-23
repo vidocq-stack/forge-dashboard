@@ -9,9 +9,11 @@ import io.vidocq.tools.dashboard.forge.ForgeNotFoundException;
 import io.vidocq.tools.dashboard.forge.ForgeUnavailableException;
 import io.vidocq.tools.dashboard.forge.ForgePull;
 import io.vidocq.tools.dashboard.forge.ForgeRepo;
+import io.vidocq.tools.dashboard.forge.RateLimitedException;
 import io.vidocq.tools.dashboard.forge.StatusContext;
 import io.vidocq.tools.dashboard.live.ChangeBus;
 import io.vidocq.tools.dashboard.live.LiveState;
+import io.vidocq.tools.dashboard.live.PullView;
 import io.vidocq.tools.dashboard.live.RepoView;
 import io.vidocq.tools.dashboard.store.PullRequestStateRepository;
 import io.vidocq.tools.dashboard.store.RepoRow;
@@ -220,5 +222,145 @@ class PullsLoopIntegrationTest {
         loop().tick(ORG);
         assertEquals(1, forge.calls.get("latestCommit"));
         assertEquals(null, forge.calls.get("listCommits"));
+    }
+
+    static final String MAP = """
+            {"components": [{"tag": "VAUBAN", "path": "core/vauban"}, {"tag": "FOY", "path": "web/foy"}]}""";
+
+    /** A repository with a components.json at the root of its main branch: a monorepo. */
+    private void monorepo() {
+        forge.files.put("Vidocq/vauban@main:components.json", MAP);
+        forge.pullFiles.put("Vidocq/vauban#298", List.of("web/foy/a.java", ".gitignore"));
+    }
+
+    private PullView thePull() {
+        return view("vauban").pulls().getFirst();
+    }
+
+    /** In a monorepo, the components of a pull request's changed files reach its view. */
+    @Test
+    void theChangedFilesGiveTheirComponents() {
+        monorepo();
+
+        loop().tick(ORG);
+
+        assertEquals(List.of("FOY"), thePull().fileTags());
+        assertEquals(List.of("foy"), thePull().components());
+    }
+
+    /** The files of a pull request are read again only when its head changes. */
+    @Test
+    void theFilesAreReadAgainOnlyForANewHead() {
+        monorepo();
+        var loop = loop();
+        loop.tick(ORG);
+        loop.tick(ORG);
+        assertEquals(1, forge.calls.get("listPullFiles"));
+
+        forge.pulls.put("Vidocq/vauban", List.of(pull(298, "h298b")));
+        forge.statuses.put("Vidocq/vauban@h298b", status(CiState.PENDING));
+        forge.pullFiles.put("Vidocq/vauban#298", List.of("core/vauban/pom.xml"));
+        loop.tick(ORG);
+
+        assertEquals(2, forge.calls.get("listPullFiles"));
+        assertEquals(List.of("VAUBAN"), thePull().fileTags());
+    }
+
+    /** components.json is read again only when the main branch gets a new commit. */
+    @Test
+    void theMapIsReadAgainOnlyForANewMainCommit() {
+        monorepo();
+        var loop = loop();
+        loop.tick(ORG);
+        loop.tick(ORG);
+        assertEquals(1, forge.calls.get("readFile"));
+
+        forge.commits.put("Vidocq/vauban", List.of(commit("beef", "feat: newer")));
+        forge.files.put("Vidocq/vauban@main:components.json", """
+                {"components": [{"tag": "FOYER", "path": "web"}]}""");
+        loop.tick(ORG);
+
+        assertEquals(2, forge.calls.get("readFile"));
+        assertEquals(List.of("FOYER"), thePull().fileTags());
+    }
+
+    /** Files that cannot be read: the title only for this pass, read again on the next one. */
+    @Test
+    void unreadableFilesLeaveTheTitleAndAreReadAgain() {
+        monorepo();
+        var loop = loop();
+        forge.failNext("listPullFiles", new ForgeUnavailableException("500 on files", null));
+        loop.tick(ORG);
+        assertEquals(List.of(), thePull().fileTags());
+        assertEquals(1, view("vauban").pulls().size());
+
+        loop.tick(ORG);
+
+        assertEquals(List.of("FOY"), thePull().fileTags());
+    }
+
+    /** A components.json that cannot be read now: no file components this pass, read again on the next one. */
+    @Test
+    void anUnreadableMapIsReadAgain() {
+        monorepo();
+        var loop = loop();
+        forge.failNext("readFile", new ForgeUnavailableException("500 on raw", null));
+        loop.tick(ORG);
+        assertEquals(List.of(), thePull().fileTags());
+
+        loop.tick(ORG);
+
+        assertEquals(List.of("FOY"), thePull().fileTags());
+    }
+
+    /** Without components.json, the files of the pull requests are never read. */
+    @Test
+    void withoutMapTheFilesAreNotRead() {
+        loop().tick(ORG);
+
+        assertEquals(null, forge.calls.get("listPullFiles"));
+        assertEquals(List.of(), thePull().fileTags());
+        assertEquals(List.of("vauban"), thePull().components());
+    }
+
+    /** A components.json that cannot be read again: its last known map stays, the pills do not blink. */
+    @Test
+    void anUnreadableMapKeepsTheLastOne() {
+        monorepo();
+        var loop = loop();
+        loop.tick(ORG);
+        forge.commits.put("Vidocq/vauban", List.of(commit("beef", "feat: newer")));
+        forge.failNext("readFile", new ForgeUnavailableException("500 on raw", null));
+
+        loop.tick(ORG);
+
+        assertEquals(List.of("FOY"), thePull().fileTags());
+    }
+
+    /** Files that cannot be read again for a new head: the last known ones stay until they can be. */
+    @Test
+    void unreadableFilesKeepTheLastOnes() {
+        monorepo();
+        var loop = loop();
+        loop.tick(ORG);
+        forge.pulls.put("Vidocq/vauban", List.of(pull(298, "h298b")));
+        forge.statuses.put("Vidocq/vauban@h298b", status(CiState.PENDING));
+        forge.pullFiles.put("Vidocq/vauban#298", List.of("core/vauban/pom.xml"));
+        forge.failNext("listPullFiles", new ForgeUnavailableException("500 on files", null));
+        loop.tick(ORG);
+        assertEquals(List.of("FOY"), thePull().fileTags());
+
+        loop.tick(ORG);
+
+        assertEquals(List.of("VAUBAN"), thePull().fileTags());
+    }
+
+    /** A rate limit on the files ends the pass, so that the loop waits as CodeFloe asks. */
+    @Test
+    void aRateLimitOnTheFilesEndsThePass() {
+        monorepo();
+        forge.failNext("listPullFiles", new RateLimitedException(java.time.Duration.ofSeconds(30)));
+
+        assertThrows(RateLimitedException.class, () -> loop().tick(ORG));
     }
 }

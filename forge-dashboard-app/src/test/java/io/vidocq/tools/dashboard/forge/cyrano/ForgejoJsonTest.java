@@ -175,6 +175,16 @@ class ForgejoJsonTest {
         assertNotNull(ForgejoJson.toPull(read("commit-pull.json")).authorLogin());
     }
 
+    /** The files of a pull request: their paths in the repository. */
+    @Test
+    void pullFilesMapToTheirPaths() {
+        var files = ForgejoJson.toFileNames(read("pull-files.json"));
+        assertEquals(8, files.size());
+        assertEquals("vidocq-components/vidocq-components-jakartaee/vidocq-components-jakartaee-core/vauban/BUG.md",
+                files.getFirst());
+        assertEquals(List.of(), ForgejoJson.toFileNames("null"));
+    }
+
     @Test
     void nullJobListMapsToEmpty() {
         assertEquals(List.of(), ForgejoJson.toJobs("null"));

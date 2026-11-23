@@ -11,9 +11,13 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/** An open pull request, its combined CI state and, when Sonar is on, its quality gate. */
+/**
+ * An open pull request, its combined CI state and, when Sonar is on, its quality gate. {@code fileTags}: the tags of
+ * the components its changed files touch, in a repository with a {@code components.json}; empty elsewhere.
+ */
 public record PullView(String repo, int number, String title, String author, String headSha, CiState state,
-                       List<StatusContext> contexts, GateStatus sonarGate, String htmlUrl, Instant updatedAt) {
+                       List<StatusContext> contexts, GateStatus sonarGate, String htmlUrl, Instant updatedAt,
+                       List<String> fileTags) {
 
     /** "[WIP]", or the word WIP: not followed by a letter or a digit ("WIPE" is not a draft). */
     private static final Pattern WORK_IN_PROGRESS = Pattern.compile("\\s*(\\[WIP]|WIP(?![\\p{L}\\p{N}_]))",
@@ -27,6 +31,23 @@ public record PullView(String repo, int number, String title, String author, Str
 
     public PullView {
         contexts = List.copyOf(contexts);
+        fileTags = fileTags == null ? List.of() : List.copyOf(fileTags);
+    }
+
+    /** A pull request whose changed files are not known (yet). */
+    public PullView(String repo, int number, String title, String author, String headSha, CiState state,
+                    List<StatusContext> contexts, GateStatus sonarGate, String htmlUrl, Instant updatedAt) {
+        this(repo, number, title, author, headSha, state, contexts, sonarGate, htmlUrl, updatedAt, List.of());
+    }
+
+    public PullView withFileTags(List<String> tags) {
+        return new PullView(repo, number, title, author, headSha, state, contexts, sonarGate, htmlUrl, updatedAt,
+                tags);
+    }
+
+    public PullView withSonarGate(GateStatus gate) {
+        return new PullView(repo, number, title, author, headSha, state, contexts, gate, htmlUrl, updatedAt,
+                fileTags);
     }
 
     /**
@@ -48,13 +69,33 @@ public record PullView(String repo, int number, String title, String author, Str
     }
 
     /**
-     * The components the pull request touches: its tags in lower case or, without a tag, its repository — "vauban"
-     * is the vauban repository today and the [VAUBAN] tags of the monorepo tomorrow.
+     * The component tags of the pull request: those of its title, in the title's order, then those of its changed
+     * files that the title does not name, in the order of {@code components.json}.
+     */
+    public List<ComponentTag> componentTags() {
+        List<String> titled = tags();
+        List<ComponentTag> out = new ArrayList<>();
+        for (String tag : titled) {
+            if (out.stream().noneMatch(c -> c.tag().equals(tag))) {
+                out.add(new ComponentTag(tag, true, fileTags.contains(tag)));
+            }
+        }
+        for (String tag : fileTags) {
+            if (!titled.contains(tag)) {
+                out.add(new ComponentTag(tag, false, true));
+            }
+        }
+        return out;
+    }
+
+    /**
+     * The components the pull request touches: its component tags in lower case or, without any, its repository —
+     * "vauban" is the vauban repository and the [VAUBAN] pull requests of the monorepo.
      */
     public List<String> components() {
-        List<String> tags = tags();
+        List<ComponentTag> tags = componentTags();
         if (!tags.isEmpty()) {
-            return tags.stream().map(tag -> tag.toLowerCase(Locale.ROOT)).toList();
+            return tags.stream().map(c -> c.tag().toLowerCase(Locale.ROOT)).toList();
         }
         return List.of(repo);
     }

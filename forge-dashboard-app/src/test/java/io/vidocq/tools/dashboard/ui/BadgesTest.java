@@ -3,6 +3,7 @@ package io.vidocq.tools.dashboard.ui;
 import com.vaadin.flow.component.html.Span;
 import io.vidocq.tools.dashboard.domain.CiState;
 import io.vidocq.tools.dashboard.i18n.Messages;
+import io.vidocq.tools.dashboard.live.ComponentTag;
 import io.vidocq.tools.dashboard.sonar.GateStatus;
 import io.vidocq.tools.dashboard.ui.model.ProjectRow;
 import org.junit.jupiter.api.Test;
@@ -95,12 +96,20 @@ class BadgesTest {
         assertEquals("Brouillon : ne compte ni en vert ni en rouge", wip.getElement().getAttribute("title"));
     }
 
-    /** A component tag of a PR's title: a neutral pill, its component in lower case spelled out in the tooltip. */
+    /**
+     * A component of a PR: a neutral pill, whether it comes from the title or the changed files; the tooltip spells
+     * out the component in lower case and where it comes from.
+     */
     @Test
     void aTagIsANeutralPill() {
-        Span tag = Badges.tag("NOETHER", FR);
+        Span tag = Badges.tag(new ComponentTag("NOETHER", true, false), FR);
         assertPill(tag, "NOETHER", Theme.PILL_TAG);
-        assertEquals("Composant : noether", tag.getElement().getAttribute("title"));
+        assertEquals("Composant : noether (titre)", tag.getElement().getAttribute("title"));
+        Span files = Badges.tag(new ComponentTag("FOY", false, true), FR);
+        assertPill(files, "FOY", Theme.PILL_TAG);
+        assertEquals("Composant : foy (fichiers modifiés)", files.getElement().getAttribute("title"));
+        assertEquals("Composant : vauban (titre et fichiers modifiés)",
+                Badges.tag(new ComponentTag("VAUBAN", true, true), FR).getElement().getAttribute("title"));
     }
 
     /** A screen reader names the counter button by its content: the pills read as the counts, not « 1 1 0 ». */
