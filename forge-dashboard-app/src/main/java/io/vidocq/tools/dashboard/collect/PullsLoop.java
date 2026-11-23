@@ -1,6 +1,7 @@
 package io.vidocq.tools.dashboard.collect;
 
 import io.vidocq.tools.dashboard.domain.CiState;
+import io.vidocq.tools.dashboard.domain.ComponentMap;
 import io.vidocq.tools.dashboard.domain.RawCommit;
 import io.vidocq.tools.dashboard.forge.CombinedStatus;
 import io.vidocq.tools.dashboard.forge.ForgeApi;
@@ -8,6 +9,8 @@ import io.vidocq.tools.dashboard.forge.ForgeLinks;
 import io.vidocq.tools.dashboard.forge.ForgeNotFoundException;
 import io.vidocq.tools.dashboard.forge.ForgePull;
 import io.vidocq.tools.dashboard.forge.ForgeRepo;
+import io.vidocq.tools.dashboard.forge.ForgeUnavailableException;
+import io.vidocq.tools.dashboard.forge.RateLimitedException;
 import io.vidocq.tools.dashboard.live.ChangeEvent;
 import io.vidocq.tools.dashboard.live.LiveState;
 import io.vidocq.tools.dashboard.live.OrgSnapshot;
@@ -31,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -44,6 +48,9 @@ import java.util.concurrent.Future;
 @ApplicationScoped
 public class PullsLoop {
 
+    /** The file at the root of a monorepo that maps its components to their folders. */
+    static final String COMPONENTS = "components.json";
+
     private final ForgeApi forge;
     private final RepoRowRepository repos;
     private final PullRequestStateRepository pullStates;
@@ -51,6 +58,17 @@ public class PullsLoop {
     private final LiveState live;
     private final ForgeLinks links;
     private final Clock clock;
+
+    /** "org/repo" → its components.json, read for the main branch commit it carries. */
+    private final Map<String, KnownMap> maps = new ConcurrentHashMap<>();
+    /** "org/repo#n" → the changed files of the pull request, read for the head it carries. */
+    private final Map<String, KnownFiles> files = new ConcurrentHashMap<>();
+
+    private record KnownMap(String mainSha, ComponentMap map) {
+    }
+
+    private record KnownFiles(String headSha, List<String> paths) {
+    }
 
     @Inject
     public PullsLoop(ForgeApi forge, RepoRowRepository repos, PullRequestStateRepository pullStates,
@@ -142,21 +160,66 @@ public class PullsLoop {
         String name = row.getName();
         CombinedStatus main = forge.getCombinedStatus(org, name, row.getDefaultBranch());
         Optional<RawCommit> last = forge.latestCommit(org, name, row.getDefaultBranch());
+        ComponentMap map = componentMap(org, row, last.map(RawCommit::sha).orElse(null));
         List<PullView> pulls = new ArrayList<>();
         Set<String> open = new HashSet<>();
         for (ForgePull p : openPulls(org, name)) {
             CombinedStatus status = headStatus(org, name, p.headSha());
             pulls.add(new PullView(name, p.number(), p.title(), p.authorLogin(), p.headSha(), status.state(),
-                    status.contexts(), null, p.htmlUrl(), p.updatedAt()));
+                    status.contexts(), null, p.htmlUrl(), p.updatedAt(), fileTags(org, name, p, map)));
             pullStates.save(state(org, name, p, status.state(), now));
             open.add(PullRequestState.idOf(org, name, p.number()));
         }
+        files.keySet().removeIf(id -> id.startsWith(org + "/" + name + "#") && !open.contains(id));
         pullStates.findByOrg(org).stream()
                 .filter(s -> name.equals(s.getRepo()) && !open.contains(s.getId()))
                 .forEach(pullStates::delete);
         return new RepoView(name, main.state(), last.map(RawCommit::sha).orElse(null),
                 last.map(c -> firstLine(c.message())).orElse(null), last.map(RawCommit::authoredAt).orElse(null),
                 null, pulls, links.repo(org, name));
+    }
+
+    /**
+     * The components.json at the root of the main branch, read again when the branch gets a new commit; none when
+     * absent. Unreadable now (CodeFloe down, rate limit): none for this pass, read again on the next one.
+     */
+    private ComponentMap componentMap(String org, RepoRow row, String mainSha) {
+        String key = org + "/" + row.getName();
+        KnownMap known = maps.get(key);
+        if (known != null && mainSha != null && mainSha.equals(known.mainSha())) {
+            return known.map();
+        }
+        try {
+            ComponentMap map = forge.readFile(org, row.getName(), row.getDefaultBranch(), COMPONENTS)
+                    .map(ComponentMap::parse).orElse(ComponentMap.EMPTY);
+            maps.put(key, new KnownMap(mainSha, map));
+            return map;
+        } catch (ForgeUnavailableException | RateLimitedException | ForgeNotFoundException unreadable) {
+            maps.remove(key);
+            return ComponentMap.EMPTY;
+        }
+    }
+
+    /**
+     * The components of the pull request's changed files, in a repository with a components.json; its files are read
+     * again when its head changes. Unreadable now: none for this pass, the title's tags stand alone.
+     */
+    private List<String> fileTags(String org, String repo, ForgePull p, ComponentMap map) {
+        if (map.isEmpty()) {
+            return List.of();
+        }
+        String id = PullRequestState.idOf(org, repo, p.number());
+        KnownFiles known = files.get(id);
+        if (known == null || !known.headSha().equals(p.headSha())) {
+            try {
+                known = new KnownFiles(p.headSha(), forge.listPullFiles(org, repo, p.number()));
+                files.put(id, known);
+            } catch (ForgeUnavailableException | RateLimitedException | ForgeNotFoundException unreadable) {
+                files.remove(id);
+                return List.of();
+            }
+        }
+        return map.tagsOf(known.paths());
     }
 
     /** Forgejo answers 404 on the pulls of a repository that has them disabled (a mirror, say): none. */
@@ -240,8 +303,7 @@ public class PullsLoop {
                     if (gate == null) {
                         gate = stored.pullGate(r.name(), p.number());
                     }
-                    pulls.add(new PullView(p.repo(), p.number(), p.title(), p.author(), p.headSha(), p.state(),
-                            p.contexts(), gate, p.htmlUrl(), p.updatedAt()));
+                    pulls.add(p.withSonarGate(gate));
                 }
                 out.add(new RepoView(r.name(), r.mainState(), r.mainSha(), r.lastCommitTitle(), r.lastCommitAt(),
                         sonar, pulls, r.htmlUrl()));

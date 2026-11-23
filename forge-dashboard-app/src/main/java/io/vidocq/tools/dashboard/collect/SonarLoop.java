@@ -97,9 +97,8 @@ public class SonarLoop {
                                         Map<String, GateStatus> pullGates) {
         List<RepoView> out = new ArrayList<>();
         for (RepoView r : repos) {
-            List<PullView> pulls = r.pulls().stream().map(p -> new PullView(p.repo(), p.number(), p.title(),
-                    p.author(), p.headSha(), p.state(), p.contexts(),
-                    pullGates.getOrDefault(r.name() + "#" + p.number(), p.sonarGate()), p.htmlUrl(), p.updatedAt()))
+            List<PullView> pulls = r.pulls().stream()
+                    .map(p -> p.withSonarGate(pullGates.getOrDefault(r.name() + "#" + p.number(), p.sonarGate())))
                     .toList();
             out.add(new RepoView(r.name(), r.mainState(), r.mainSha(), r.lastCommitTitle(), r.lastCommitAt(),
                     measures.getOrDefault(r.name(), r.sonar()), pulls, r.htmlUrl()));

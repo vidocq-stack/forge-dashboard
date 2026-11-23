@@ -81,6 +81,9 @@ public final class ForgejoJson {
     public record RawStats(int additions, int deletions) {
     }
 
+    public record RawChangedFile(String filename) {
+    }
+
     public record RawCommitItem(String sha, RawGitCommit commit, RawUser author, RawStats stats) {
     }
 
@@ -113,6 +116,12 @@ public final class ForgejoJson {
 
     public static List<ForgePull> toPulls(String json) {
         return list(json, RawPull[].class).stream().map(ForgejoJson::pull).toList();
+    }
+
+    /** The paths of a page of a pull request's changed files. */
+    public static List<String> toFileNames(String json) {
+        return list(json, RawChangedFile[].class).stream().map(RawChangedFile::filename)
+                .filter(f -> f != null && !f.isBlank()).toList();
     }
 
     public static ForgePull toPull(String json) {

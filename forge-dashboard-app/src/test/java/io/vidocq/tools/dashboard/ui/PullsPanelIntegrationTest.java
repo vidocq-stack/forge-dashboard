@@ -121,6 +121,25 @@ class PullsPanelIntegrationTest {
     }
 
     /**
+     * In the monorepo, the components of the changed files follow the title's tags as the same neutral pills, and the
+     * component filter offers them.
+     */
+    @Test
+    void theComponentsOfTheChangedFilesFollowTheTags() {
+        String org = "PullsFiles";
+        pullsIn(org, repo("vidocq", pr("vidocq", 3, "[VAUBAN] x").withFileTags(List.of("VAUBAN", "FOY"))));
+        PullsPanel panel = panel(org);
+        Component cell = TestUi.get(Locale.FRENCH, () -> column(panel, PULL).createComponent(firstRow(panel)));
+
+        List<Span> tags = descendants(cell).filter(Span.class::isInstance).map(Span.class::cast)
+                .filter(s -> s.hasClassName("dash-pill-tag")).toList();
+        assertEquals(List.of("VAUBAN", "FOY"), tags.stream().map(Span::getText).toList(), "the tag pills");
+        assertEquals("Composant : foy (fichiers modifiés)", tags.get(1).getElement().getAttribute("title"));
+        assertEquals(List.of("foy", "vauban"), filter(panel).getListDataView().getItems().toList(),
+                "the choices of the filter");
+    }
+
+    /**
      * A long title does not widen the grid past a phone's screen: the PR column takes the room left, its title shrinks
      * to an ellipsis (whole in its tooltip), and the WIP pill keeps its size.
      */

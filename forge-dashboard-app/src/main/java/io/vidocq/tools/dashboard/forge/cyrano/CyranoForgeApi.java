@@ -163,6 +163,21 @@ public class CyranoForgeApi implements ForgeApi {
     }
 
     @Override
+    public List<String> listPullFiles(String owner, String repo, int number) {
+        return all("files of " + owner + "/" + repo + "#" + number,
+                page -> api.pullFiles(owner, repo, number, page, LIMIT), ForgejoJson::toFileNames);
+    }
+
+    @Override
+    public Optional<String> readFile(String owner, String repo, String ref, String file) {
+        try {
+            return Optional.of(get(file + " of " + owner + "/" + repo, () -> api.rawFile(owner, repo, file, ref)).body());
+        } catch (ForgeNotFoundException absent) {
+            return Optional.empty();
+        }
+    }
+
+    @Override
     public boolean canReadRunners(String org) {
         Answer answer = call("runners of " + org, () -> api.runners(org));
         if (answer.status() == 401 || answer.status() == 403 || answer.status() == 404) {

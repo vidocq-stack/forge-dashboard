@@ -37,6 +37,12 @@ public interface ForgeApi {
     /** Pull requests in any state updated since {@code since}, most recently updated first. */
     List<ForgePull> listPullsUpdatedSince(String owner, String repo, Instant since);
 
+    /** The paths of the files the pull request changes, all pages. */
+    List<String> listPullFiles(String owner, String repo, int number);
+
+    /** A file at the root of the repository on {@code ref}, as text; empty when it does not exist. */
+    Optional<String> readFile(String owner, String repo, String ref, String file);
+
     CombinedStatus getCombinedStatus(String owner, String repo, String ref);
 
     /** One page (50 commits, with stats) of the branch's commits since {@code since}; empty past the last page. */

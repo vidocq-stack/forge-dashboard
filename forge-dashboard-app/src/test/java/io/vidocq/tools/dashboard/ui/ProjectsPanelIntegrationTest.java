@@ -187,6 +187,20 @@ class ProjectsPanelIntegrationTest {
         assertTrue(content.indexOf(tags.get(1)) < content.indexOf(open), "the tags come before the title");
     }
 
+    /** Unfolded, a monorepo PR shows the components of its changed files after its title's tags. */
+    @Test
+    void anUnfoldedPullShowsTheComponentsOfItsFiles() {
+        String org = "ProjectsFiles";
+        vaubanIn(org, CiState.SUCCESS, 7, "[VAUBAN] x", List.of("FOY"));
+        ProjectsPanel panel = panel(org);
+        Component pulls = TestUi.get(Locale.FRENCH, () -> panel.pullList(firstRow(grid(panel))));
+
+        List<Span> tags = descendants(pulls).filter(Span.class::isInstance).map(Span.class::cast)
+                .filter(s -> s.hasClassName("dash-pill-tag")).toList();
+        assertEquals(List.of("VAUBAN", "FOY"), tags.stream().map(Span::getText).toList(), "the tag pills");
+        assertEquals("Composant : foy (fichiers modifiés)", tags.get(1).getElement().getAttribute("title"));
+    }
+
     /** Unfolded, a draft carries the neutral WIP pill; a PR ready for review does not. */
     @Test
     void anUnfoldedDraftCarriesTheWipPill() {
@@ -237,9 +251,13 @@ class ProjectsPanelIntegrationTest {
     }
 
     private static void vaubanIn(String org, CiState main, int pull, String title) {
+        vaubanIn(org, main, pull, title, List.of());
+    }
+
+    private static void vaubanIn(String org, CiState main, int pull, String title, List<String> fileTags) {
         Instant now = Instant.now();
         PullView pr = new PullView("vauban", pull, title, "yblazart", "sha", CiState.PENDING, List.of(),
-                GateStatus.NONE, "u", Instant.parse("2026-11-15T10:00:00Z"));
+                GateStatus.NONE, "u", Instant.parse("2026-11-15T10:00:00Z"), fileTags);
         RepoView vauban = new RepoView("vauban", main, "abc", "fix: y", now.minus(Duration.ofHours(2)), null,
                 List.of(pr), "u");
         InProcessApp.bean(LiveState.class).update(org, s -> s.withRepos(List.of(vauban), now),
